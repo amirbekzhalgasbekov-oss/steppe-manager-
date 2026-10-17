@@ -1,0 +1,3162 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Steppe Manager — football management and arcade game">
+  <title>Steppe Manager</title>
+  <style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0f1a14;color:#eef;min-height:100vh}
+.top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#14241b;border-bottom:3px solid #2e8b3e}
+main{padding:16px;max-width:900px;margin:auto}
+h1,h2{text-align:center;font-family:monospace;letter-spacing:1px}
+button{font:inherit;background:#2e8b3e;color:#fff;border:0;border-radius:6px;padding:10px 14px;cursor:pointer;margin:4px}
+button:hover{filter:brightness(1.1)}
+button.big{width:100%;font-size:18px;padding:16px}
+button.ghost{background:#2a3a30}
+.card{background:#16281e;border-left:6px solid var(--c,#2e8b3e);padding:12px;border-radius:8px;margin:10px 0}
+button.card{display:block;text-align:left;width:100%;color:#eef}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.pcard{position:relative;background:#16281e;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:2px;text-align:center}
+canvas.fig{width:48px;height:72px;image-rendering:auto;align-self:center;background:#22382b;border-radius:6px;flex:none}
+.frow{display:flex;gap:10px;align-items:center}
+canvas.stadium{width:100%;max-width:960px;image-rendering:pixelated;display:block;margin:auto;border:3px solid #000}
+.tbl{width:100%;border-collapse:collapse}
+.tbl td,.tbl th{padding:6px;border-bottom:1px solid #2a3a30;text-align:center}
+.tbl tr.me{background:#244d33}
+.hud{display:flex;justify-content:space-between;font-family:monospace;font-size:18px;max-width:960px;margin:8px auto}
+.hint{text-align:center;opacity:.7;font-size:14px}
+.score{font-size:44px;text-align:center;font-family:monospace}
+.fx{font-size:18px;text-align:center}
+small{display:block;opacity:.8}
+@media (max-width:480px){.grid2{grid-template-columns:1fr}}
+
+/* ===== матч: во весь экран, поле на всю площадь, управление поверх поля ===== */
+.m-screen{position:fixed;inset:0;background:#000;z-index:10;user-select:none;-webkit-user-select:none;touch-action:none;overflow:hidden}
+.m-screen canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.m-hud{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;gap:16px;font-family:monospace;font-size:15px;color:#fff;background:rgba(0,0,0,.4);padding:4px 12px;border-radius:6px;white-space:nowrap;pointer-events:none}
+.m-top-btn{position:absolute;top:8px;z-index:6;background:rgba(0,0,0,.45);color:#fff;border:0;border-radius:6px;padding:6px 10px;margin:0;font-size:14px}
+.m-exit{right:8px}
+.m-fs{right:84px}
+.m-joy{position:absolute;left:0;top:0;bottom:0;width:50%;touch-action:none}
+.m-btns{position:absolute;right:16px;bottom:16px;display:grid;grid-template-columns:84px 84px 108px;grid-template-rows:84px 108px;gap:10px;align-items:end;justify-items:center}
+.m-btns .b-sw{grid-column:2;grid-row:1}
+.m-btns .b-sp{grid-column:3;grid-row:1}
+.m-btns .b-sl{grid-column:1;grid-row:2}
+.m-btns .b-pa{grid-column:2;grid-row:2}
+.m-btns .b-sh{grid-column:3;grid-row:2}
+.joy-base,.joy-knob{position:absolute;border-radius:50%;display:none;transform:translate(-50%,-50%);pointer-events:none}
+.joy-base{width:130px;height:130px;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3)}
+.joy-knob{width:60px;height:60px;background:rgba(255,255,255,.45)}
+.round{width:84px;height:84px;border-radius:50%;font-size:20px;margin:0;background:rgba(46,139,62,.85)}
+.round.big{width:108px;height:108px;font-size:32px}
+.rotate{display:none}
+.m-sub-btn{left:8px;right:auto}
+.m-auto-btn{left:96px;right:auto}
+.m-auto-btn.on{background:#2e8b3e}
+.m-sub-panel{position:absolute;inset:0;background:rgba(0,0,0,.85);z-index:7;display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px;overflow:auto;color:#fff;text-align:center}
+.m-sub-panel button{width:min(340px,80vw);margin:0;padding:10px;font-size:15px}
+.m-sub-panel h3{margin:0;font-family:monospace}
+.m-sub-panel p{margin:4px 0}
+@media (orientation: portrait){
+  .rotate{display:flex;position:fixed;inset:0;align-items:center;justify-content:center;text-align:center;padding:24px;background:#0f1a14;z-index:20;font-size:22px}
+}
+
+.prow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid #2a3a30}
+.prow>div{flex:1 1 220px}
+.prow input{width:90px;padding:6px;border-radius:6px;border:0}
+details summary{cursor:pointer;padding:6px 0}
+
+/* ===== карьера: сетка меню, вкладки, полоски, почта ===== */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:480px){.grid3{grid-template-columns:1fr 1fr}}
+.tabs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.tabs button{margin:0}
+.tabs button.on{background:#e0b000;color:#111}
+button:disabled{opacity:.45;cursor:default;filter:none}
+select{font:inherit;padding:6px;border-radius:6px;border:0;margin:4px 0;max-width:100%}
+label{display:block;margin:6px 0}
+.bar{height:10px;background:#2a3a30;border-radius:5px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:#2e8b3e}
+.bad{color:#ff8a80}
+details.mail{background:#16281e;border-radius:8px;padding:8px 12px;margin:6px 0;border-left:4px solid #2a3a30}
+details.mail.unread{border-left-color:#e0b000}
+details.mail summary{font-weight:normal}
+details.mail.unread summary{font-weight:bold}
+details.mail p{margin:8px 0 0}
+
+.save-btn{background:#e0b000;color:#111;margin:0 6px 0 0;padding:6px 10px;font-weight:bold}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;margin:8px 0}
+label.pick{display:flex;gap:6px;align-items:center;margin:0;font-size:14px;cursor:pointer}
+label.pick input{width:18px;height:18px}
+
+.ctrl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.ctrl input{width:130px;padding:6px;border-radius:6px;border:0}
+.ok{color:#8fe39d}
+
+.m-skip{display:none;top:auto;bottom:14px;left:50%;transform:translateX(-50%);padding:10px 26px;font-size:16px;background:rgba(46,139,62,.92)}
+.m-photo .m-skip{display:block}
+.m-photo .m-btns,.m-photo .m-joy,.m-photo .m-sub-btn,.m-photo .m-auto-btn{display:none}
+
+/* ===== оформление меню: ночное поле, мел, золото степи ===== */
+:root{--grass:#2e8b3e;--night:#0b1510;--chalk:#f2efe6;--wheat:#e0b000}
+body{background:radial-gradient(1200px 600px at 50% -10%,#173424 0%,var(--night) 70%) fixed;color:var(--chalk)}
+h1,h2{font-family:Impact,'Arial Narrow Bold','Arial Black',system-ui,sans-serif;font-weight:400;letter-spacing:1.5px}
+button{transition:transform .12s ease,filter .12s ease,box-shadow .12s ease}
+button:active{transform:translateY(1px) scale(.99)}
+button:focus-visible{outline:3px solid var(--wheat);outline-offset:2px}
+.top{background:rgba(11,21,16,.85);backdrop-filter:blur(6px);border-bottom:2px solid var(--grass)}
+.v-start .top{display:none}
+
+/* главное меню */
+.hero{position:relative;overflow:hidden;border-radius:18px;margin:8px 0 16px;padding:40px 18px 28px;
+  background:repeating-linear-gradient(90deg,#14301f 0 56px,#123a22 56px 112px);
+  box-shadow:0 18px 40px rgba(0,0,0,.45),inset 0 0 0 2px rgba(242,239,230,.28)}
+.hero::before{content:"";position:absolute;inset:14px;border:2px solid rgba(242,239,230,.28);border-radius:8px;pointer-events:none}
+.hero::after{content:"";position:absolute;left:50%;top:50%;width:230px;height:230px;transform:translate(-50%,-50%);
+  border:2px solid rgba(242,239,230,.18);border-radius:50%;pointer-events:none}
+.hero{min-height:min(80vh,640px);display:flex;align-items:center}
+.hero-in{position:relative;z-index:1;width:100%;max-width:460px;margin:auto}
+.hero h1{font-size:clamp(42px,11vw,72px);line-height:1;margin:6px 0 4px;color:var(--chalk);text-shadow:0 3px 0 #0a2414,0 10px 24px rgba(0,0,0,.5)}
+.hero .ball{display:block;text-align:center;font-size:44px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.5))}
+.lang{position:absolute;top:22px;right:24px;z-index:2;margin:0;padding:6px 12px;font-size:14px;background:rgba(11,21,16,.6);border:1px solid rgba(242,239,230,.3)}
+.menu{display:flex;flex-direction:column;gap:12px;margin-top:30px}
+.menu button{display:flex;align-items:center;gap:14px;width:100%;margin:0;padding:14px 16px;font-size:19px;font-weight:700;text-align:left;
+  border-radius:14px;color:var(--chalk);background:rgba(11,21,16,.78);border:1px solid rgba(242,239,230,.22);box-shadow:0 6px 0 rgba(0,0,0,.35)}
+.menu button .ic{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;font-size:22px;background:rgba(242,239,230,.12)}
+.menu button.primary{background:var(--wheat);color:#1a1400;border-color:#ffd84d;box-shadow:0 6px 0 #8a6d00}
+.menu button.primary .ic{background:rgba(26,20,0,.15)}
+.menu button.green{background:var(--grass);border-color:#57c06a;box-shadow:0 6px 0 #1b5226}
+.menu button.green .ic{background:rgba(255,255,255,.18)}
+.menu button:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.menu button:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+
+/* меню карьеры: плитки */
+nav.grid3 button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:84px;margin:0;font-weight:600;
+  background:linear-gradient(180deg,#1d3a29,#16281e);border:1px solid rgba(242,239,230,.14);border-radius:12px;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+nav.grid3 button .ic{font-size:26px;line-height:1}
+nav.grid3 button:hover{border-color:var(--wheat);transform:translateY(-2px)}
+nav.grid3 button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+
+/* выбор клуба и общие карточки */
+button.card{transition:transform .12s ease,box-shadow .12s ease;border:1px solid rgba(242,239,230,.1);border-left:6px solid var(--c,#2e8b3e);box-shadow:0 4px 0 rgba(0,0,0,.3)}
+button.card:hover{transform:translateX(4px);filter:none;box-shadow:0 4px 0 rgba(0,0,0,.3),-4px 0 0 var(--c,#2e8b3e)}
+button.card b{font-size:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+canvas.portrait{width:56px;height:56px;image-rendering:pixelated;background:#1a2a20;border-radius:8px;flex:none}
+.inj-x{position:absolute;top:4px;right:8px;color:#ff4d4d;font-size:22px;font-weight:bold;line-height:1}
+.pitch{position:relative;width:100%;max-width:420px;aspect-ratio:4/5;margin:8px auto;background:#3c9a4a;border:2px solid #e8f5e9;border-radius:8px}
+.pitch:before{content:'';position:absolute;left:0;right:0;top:50%;border-top:2px solid rgba(255,255,255,.6)}
+.slot{position:absolute;transform:translate(-50%,-50%);width:74px;background:#16281e;border:2px solid #2b4a38;border-radius:8px;padding:3px;text-align:center;font-size:11px;color:#fff;cursor:pointer}
+.slot.sel{border-color:#ffd200;box-shadow:0 0 0 2px #ffd200}
+.slot canvas.fig{width:32px;height:48px}
+.slot .inj-x{font-size:16px;top:2px;right:4px}
+.bench-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-width:520px;margin:8px auto}
+.bench-row .slot{position:relative;transform:none;width:auto}
+.stats-wrap{overflow-x:auto;max-width:100%;margin-top:10px}
+table.stats{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap;color:#e8efe9}
+table.stats th,table.stats td{padding:4px 6px;border-bottom:1px solid #2a3a30;text-align:center}
+table.stats td.nm{text-align:left}
+table.stats tr.bench td{opacity:.75}
+</style>
+</head>
+<body>
+  <div id="app"><p style="padding:16px">Загрузка…</p></div>
+  <script>window.onerror=function(m,s,l){document.getElementById("app").innerHTML="<pre style=\"padding:16px;color:#fff;white-space:pre-wrap\">Ошибка: "+m+" (строка "+l+")</pre>";};</script>
+  <script>
+// ===== Тексты интерфейса (ru / kz) =====
+const T = {
+  ru: {
+    appTitle: 'Степная лига', newGame: 'Новая игра', continueGame: 'Продолжить',
+    chooseClub: 'Выберите клуб', budget: 'Тенге', rating: 'Рейтинг клуба',
+    squad: 'Состав', table: 'Таблица', stadium: 'Стадион', playMatch: 'Играть матч',
+    simRound: 'Сыграть тур', train: 'Тренировка (50млн₸)', round: 'Тур',
+    seasonOver: 'Сезон завершён', newSeason: 'Начать заново', back: 'Назад',
+    exit: 'В меню', result: 'Результат', next: 'Далее',
+    win: 'Победа', draw: 'Ничья', loss: 'Поражение', reward: 'Призовые',
+    club: 'Клуб', played: 'И', w: 'В', d: 'Н', l: 'П', gf: 'ЗМ', ga: 'ПМ', pts: 'О',
+    ovr: 'Общ', pace: 'Скор', shot: 'Удар', pass: 'Пас', def: 'Защ',
+    pos: { GK: 'ВР', DF: 'ЗЩ', MF: 'ПЗ', FW: 'НП' },
+    trainDone: 'Состав прошёл тренировку: +1 ко всем показателям',
+    noMoney: 'Недостаточно средств', time: 'Время', goal: 'ГОЛ!',
+    controls: 'Стрелки / WASD или касание поля — движение, пробел или ⚽ — удар',
+    stadiumDesc: 'Домашний стадион клуба', langBtn: 'Қазақша',
+    squadNote: 'Имена и позиции из открытых источников. Показатели в игре условные, это не оценки реальных игроков.',
+    pass: 'Пас', rotate: 'Поверните телефон горизонтально',
+    foul: 'ФОЛ!', fan: 'ФАНАТ НА ПОЛЕ!', fullTime: 'КОНЕЦ МАТЧА', pen: 'ПЕНАЛЬТИ!', save: 'СЕЙВ!', slide: 'Подкат',
+    sub: 'Замена', benchTitle: 'Запасные', subsLeft: 'Осталось замен', noBench: 'Нет запасных',
+    pickField: 'Кого заменить?', cancel: 'Отмена', bench: 'Запасной',
+    switchP: 'Смена', sprint: 'Спринт', throwIn: 'АУТ!', auto: 'Авто', autoOn: 'АВТО-ИГРА',
+    market: 'Трансферы', freeAgents: 'Свободные игроки', sell: 'Продать игрока', buy: 'Купить',
+    bought: 'Игрок куплен', sold: 'Игрок продан', none: 'Нет игроков', squadFull: 'В составе уже 20 игроков',
+    cantGive: 'Нельзя: в составе должно остаться минимум 11 игроков и вратарь', askTooLow: 'Меньше {x} не отдадим',
+    bidMax: 'максимум {x}', clubBudget: 'Тенге клуба', bidFrom: 'Цена',
+    load: 'Загрузить', save: 'Сохранить', slot: 'Слот', emptySlot: 'Пусто', saveHere: 'Сохранить сюда', del: 'Удалить',
+    savedOk: 'Игра сохранена', saveErr: 'Не удалось сохранить: мало места в хранилище',
+    day: 'День', mail: 'Почта', noMail: 'Писем нет', friendly: 'Товарищеский матч',
+    friendlyNote: 'Товарищеский матч не влияет на таблицу. Соперник выбирается из других клубов Степной лиги.',
+    trainFree: 'Тренировка тренера (бесплатно)',
+    stClub: 'ждём ответ клуба', stAgent: 'агент готовит требования', stWait: 'ждём ваш ответ (см. Почту)', stDecide: 'игрок рассматривает условия',
+    demand: 'Требование', counter: 'Предложить свою', acceptDemand: 'Принять требования', decline: 'Отказаться', signIt: 'Подписать',
+    publicity: 'Публичность (через PR-менеджера)', publicityNote: 'Кампания повышает PR. Отчёт придёт письмом через 2 дня.', needPRMgr: 'Нужен PR-менеджер',
+    tierA: 'Уровень A: крупные контракты', tierB: 'Уровень B: средние контракты', tierC: 'Уровень C: начальные контракты',
+    ind: { it: 'IT', bank: 'Банкинг', auto: 'Авто', telecom: 'Телеком' },
+    sponsorProposal: 'Написать предложение', active: 'Действует', inReply: 'В переписке',
+    offerSent: 'Предложение отправлено. Ответ придёт письмом через {x} дня.', badSum: 'Укажите сумму',
+    pendingOffers: 'Предложения на рассмотрении', answerIn: 'ответ через', offerBtn: 'Предложить',
+    wantSalary: 'Ожидает', alreadyPending: 'По этому игроку уже есть предложение',
+    talkTitle: 'Беседа с игроками', talkMax: 'В одной беседе не больше 5 игроков', talkPick: 'Выберите игроков',
+    planTitle: 'План тренировки на неделю', planNone: 'Не задан', planAll: 'Вся команда (общая)',
+    saveGame: 'Сохранить игру',
+    finance: 'Финансы', transfers: 'Трансферы', sponsors: 'Рекламодатели', prCampaign: 'PR-кампания (30млн₸)',
+    prNoMgr: 'Без PR-менеджера кампания работает слабее', prDone: 'PR-кампания проведена',
+    sponsorIncome: 'Доход от спонсоров', needPR: 'Нужно PR', sign: 'Подписать', terminate: 'Расторгнуть',
+    sponsorSigned: 'Контракт со спонсором подписан', sponsorEnded: 'Контракт расторгнут',
+    perWeek: 'в неделю', staffCost: 'Зарплаты штата',
+    tabPlayers: 'Игроки', tabStaff: 'Штат', tabActions: 'Взаимодействия',
+    staffNote: 'Сотрудники получают зарплату каждую неделю. На одну должность — один сотрудник.',
+    roles: { coach: 'Тренер', assistant: 'Ассистент', manager: 'Менеджер', doctor: 'Врач', psych: 'Психолог', pr: 'PR-менеджер', scout: 'Трансферный директор' },
+    roleDesc: { coach: 'Тренировки бесплатно, тактика матча', assistant: 'Авто-подбор состава: лучшие игроки в старте',
+      manager: 'Скидка на трансферы, доход от спонсоров', doctor: 'Лечение травм, восстановление ХП',
+      psych: 'Поддержка морали игроков', pr: 'Рост PR, PR-кампании эффективнее', scout: 'Каждую неделю новый игрок в трансферах' },
+    hire: 'Нанять', fire: 'Уволить', vacancy: 'Вакансия', lvl: 'Ур.', needStaff: 'Нужен сотрудник',
+    morale: 'Мор', hp: 'ХП', inj: 'Травма', ill: 'Болезнь', days: 'дн.',
+    actPsych: 'Поддержка психолога (10млн₸)', actDoctor: 'Лечение врача (20млн₸)',
+    pickPlayer: 'Игрок', tactic: 'Тактика', tacBal: 'Баланс', tacAtt: 'Атака', tacDef: 'Защита',
+    autoStaff: 'Автоуправление штатом', on: 'вкл', off: 'выкл',
+    autoStaffNote: 'Врач, психолог и тренер работают каждую неделю без участия игрока',
+    injuredList: 'Травмы', injury: 'Травма!', noInjury: 'У игрока нет травмы', treated: 'Игрок прошёл лечение',
+    supported: 'Психолог поговорил с игроком', tacSet: 'Тактика изменена',
+    hired: 'Сотрудник нанят', fired: 'Сотрудник уволен'
+  },
+  kz: {
+    appTitle: 'Дала лигасы', newGame: 'Жаңа ойын', continueGame: 'Жалғастыру',
+    chooseClub: 'Клубты таңдаңыз', budget: 'Теңге', rating: 'Клуб рейтингі',
+    squad: 'Құрам', table: 'Кесте', stadium: 'Стадион', playMatch: 'Матч ойнау',
+    simRound: 'Турды модельдеу', train: 'Жаттығу (50млн₸)', round: 'Тур',
+    seasonOver: 'Маусым аяқталды', newSeason: 'Қайтадан бастау', back: 'Артқа',
+    exit: 'Мәзірге', result: 'Нәтиже', next: 'Әрі қарай',
+    win: 'Жеңіс', draw: 'Тең', loss: 'Жеңіліс', reward: 'Сыйақы',
+    club: 'Клуб', played: 'О', w: 'Ж', d: 'Т', l: 'Ж', gf: 'СС', ga: 'ҚС', pts: 'Ұп',
+    ovr: 'Жалпы', pace: 'Жылдамдық', shot: 'Соққы', pass: 'Пас', def: 'Қорғаныс',
+    pos: { GK: 'ҚШ', DF: 'ҚҒ', MF: 'ОЖ', FW: 'ШБ' },
+    trainDone: 'Құрам жаттығудан өтті: барлық көрсеткіштерге +1',
+    noMoney: 'Қаражат жеткіліксіз', time: 'Уақыт', goal: 'ГОЛ!',
+    controls: 'Жебелер / WASD немесе өрісті түрту — жүру, бос орын немесе ⚽ — соққы',
+    stadiumDesc: 'Клубтың үй стадионы', langBtn: 'Русский',
+    squadNote: 'Аттар мен позициялар ашық дереккөздерден. Ойындағы көрсеткіштер шартты, бұл нақты ойыншылардың бағасы емес.',
+    pass: 'Пас', rotate: 'Телефонды көлденең бұрыңыз',
+    foul: 'ФОЛ!', fan: 'ЖАЙДАРМАН ДАЛАДА!', fullTime: 'ОЙЫН АЯҚТАЛДЫ', pen: 'ПЕНАЛЬТИ!', save: 'СЕЙВ!', slide: 'Сырғанау',
+    sub: 'Ауыстыру', benchTitle: 'Қорықтағылар', subsLeft: 'Қалған ауыстыру', noBench: 'Қорықтағылар жоқ',
+    pickField: 'Кімді ауыстыру керек?', cancel: 'Бас тарту', bench: 'Қорықтағы',
+    switchP: 'Ауысу', sprint: 'Спринт', throwIn: 'АУТ!', auto: 'Авто', autoOn: 'АВТО-ИГРА',
+    market: 'Трансферлер', freeAgents: 'Бос ойыншылар', sell: 'Ойыншыны сату', buy: 'Сатып алу',
+    bought: 'Ойыншы сатып алынды', sold: 'Ойыншы сатылды', none: 'Ойыншылар жоқ', squadFull: 'Құрамда 20 ойыншы бар',
+    cantGive: 'Болмайды: құрамда кемінде 11 ойыншы және қақпашы қалуы керек', askTooLow: '{x}-дан аз бермейміз',
+    bidMax: 'максимум {x}', clubBudget: 'Клуб теңгесі', bidFrom: 'Баға',
+    load: 'Жүктеу', save: 'Сақтау', slot: 'Ұя', emptySlot: 'Бос', saveHere: 'Осы жерге сақтау', del: 'Жою',
+    savedOk: 'Ойын сақталды', saveErr: 'Сақтау мүмкін емес: жад жеткіліксіз',
+    day: 'Күн', mail: 'Пошта', noMail: 'Хаттар жоқ', friendly: 'Досттық матч',
+    friendlyNote: 'Досттық матч кестеге әсер етпейді. Қарсылас — Дала лигасының басқа клубы.',
+    trainFree: 'Жаттықтырушы жаттығуы (тегін)',
+    stClub: 'клуб жауабын күтеміз', stAgent: 'агент талаптарды дайындайды', stWait: 'сіздің жауабыңызды күтеміз (Поштаны қараңыз)', stDecide: 'ойыншы шарттарды қарастырады',
+    demand: 'Талап', counter: 'Өз ұсынысым', acceptDemand: 'Талапты қабылдау', decline: 'Бас тарту', signIt: 'Қол қою',
+    publicity: 'Жариялылық (PR-менеджер арқылы)', publicityNote: 'Науқан PR-ді көтереді. Есеп 2 күннен кейін хатпен келеді.', needPRMgr: 'PR-менеджер керек',
+    tierA: 'A деңгейі: ірі келісімшарттар', tierB: 'B деңгейі: орташа келісімшарттар', tierC: 'C деңгейі: бастапқы келісімшарттар',
+    ind: { it: 'IT', bank: 'Банк', auto: 'Авто', telecom: 'Телеком' },
+    sponsorProposal: 'Ұсыныс жазу', active: 'Қолданыста', inReply: 'Хат алмасуда',
+    offerSent: 'Ұсыныс жіберілді. Жауап {x} күнден кейін хатпен келеді.', badSum: 'Соманы көрсетіңіз',
+    pendingOffers: 'Қаралып жатқан ұсыныстар', answerIn: 'жауап', offerBtn: 'Ұсыну',
+    wantSalary: 'Күтеді', alreadyPending: 'Бұл ойыншы бойынша ұсыныс бар',
+    talkTitle: 'Ойыншылармен әңгіме', talkMax: 'Бір әңгімеге 5-тен көп ойыншы болмайды', talkPick: 'Ойыншыларды таңдаңыз',
+    planTitle: 'Аптаның жаттығу жоспары', planNone: 'Жоқ', planAll: 'Бүкіл команда (жалпы)',
+    saveGame: 'Ойынды сақтау',
+    finance: 'Қаржы', transfers: 'Трансферлер', sponsors: 'Жарнама берушілер', prCampaign: 'PR науқаны (30млн₸)',
+    prNoMgr: 'PR менеджерсіз науқан әлсіз', prDone: 'PR науқаны өтті',
+    sponsorIncome: 'Демеушілер табысы', needPR: 'PR керек', sign: 'Қол қою', terminate: 'Бұзу',
+    sponsorSigned: 'Демеушімен келісімшарт жасалды', sponsorEnded: 'Келісімшарт бұзылды',
+    perWeek: 'аптасына', staffCost: 'Штат жалақысы',
+    tabPlayers: 'Ойыншылар', tabStaff: 'Штат', tabActions: 'Өзара әрекет',
+    staffNote: 'Қызметкерлер аптасына жалақы алады. Бір лауазымға бір қызметкер.',
+    roles: { coach: 'Жаттықтырушы', assistant: 'Көмекші', manager: 'Менеджер', doctor: 'Дәрігер', psych: 'Психолог', pr: 'PR-менеджер', scout: 'Трансфер директоры' },
+    roleDesc: { coach: 'Жаттығулар тегін, матч тактикасы', assistant: 'Авто-құрам: ең жақсы ойыншылар старта',
+      manager: 'Трансферлерге жеңілдік, демеушілер табысы', doctor: 'Жарақатты емдеу, ХП қалпына келтіру',
+      psych: 'Ойыншылардың көңіл-күйін қолдау', pr: 'PR өсуі, PR науқандары тиімдірек', scout: 'Әр аптада трансферге жаңа ойыншы' },
+    hire: 'Жалдау', fire: 'Босату', vacancy: 'Бос орын', lvl: 'Деңгей', needStaff: 'Қызметкер керек',
+    morale: 'Көңіл', hp: 'ХП', inj: 'Жарақат', ill: 'Ауру', days: 'күн',
+    actPsych: 'Психолог қолдауы (10млн₸)', actDoctor: 'Дәрігер емі (20млн₸)',
+    pickPlayer: 'Ойыншы', tactic: 'Тактика', tacBal: 'Теңгерім', tacAtt: 'Шабуыл', tacDef: 'Қорғаныс',
+    autoStaff: 'Штатты автоматты басқару', on: 'қосулы', off: 'өшірулі',
+    autoStaffNote: 'Дәрігер, психолог және жаттықтырушы аптасына ойыншысыз жұмыс істейді',
+    injuredList: 'Жарақаттар', injury: 'Жарақат!', noInjury: 'Ойыншыда жарақат жоқ', treated: 'Ойыншы емделді',
+    supported: 'Психолог ойыншымен сөйлесті', tacSet: 'Тактика өзгертілді',
+    hired: 'Қызметкер жалданды', fired: 'Қызметкер босатылды'
+  }
+};
+
+// ===== Клубы Степной лиги =====
+const CLUBS = [
+  // цвета: color — футболка, shorts — шорты; названия изменены (авторские права)
+  { id: 'volki', name: { ru: 'ФК Жёлтые Волки', kz: 'ФК Сары Бөрілер' }, city: { ru: 'Алматы', kz: 'Алматы' }, color: '#f2c500', shorts: '#111111', ovr: 78, pr: 70 },
+  { id: 'stolichny', name: { ru: 'ФК Столичный', kz: 'ФК Столичный' }, city: { ru: 'Астана', kz: 'Астана' }, color: '#8fd3ff', shorts: '#f2c500', ovr: 76, pr: 65 },
+  { id: 'kostanay',  name: { ru: 'ФК Костанай', kz: 'ФК Қостанай' }, city: { ru: 'Костанай', kz: 'Қостанай' }, color: '#1d7a3a', shorts: '#f2f2f2', ovr: 72, pr: 40 },
+  { id: 'ugolshchiki', name: { ru: 'ФК Угольщики', kz: 'ФК Көміршілер' }, city: { ru: 'Караганда', kz: 'Қарағанды' }, color: '#f28c28', shorts: '#111111', ovr: 72, pr: 45 },
+  { id: 'kyzylorda', name: { ru: 'ФК Кызылорда', kz: 'ФК Кызылорда' }, city: { ru: 'Кызылорда', kz: 'Қызылорда' }, color: '#1a1a1a', shorts: '#d62828', ovr: 72, pr: 35 },
+  { id: 'aktobinsk', name: { ru: 'ФК Актөбинск', kz: 'ФК Актөбинск' }, city: { ru: 'Актобе', kz: 'Ақтөбе' }, color: '#d62828', shorts: '#f2f2f2', ovr: 72, pr: 45 },
+  { id: 'yamyshev', name: { ru: 'ФК Ямышев', kz: 'ФК Ямышев' }, city: { ru: 'Ямышев', kz: 'Ямышев' }, color: '#14316b', shorts: '#f2f2f2', ovr: 68, pr: 50 },
+  { id: 'aktauzy', name: { ru: 'ФК Актауцы', kz: 'ФК Ақтаулықтар' }, city: { ru: 'Актау', kz: 'Ақтау' }, color: '#ffd21f', shorts: '#0a2a8a', ovr: 71, pr: 42 }
+];
+
+// Расписание: [домашний, гостевой] — индексы в CLUBS. Двухкруговой турнир 8 клубов: 56 матчей,
+// по 14 у каждого клуба (7 домашних и 7 выездных). Каждый элемент — один матч; матч, где не играет человек, моделируется кнопкой «Сыграть тур».
+const FIXTURES = (() => {
+  const n = CLUBS.length, rounds = [], ids = CLUBS.map((_, i) => i);
+  for (let r = 0; r < n - 1; r++) {
+    const round = [];
+    for (let i = 0; i < n / 2; i++) {
+      const x = ids[i], y = ids[n - 1 - i];
+      round.push((r + i) % 2 ? [x, y] : [y, x]);
+    }
+    rounds.push(round);
+    ids.splice(1, 0, ids.pop());           // вращение: первый клуб стоит на месте
+  }
+  const back = rounds.map(rd => rd.map(([h, a]) => [a, h]));
+  return rounds.concat(back).flat();
+})();
+
+// ===== Вымышленные игроки (без реальных имён и лиц) =====
+const FIRST = ['Айдар', 'Нурлан', 'Данияр', 'Темирлан', 'Ерлан', 'Азамат', 'Руслан', 'Бауыржан', 'Марат', 'Алихан', 'Санжар'];
+const LAST  = ['Омаров', 'Сейтов', 'Карим', 'Ахметов', 'Бекмуратов', 'Жумабаев', 'Тулегенов', 'Касымов', 'Есенов', 'Нуржанов', 'Ибраев'];
+const POS = ['GK', 'DF', 'DF', 'DF', 'DF', 'MF', 'MF', 'MF', 'FW', 'FW', 'FW'];
+const BIAS = {
+  GK: { pace: -8, shot: -15, pass: -2, def: 8 },
+  DF: { pace: -2, shot: -8,  pass: -2, def: 6 },
+  MF: { pace: 0,  shot: -2,  pass: 6,  def: 0 },
+  FW: { pace: 4,  shot: 6,   pass: -3, def: -8 }
+};
+
+function clamp(v, a = 1, b = 99) { return Math.max(a, Math.min(b, v)); }
+function seeded(s) { return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+// общий рейтинг зависит от амплуа: у вратаря важнее защита и передача, у нападающего — удар и скорость
+const OVR_W = { GK: { pace: .1, shot: .05, pass: .25, def: .6 }, DF: { pace: .2, shot: .05, pass: .2, def: .55 },
+                MF: { pace: .2, shot: .2, pass: .35, def: .25 }, FW: { pace: .3, shot: .45, pass: .15, def: .1 } };
+function ovrOf(p) {
+  const w = OVR_W[p.pos] || { pace: .25, shot: .25, pass: .25, def: .25 };
+  return Math.round(p.pace * w.pace + p.shot * w.shot + p.pass * w.pass + p.def * w.def);
+}
+
+function makeFictionalSquad(club, idx) {
+  const r = seeded(idx * 977 + club.ovr * 13 + 7);
+  return POS.map((pos, i) => {
+    const base = club.ovr + Math.round(r() * 8 - 4);
+    const st = k => clamp(Math.round(base + BIAS[pos][k] + r() * 8 - 4));
+    const p = {
+      num: i + 1,
+      name: FIRST[(i * 3 + idx) % FIRST.length] + ' ' + LAST[(i * 5 + idx * 2) % LAST.length],
+      pos, pace: st('pace'), shot: st('shot'), pass: st('pass'), def: st('def')
+    };
+    p.ovr = ovrOf(p);
+    return p;
+  });
+}
+
+// Составы: номер, имя, позиция. Имена изменены, номера условные.
+const PRESET_SQUADS = {
+  stolichny: [
+    [61, 'Эмрен Тылакбаев', 'GK'],
+    [2, 'Корло Бортолец', 'DF'], [4, 'Сонжар Онуаров', 'DF'], [6, 'Олибек Косум', 'DF'], [77, 'Дметри Шамко', 'DF'],
+    [8, 'Еван Бошич', 'MF'], [9, 'Буырзан Еслимхан', 'MF'], [10, 'Мурин Тамасов', 'MF'],
+    [20, 'Номди Оханону', 'FW'], [29, 'Некола Бырек', 'FW'], [89, 'Орсен Охмедов', 'FW']
+  ],
+  volki: [
+    [1, 'Тимирлан Онарбекев', 'GK'],
+    [2, 'Лыис Мотта', 'DF'], [3, 'Олесандр Мортынович', 'DF'], [4, 'Иркин Тополов', 'DF'], [5, 'Одлан Ныргалеев', 'DF'],
+    [6, 'Домир Косабулад', 'MF'], [7, 'Одилет Содыбекев', 'MF'], [8, 'Джоржинио', 'MF'],
+    [9, 'Лив Киргун', 'FW'], [10, 'Морс Гял', 'FW'], [11, 'Исмаил Бикболот', 'FW']
+  ],
+  aktauzy: [
+    [1, 'Ермек Балгабаев', 'GK'],
+    [2, 'Нурбол Сатыбалдин', 'DF'], [3, 'Даурен Кулмухамедов', 'DF'], [4, 'Арман Жексенов', 'DF'], [5, 'Тимур Азаматов', 'DF'],
+    [6, 'Ильяс Берикболов', 'MF'], [8, 'Серик Ундасынов', 'MF'], [10, 'Руслан Токтаров', 'MF'],
+    [7, 'Максат Дюсенов', 'FW'], [9, 'Олжас Беркимбаев', 'FW'], [11, 'Галым Рахимжанов', 'FW']
+  ]
+};
+
+// Составы с готовыми показателями из присланных данных (фамилии клубов Костанай, Актөбинск, Кызылорда переименованы на 1–2 буквы; состав Угольщиков — присланный).
+// Порядок важен: первые 11 — на поле (вратарь первый, затем защита, полузащита, нападение), остальные — запасные.
+const STATS_SQUADS = {
+  yamyshev: [
+    [1, 'Коноваалов', 'GK', 35, 20, 55, 68, 68, 75, 100],
+    [2, 'Адамбаевв', 'DF', 72, 50, 61, 65, 66, 70, 100],
+    [3, 'Жумаханоов', 'DF', 58, 35, 52, 69, 67, 73, 100],
+    [4, 'Беланчичч', 'DF', 55, 38, 50, 70, 68, 75, 100],
+    [5, 'Шомкоо', 'DF', 62, 55, 65, 66, 67, 80, 100],
+    [6, 'Тюлюбаай', 'DF', 60, 48, 64, 67, 66, 72, 100],
+    [7, 'Илиич', 'MF', 65, 62, 71, 58, 69, 74, 100],
+    [8, 'Оразоов', 'MF', 74, 67, 72, 45, 70, 78, 100],
+    [9, 'Шиина', 'FW', 78, 66, 63, 38, 69, 70, 100],
+    [10, 'Муртазааев', 'FW', 75, 68, 62, 35, 68, 76, 100],
+    [11, 'Свиридоов', 'FW', 70, 71, 58, 32, 69, 72, 100],
+    [12, 'Цуприкоов', 'GK', 30, 15, 50, 64, 64, 68, 100],
+    [13, 'Пенчиковв', 'DF', 68, 45, 58, 64, 65, 68, 100],
+    [14, 'Пайрууз', 'MF', 73, 60, 61, 40, 65, 65, 100],
+    [15, 'Жаксылыкоов', 'FW', 67, 67, 52, 30, 66, 70, 100]
+  ],
+  kostanay: [
+    [44, 'Донил Истименко', 'GK', 62, 42, 59, 88, 63],
+    [3, 'Раман Осранкулев', 'DF', 80, 58, 66, 78, 71],
+    [4, 'Ниманья Цавнич', 'DF', 64, 48, 53, 86, 63],
+    [22, 'Олесандр Морачкин', 'DF', 63, 45, 56, 85, 62],
+    [6, 'Моксим Мякош', 'MF', 74, 64, 69, 82, 72],
+    [8, 'Осхат Тагыберген', 'MF', 76, 84, 85, 65, 77],
+    [14, 'Омин Талаль', 'MF', 79, 78, 80, 60, 74],
+    [17, 'Олесандр Зиев', 'MF', 83, 68, 72, 64, 72],
+    [18, 'Ырош Меловонович', 'FW', 82, 87, 60, 45, 68],
+    [99, 'Веталий Лесокович', 'FW', 85, 86, 67, 48, 71],
+    [30, 'Лыис Гирро', 'FW', 87, 79, 71, 52, 73],
+    [1, 'Сылтан Бысурманев', 'GK', 60, 40, 58, 87, 61]
+  ],
+  // номера и имена из присланного состава; ratings — условные показатели игры
+  aktobinsk: [
+    [34, 'Стос Пакатилев', 'GK', 63, 42, 60, 88, 63],
+    [2, 'Одильхан Тонжарикев', 'DF', 78, 55, 62, 77, 68],
+    [4, 'Багорез Косум', 'DF', 65, 48, 55, 85, 63],
+    [5, 'Гоби Кеке', 'DF', 66, 50, 54, 86, 64],
+    [77, 'Дметрий Шемко', 'DF', 76, 62, 74, 75, 72],
+    [8, 'Орман Киналеев', 'MF', 75, 68, 72, 80, 74],
+    [17, 'Олуадин Жанибеков', 'MF', 80, 75, 78, 62, 74],
+    [22, 'Бэтрон Эмики', 'MF', 82, 79, 81, 64, 76],
+    [10, 'Моксим Сомородав', 'FW', 89, 86, 73, 50, 74],
+    [13, 'Едрис Имаев', 'FW', 84, 85, 65, 46, 70],
+    [99, 'Ыго Фегейреду', 'FW', 86, 88, 68, 48, 72],
+    [51, 'Егорь Трофимец', 'GK', 60, 40, 57, 86, 61]
+  ],
+  // номера и имена из присланного состава; ratings — условные показатели игры
+  ugolshchiki: [
+    [1, 'Шацкиих', 'GK', 38, 18, 58, 70, 70, 75, 100],
+    [2, 'Габышеевв', 'DF', 74, 52, 63, 68, 69, 72, 100],
+    [3, 'Букоов', 'DF', 58, 36, 55, 73, 71, 74, 100],
+    [4, 'Малышевв', 'DF', 56, 35, 52, 72, 70, 73, 100],
+    [5, 'Лыйов', 'DF', 66, 50, 64, 67, 69, 70, 100],
+    [6, 'Каньяаср', 'DF', 64, 60, 73, 72, 72, 78, 100],
+    [7, 'Асланоов', 'MF', 68, 65, 74, 62, 71, 76, 100],
+    [8, 'Пыркоов', 'MF', 72, 68, 71, 48, 70, 74, 100],
+    [9, 'Вендеероов', 'FW', 79, 70, 65, 40, 71, 75, 100],
+    [10, 'Зеневиич', 'FW', 76, 71, 64, 38, 70, 72, 100],
+    [11, 'Таттыбаевв', 'FW', 71, 74, 60, 35, 71, 80, 100],
+    [12, 'Трофимеец', 'GK', 32, 15, 52, 66, 66, 68, 100],
+    [13, 'Нажарыык', 'DF', 72, 48, 60, 65, 67, 70, 100],
+    [14, 'Тошевв', 'MF', 67, 63, 68, 55, 68, 71, 100],
+    [15, 'Алиевв', 'FW', 70, 69, 54, 32, 67, 70, 100]
+  ],
+  kyzylorda: [
+    [1, 'Рыслан Зорицкий', 'GK', 62, 41, 58, 87, 62],
+    [5, 'Оскар Амирбеков', 'DF', 74, 52, 59, 78, 66],
+    [13, 'Руслан Юдинков', 'DF', 63, 46, 55, 85, 62],
+    [22, 'Повел Назаров', 'DF', 65, 48, 53, 84, 63],
+    [24, 'Илдос Ахметов', 'DF', 72, 50, 60, 79, 65],
+    [8, 'Дыман Норзилдеев', 'MF', 77, 70, 75, 73, 74],
+    [10, 'Арлин Сторокен', 'MF', 74, 73, 78, 70, 74],
+    [14, 'Шахан Обзан', 'MF', 80, 72, 71, 60, 71],
+    [7, 'Ойбар Жаксылыков', 'FW', 83, 81, 64, 48, 69],
+    [11, 'Васильне Баранавский', 'FW', 81, 82, 62, 45, 68],
+    [99, 'Эльдар Обдразаков', 'FW', 85, 84, 66, 47, 71],
+    [32, 'Нырымжан Соллайдин', 'GK', 60, 39, 56, 86, 60],
+    [9, 'Иркин Тактарев', 'FW', 82, 83, 63, 46, 69]
+  ]
+};
+
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+// шесть запасных клубов: случайные, но ни один показатель не выше, чем у основного игрока той же позиции
+function makeBench(club, starters, r) {
+  const nums = club.id === 'stolichny' ? [12, 15, 18, 21, 23, 33] : [12, 14, 15, 16, 18, 19];
+  return ['GK', 'DF', 'DF', 'MF', 'MF', 'FW'].map((pos, i) => {
+    const same = starters.filter(p => p.pos === pos);
+    const cap = k => Math.min(...same.map(p => p[k]));
+    const base = club.ovr - 8 + Math.round(r() * 6 - 3);
+    const st = k => Math.min(cap(k), clamp(Math.round(base + BIAS[pos][k] + r() * 8 - 4)));
+    const p = { num: nums[i], name: FIRST[(i * 7 + club.ovr) % FIRST.length] + ' ' + LAST[(i * 3 + club.ovr) % LAST.length],
+                pos, pace: st('pace'), shot: st('shot'), pass: st('pass'), def: st('def') };
+    p.ovr = ovrOf(p);
+    return p;
+  });
+}
+
+function makeSquad(club, idx) {
+  if (STATS_SQUADS[club.id]) {
+    return STATS_SQUADS[club.id].map(([num, name, pos, pace, shot, pass, def, ovr, mor, hp]) =>
+      ({ num, name, pos, pace, shot, pass, def, ovr, ...(mor !== undefined ? { mor, hp } : {}) }));
+  }
+  if (!PRESET_SQUADS[club.id]) return makeFictionalSquad(club, idx);
+  const r = seeded(idx * 977 + club.ovr * 13 + 7);
+  const starters = PRESET_SQUADS[club.id].map(([num, name, pos]) => {
+    const base = club.ovr + Math.round(r() * 8 - 4);
+    const st = k => clamp(Math.round(base + BIAS[pos][k] + r() * 8 - 4));
+    const p = { num, name, pos, pace: st('pace'), shot: st('shot'), pass: st('pass'), def: st('def') };
+    p.ovr = ovrOf(p);
+    return p;
+  });
+  return starters.concat(makeBench(club, starters, r));
+}
+
+</script>
+  <script>
+// ===== Карьера: календарь, травмы и мораль, штат, спонсоры, почта, слоты сохранений =====
+// Файл подключается до game.js: здесь только функции и константы, без обращения к S при загрузке.
+const DAYS_PER_ROUND = 7;   // один тур = неделя
+const SLOTS = 3;            // ручные слоты сохранения
+const ROLE_KEYS = ['coach', 'assistant', 'manager', 'doctor', 'psych', 'pr', 'scout'];
+// зарплата в неделю при уровне 1 (умножается на уровень сотрудника)
+const ROLE_SALARY = { coach: 1e7, assistant: 5e6, manager: 8e6, doctor: 8e6, psych: 5e6, pr: 6e6, scout: 9e6 };
+
+// спонсоры: три уровня (A — крупные контракты, B — средние, C — начальные); названия СНГ-компаний изменены на одну букву
+const SPONSORS = [
+  { id: 's1', name: 'Akbulak Bank', ind: 'bank', tier: 'A', need: 75, inc: 4.5e8 },
+  { id: 's2', name: 'Sibirsky Bank', ind: 'bank', tier: 'A', need: 70, inc: 4e8 },
+  { id: 's3', name: 'Nurai Tech', ind: 'it', tier: 'A', need: 70, inc: 4e8 },
+  { id: 's4', name: 'Zarafshan Bank', ind: 'bank', tier: 'A', need: 65, inc: 3.5e8 },
+  { id: 's5', name: 'Kyran Svyaz', ind: 'telecom', tier: 'A', need: 65, inc: 3.2e8 },
+  { id: 's6', name: 'Yenisei Motors', ind: 'auto', tier: 'A', need: 60, inc: 2.8e8 },
+  { id: 's7', name: 'Ala-Too Finance', ind: 'bank', tier: 'A', need: 80, inc: 4.5e8 },
+  { id: 's8', name: 'Pamir Credit', ind: 'bank', tier: 'B', need: 55, inc: 2e8 },
+  { id: 's9', name: 'Stepnoy Credit', ind: 'bank', tier: 'B', need: 50, inc: 1.8e8 },
+  { id: 's10', name: 'Vostok Bank', ind: 'bank', tier: 'B', need: 45, inc: 1.6e8 },
+  { id: 's11', name: 'Dostyk Digital', ind: 'it', tier: 'B', need: 50, inc: 1.8e8 },
+  { id: 's12', name: 'Altai Telecom', ind: 'telecom', tier: 'B', need: 45, inc: 1.5e8 },
+  { id: 's13', name: 'Irtysh Telecom', ind: 'telecom', tier: 'B', need: 40, inc: 1.2e8 },
+  { id: 's14', name: 'Bakhyt Motors', ind: 'auto', tier: 'B', need: 40, inc: 1.2e8 },
+  { id: 's15', name: 'Zhalyn Bank', ind: 'bank', tier: 'C', need: 35, inc: 8e7 },
+  { id: 's16', name: 'Kokshe Pay', ind: 'bank', tier: 'C', need: 30, inc: 7e7 },
+  { id: 's17', name: 'Aral Systems', ind: 'it', tier: 'C', need: 25, inc: 6e7 },
+  { id: 's18', name: 'Shalkar Net', ind: 'it', tier: 'C', need: 30, inc: 7e7 },
+  { id: 's19', name: 'Bozkol Telecom', ind: 'telecom', tier: 'C', need: 20, inc: 5e7 },
+  { id: 's20', name: 'Kara-Tau Motors', ind: 'auto', tier: 'C', need: 15, inc: 4e7 }
+];
+// PR-кампании через PR-менеджера: цена, прирост PR и название
+const PUBLICITY = {
+  interview: { cost: 1e7, gain: 4, label: { ru: 'Интервью', kz: 'Сұхбат' } },
+  charity: { cost: 3e7, gain: 8, label: { ru: 'Благотворительность', kz: 'Қайырымдылық' } },
+  social: { cost: 5e6, gain: 2, label: { ru: 'Соцсети', kz: 'Әлеуметтік желі' } }
+};
+
+const bi = (ru, kz) => ({ ru, kz });                                   // текст сразу на двух языках (для почты)
+const loc = o => (o && typeof o === 'object' ? (o[L()] || o.ru) : (o || ''));
+const staffLvl = role => (S.staff && S.staff[role] ? S.staff[role].lvl : 0);
+const staffSalary = () => ROLE_KEYS.reduce((a, r) => a + (S.staff[r] ? S.staff[r].salary : 0), 0);
+const sponsorIncome = () => S.sponsors.reduce((a, id) => a + ((SPONSORS.find(s => s.id === id) || { inc: 0 }).inc), 0) * (1 + 0.03 * staffLvl('manager'));
+const discount = () => 1 - 0.02 * staffLvl('manager');                 // скидка менеджера на трансферы
+const flashView = (view, msg) => { NOTICE = msg; go(view); };
+
+// новые поля игрока: ХП, мораль, травма (дни) и её тип; старые сохранения получают значения по умолчанию
+function fixPlayer(p) {
+  if (p.hp === undefined) p.hp = 100;
+  if (p.mor === undefined) p.mor = 70;
+  if (p.inj === undefined) p.inj = 0;
+  if (p.injK === undefined) p.injK = '';
+  if (p.wage === undefined) p.wage = wageOf(p);
+}
+
+// лечение: сокращает дни травмы, тип сбрасывается после выздоровления
+function heal(p, d) {
+  p.inj = Math.max(0, p.inj - d);
+  if (!p.inj) p.injK = '';
+}
+
+// ----- почта -----
+function mail(from, subj, body) {
+  S.mail.unshift({ id: newId(), from, subj, body, day: S.day, read: false });
+  if (S.mail.length > 80) S.mail.length = 80;
+}
+const unreadCount = () => (S.mail || []).filter(m => !m.read).length;
+function readMail(id) {
+  const m = S.mail.find(x => x.id === id);
+  if (m && !m.read) { m.read = true; save(); }
+}
+function welcomeMail() {
+  const c = CLUBS.find(x => x.id === S.me);
+  mail(bi('Совет директоров', 'Директорлар кеңесі'), bi('Добро пожаловать!', 'Қош келдіңіз!'),
+    bi(`Вы генеральный директор клуба ${c.name.ru}. Выведите клуб на вершину Степной лиги. Следите за травмами, моралью и штатом, ищите спонсоров.`,
+       `Сіз ${c.name.kz} клубының бас директорысыз. Клубты Дала лигасының шыңына шығарыңыз. Жарақатты, көңіл-күйді және штатты бақылаңыз, демеушілер іздеңіз.`));
+}
+
+// ----- календарь: дни, восстановление, болезни -----
+function dayTick() {
+  S.day++;
+  // свободные игроки: в любой день может появиться новый, а часть уходит в другие клубы
+  if (S.pool.length < 16 && Math.random() < 0.3) S.pool.push(randPlayer(pick(['GK', 'DF', 'DF', 'MF', 'MF', 'FW', 'FW']), 46 + Math.floor(Math.random() * 16)));
+  if (S.pool.length && Math.random() < 0.05) {
+    const i = Math.floor(Math.random() * S.pool.length);
+    if (!negFor(S.pool[i].id)) S.pool.splice(i, 1);
+  }
+  const doc = staffLvl('doctor');
+  CLUBS.forEach(c => {
+    const me = c.id === S.me;
+    S.squads[c.id].forEach(p => {
+      if (p.hp < 100) p.hp = Math.min(100, p.hp + 1 + (me ? doc : 0));
+      if (p.inj > 0) {
+        heal(p, 1);
+        if (!p.inj && me) mail(bi('Медицинский центр', 'Медициналық орталық'),
+          bi(`${p.name} вернулся в строй`, `${p.name} жаттығуға оралды`),
+          bi('Игрок полностью восстановился и готов к матчам.', 'Ойыншы толық қалпына келді және матчқа дайын.'));
+      }
+      // редкая болезнь у игроков клуба пользователя (3–8 дней, без потери ХП)
+      if (me && p.inj === 0 && Math.random() < 0.0015) {
+        p.inj = 3 + Math.floor(Math.random() * 6);
+        p.injK = 'ill';
+        mail(bi('Медицинский центр', 'Медициналық орталық'), bi(`${p.name}: болезнь`, `${p.name}: ауру`),
+          bi(`Игрок заболел на ${p.inj} дн. До выздоровления играть не сможет.`, `Ойыншы ${p.inj} күнге ауырды. Сауыққанша ойнай алмайды.`));
+      }
+    });
+  });
+}
+function passDays(n) { for (let i = 0; i < n; i++) { dayTick(); resolveNeg(); } }
+
+// ----- штат -----
+// женские имена и фамилии для сотрудников; мужские — из общего списка
+const FIRST_F = ['Айгерим', 'Динара', 'Гульнара', 'Аружан', 'Алия', 'Жанна', 'Мадина', 'Сабина', 'Асель', 'Айнур', 'Камила', 'Ботагоз', 'Дана', 'Салтанат', 'Адель'];
+function femaleSurname(last) {
+  if (/а$/.test(last)) return last;
+  return /(ов|ев|ин)$/.test(last) ? last + 'а' : last + 'ова';
+}
+function maleSurname(last) { return /(ова|ева)$/.test(last) ? last.slice(0, -1) : last; }
+// имя под пол: исправляет старые сохранения, где имя и пол не совпадали
+function fitName(name, g) {
+  const [first = '', ...rest] = name.split(' ');
+  const last = rest.join(' ') || pick(LAST);
+  if (g === 'f') return (FIRST_F.includes(first) ? first : pick(FIRST_F)) + ' ' + femaleSurname(last);
+  return (FIRST.includes(first) ? first : pick(FIRST)) + ' ' + maleSurname(last);
+}
+function genCand(role) {
+  const lvl = 1 + Math.floor(Math.random() * 4);
+  const want = Math.round(ROLE_SALARY[role] * lvl * (0.9 + Math.random() * 0.3));   // ожидаемая зарплата в неделю
+  const look = staffLook(role);   // сначала пол, потом имя: женский портрет — женское имя и фамилия
+  return { id: newId(), role, name: look.gender === 'f' ? pick(FIRST_F) + ' ' + femaleSurname(pick(LAST)) : pick(FIRST) + ' ' + pick(LAST), lvl, want, look };
+}
+function genCands() {
+  return ROLE_KEYS.filter(r => !S.staff[r]).flatMap(r => [genCand(r), genCand(r)]);
+}
+function fire(role) {
+  if (!S.staff[role]) return;
+  S.staff[role] = null;
+  S.cands.push(genCand(role));
+  save();
+  flashView('squad', t('fired'));
+}
+// зарплаты: если денег не хватает, самый дорогой сотрудник уходит из клуба
+function paySalaries() {
+  while (staffSalary() + wageCost() > S.budget) {
+    const roles = ROLE_KEYS.filter(r => S.staff[r]);
+    if (!roles.length) break;
+    const r = roles.reduce((x, y) => (S.staff[y].salary > S.staff[x].salary ? y : x));
+    const name = S.staff[r].name;
+    S.staff[r] = null;
+    mail(bi('Бухгалтерия', 'Бухгалтерия'), bi(`Сотрудник ушёл: ${name}`, `Қызметкер кетті: ${name}`),
+      bi('Не хватило денег на зарплаты, сотрудник покинул клуб. Должность свободна.', 'Жалақыға ақша жетпеді, қызметкер клубтан кетті. Лауазым бос.'));
+  }
+  S.budget -= staffSalary() + wageCost();
+}
+
+// автоуправление: врач лечит, психолог поддерживает, тренер тренирует — без участия игрока
+function autoStaffWeek() {
+  const doc = staffLvl('doctor'), psy = staffLvl('psych'), co = staffLvl('coach');
+  const sq = S.squads[S.me];
+  if (doc) sq.forEach(p => heal(p, 3 + doc));
+  if (psy) sq.forEach(p => { p.mor = Math.min(100, p.mor + 3 + psy); });
+  if (co) sq.forEach(p => {
+    if (Math.random() < co / 5) { ['pace', 'shot', 'pass', 'def'].forEach(k => { p[k] = clamp(p[k] + 1); }); p.ovr = ovrOf(p); }
+  });
+}
+
+// ----- письма игроков раз в неделю: зависят от морали и места в составе -----
+function playerMails() {
+  if (Math.random() > 0.5) return;
+  const all = S.squads[S.me];
+  const low = all.slice(0, 11).filter(p => p.mor < 45);
+  const bench = all.slice(11).filter(p => p.inj === 0);
+  const hi = all.slice(0, 11).filter(p => p.mor > 90);
+  if (low.length) {
+    const p = pick(low);
+    mail(bi(p.name, p.name), bi('Хочу играть', 'Ойнағым келеді'),
+      bi('Тренер, моё настроение падает. Мне нужна игровая практика или поддержка психолога.', 'Жаттықтырушы, көңіл-күйім түсіп барады. Маған ойын тәжірибесі немесе психолог қолдауы керек.'));
+  } else if (bench.length) {
+    const p = pick(bench);
+    mail(bi(p.name, p.name), bi('Вопрос о месте в составе', 'Құрамдағы орын туралы сұрақ'),
+      bi('Я готов выйти на поле в любой момент. Буду признателен за шанс в ближайших матчах.', 'Мен кез келген уақытта алаңға шығуға дайынмын. Жақын матчтарда мүмкіндік берсеңіз, рахмет болады.'));
+  } else if (hi.length) {
+    const p = pick(hi);
+    mail(bi(p.name, p.name), bi('Отличная форма', 'Тамаша форма'),
+      bi('Команда в отличной форме, мы готовы к следующему матчу!', 'Команда тамаша формада, келесі матчқа дайынбыз!'));
+  }
+}
+
+// еженедельный цикл: зарплаты, спонсоры, PR, скаут, почта
+function weekly() {
+  paySalaries();
+  S.budget += sponsorIncome();
+  S.pr = Math.min(100, S.pr + 0.3 + 0.3 * staffLvl('pr'));
+  if (S.autoStaff) autoStaffWeek();
+  const sc = staffLvl('scout');
+  if (sc) {
+    S.pool.push(randPlayer(pick(['MF', 'FW', 'DF', 'GK']), 56 + sc * 3));   // трансферный директор находит игрока
+    S.pool = S.pool.slice(-12);
+  }
+  if (S.plan && S.plan !== 'none' && staffLvl('coach')) applyPlan(S.plan);
+  playerMails();
+  S.cands = genCands();
+}
+
+// ----- мораль и травмы после матча -----
+// клуб после матча: победа +4, поражение −4 всем, кто выходил в старте
+function moraleAfter(idA, gA, idB, gB) {
+  const d = gA > gB ? [4, -4] : gA < gB ? [-4, 4] : [0, 0];
+  [[idA, d[0]], [idB, d[1]]].forEach(([id, x]) => {
+    S.squads[id].slice(0, 11).forEach(p => { p.mor = clamp(p.mor + x, 0, 100); });
+  });
+}
+
+// травмы из матча: ХП падает, игрок выбывает на несколько недель; возвращает строки для экрана результата
+function applyInjuries(list, oppId) {
+  const names = [];
+  list.forEach(r => {
+    const clubId = r.side === 0 ? S.me : oppId;
+    const p = S.squads[clubId].find(q => q.id === r.id);
+    if (!p) return;
+    p.hp = Math.max(20, p.hp - r.dmg);
+    p.inj = r.days;
+    p.injK = 'inj';
+    if (r.side === 0) {
+      names.push(`${p.name} (${r.days} ${t('days')})`);
+      mail(bi('Медицинский центр', 'Медициналық орталық'), bi(`Травма: ${p.name}`, `Жарақат: ${p.name}`),
+        bi(`Игрок выбыл на ${r.days} дн. ХП: ${Math.round(p.hp)}. Врач может ускорить лечение.`,
+           `Ойыншы ${r.days} күнге шықпайды. ХП: ${Math.round(p.hp)}. Дәрігер емді жеделдете алады.`));
+    }
+  });
+  return names;
+}
+
+// состав перед матчом: травмированных заменяем здоровыми запасными; ассистент ставит сильнейших
+function prepareLineup(sq, isMe) {
+  const fit = p => p.inj <= 0;
+  for (let i = 0; i < 11; i++) {
+    if (fit(sq[i])) continue;
+    let j = sq.findIndex((q, k) => k >= 11 && fit(q) && q.pos === sq[i].pos);
+    if (j < 0 && sq[i].pos !== 'GK') j = sq.findIndex((q, k) => k >= 11 && fit(q) && q.pos !== 'GK');
+    if (j < 0 && sq[i].pos === 'GK') j = sq.findIndex((q, k) => k >= 11 && fit(q));   // нет здорового вратаря — в ворота встаёт полевой игрок
+    if (j >= 0) [sq[i], sq[j]] = [sq[j], sq[i]];
+  }
+  if (isMe && staffLvl('assistant')) {
+    for (let i = 1; i < 11; i++) {
+      let best = -1;
+      sq.forEach((q, k) => {
+        if (k >= 11 && fit(q) && q.pos === sq[i].pos && q.ovr > sq[i].ovr + 2 && (best < 0 || q.ovr > sq[best].ovr)) best = k;
+      });
+      if (best >= 0) [sq[i], sq[best]] = [sq[best], sq[i]];
+    }
+  }
+}
+
+// тактика тренера: атака — больше удара и скорости, меньше защиты; защита — наоборот
+function tacticMods(tactic, lvl) {
+  if (!lvl || !tactic || tactic === 'balanced') return null;
+  const k = 1.5 * lvl;
+  return tactic === 'attack' ? { shot: k, pace: 0.4 * k, def: -k } : { def: k, pace: -0.4 * k, shot: -k };
+}
+
+// ----- взаимодействия со штатом (из состава) -----
+// не больше 5 игроков в одной беседе
+function limitPick(el) {
+  const checked = document.querySelectorAll('.psel:checked');
+  const hint = document.getElementById('talkHint');
+  if (checked.length > 5) {
+    el.checked = false;
+    if (hint) hint.textContent = t('talkMax');
+  } else if (hint) {
+    hint.textContent = '';
+  }
+}
+function act(kind) {
+  if (kind === 'psych') {
+    if (!staffLvl('psych')) return flashView('squad', t('needStaff'));
+    const ids = Array.from(document.querySelectorAll('.psel:checked')).map(e => e.value).slice(0, 5);
+    if (!ids.length) return flashView('squad', t('talkPick'));
+    const cost = 1e7 * ids.length;
+    if (S.budget < cost) return flashView('squad', t('noMoney'));
+    S.budget -= cost;
+    ids.forEach(id => {
+      const p = S.squads[S.me].find(q => q.id === id);
+      if (p) p.mor = Math.min(100, p.mor + 6 + 3 * staffLvl('psych'));
+    });
+    save(); return flashView('squad', t('supported'));
+  }
+  const sel = document.getElementById('ap');
+  const p = sel && S.squads[S.me].find(q => q.id === sel.value);
+  if (kind === 'doctor') {
+    if (!staffLvl('doctor') || !p) return flashView('squad', t('needStaff'));
+    if (!p.inj) return flashView('squad', t('noInjury'));
+    if (S.budget < 2e7) return flashView('squad', t('noMoney'));
+    S.budget -= 2e7;
+    const d = staffLvl('doctor');
+    heal(p, 3 + 2 * d);
+    p.hp = Math.min(100, p.hp + 10 + 3 * d);
+    save(); return flashView('squad', t('treated'));
+  }
+  if (kind === 'coach') return train('squad');
+}
+function setTab(k) { SQ_TAB = k; LINEUP_SEL = null; go('squad'); }
+function setFinTab(k) { FIN_TAB = k; go('finance'); }
+function setPlan(v) {
+  if (!staffLvl('coach')) return;
+  S.plan = v; save();
+  go('squad');
+}
+function setTactic(v) {
+  if (!staffLvl('coach')) return;
+  S.tactic = v; save();
+  flashView('squad', t('tacSet'));
+}
+function toggleAuto() {
+  S.autoStaff = !S.autoStaff; save();
+  go('squad');
+}
+
+// ----- финансы: PR и спонсоры -----
+
+// ----- журнал движений игроков: письма о покупках и продажах -----
+function logMove(p, from, to, price) {
+  if (from !== S.me && to !== S.me) return;
+  if (to === S.me) {
+    mail(bi('Отдел трансферов', 'Трансфер бөлімі'), bi(`Подписан: ${p.name}`, `Қол қойылды: ${p.name}`),
+      bi(`${from === 'pool' ? 'Свободный агент подписал контракт' : 'Трансфер завершён'}. Сумма: ${money(price)}.`,
+         `${from === 'pool' ? 'Бос ойыншы келісімшартқа қол қойды' : 'Трансфер аяқталды'}. Сома: ${money(price)}.`));
+  } else {
+    mail(bi('Отдел трансферов', 'Трансфер бөлімі'), bi(`Продан: ${p.name}`, `Сатылды: ${p.name}`),
+      bi(`Получено: ${money(price)}.`, `Алынды: ${money(price)}.`));
+  }
+}
+
+// ----- слоты сохранений: три ручных слота поверх автосохранения -----
+function slotRead(n) { try { return JSON.parse(localStorage.getItem('steppe-slot-' + n)); } catch (e) { return null; } }
+function slotSave(n) {
+  try {
+    localStorage.setItem('steppe-slot-' + n, JSON.stringify({
+      meta: { club: nm(CLUBS[myIdx()]), round: S.round, day: S.day, at: new Date().toLocaleString('ru-RU') },
+      data: S
+    }));
+    flashView('save', t('savedOk'));
+  } catch (e) { flashView('save', t('saveErr')); }
+}
+function slotLoad(n) {
+  const s = slotRead(n);
+  if (!s || !s.data) return;
+  S = s.data; migrate(); save();
+  go('hub');
+}
+function slotDel(n) {
+  try { localStorage.removeItem('steppe-slot-' + n); } catch (e) {}
+  go('load');
+}
+function slotsHTML(saving) {
+  return Array.from({ length: SLOTS }, (_, i) => i + 1).map(n => {
+    const s = slotRead(n);
+    const info = s && s.meta ? `${s.meta.club} · ${t('round')} ${s.meta.round + 1} · ${t('day')} ${s.meta.day} · ${s.meta.at}` : t('emptySlot');
+    let btns = '';
+    if (saving) btns = `<button onclick="slotSave(${n})">${t('saveHere')}</button>`;
+    else if (s) btns = `<button onclick="slotLoad(${n})">${t('load')}</button><button class="ghost" onclick="slotDel(${n})">${t('del')}</button>`;
+    return `<section class="card"><b>${t('slot')} ${n}</b><small>${info}</small>${btns}</section>`;
+  }).join('');
+}
+
+
+// ===== Переговоры: клубы, агенты игроков, спонсоры и PR-менеджер отвечают письмами с задержкой =====
+const REPLY_DAYS = { club: 1, staff: 2, sponsor: 2, pr: 2 };   // через сколько дней приходит ответ
+const WAIT_DAYS = 3;                                             // сколько ждут ответа пользователя, прежде чем сделка срывается
+const wageOf = p => Math.max(1e5, Math.round(worth(p) * 0.02 / 1e5) * 1e5);   // зарплата игрока в неделю
+const demandOf = p => Math.max(1e5, Math.round(wageOf(p) * (p.m || 1) / 1e5) * 1e5);   // требование агента
+const wageCost = () => S.squads[S.me].reduce((a, p) => a + (p.wage || 0), 0);
+const negFor = id => (S.neg || []).find(n => !n.done && (n.pid === id || (n.cand && n.cand.id === id)));
+const amountOf = el => Math.round(+(el && el.value));
+const agentFrom = bi('Агент игрока', 'Ойыншының агенті');
+const dealFrom = bi('Отдел трансферов', 'Трансфер бөлімі');
+const sponsorFrom = bi('Отдел спонсорства', 'Демеушілер бөлімі');
+const prFrom = bi('PR-менеджер', 'PR-менеджер');
+const staffFrom = bi('Отдел кадров', 'Кадр бөлімі');
+
+function startNeg(o, stage, delay) {
+  o.id = newId(); o.stage = stage; o.ans = S.day + delay;
+  S.neg.push(o); save();
+  return o;
+}
+// письмо, привязанное к переговорам: если нужен ответ, в письме появятся кнопки
+function letter(n, from, subj, body) {
+  mail(from, subj, body);
+  if (n) S.mail[0].nid = n.id;
+}
+const dealPlayer = n => (n.kind === 'free' ? S.pool.find(q => q.id === n.pid)
+  : n.kind === 'sell' ? S.squads[S.me].find(q => q.id === n.pid)
+  : S.squads[n.clubId].find(q => q.id === n.pid));
+
+// ----- действия пользователя -----
+function offerStaff(candId) {
+  const c = S.cands.find(x => x.id === candId);
+  const amount = amountOf(document.getElementById('so-st-' + candId));
+  if (!c) return flashView('squad', t('needStaff'));
+  if (!(amount > 0)) return flashView('squad', t('badSum'));
+  S.cands = S.cands.filter(x => x.id !== candId);
+  startNeg({ kind: 'staff', cand: c, amount, done: false }, 'club', REPLY_DAYS.staff);
+  flashView('squad', t('offerSent').replace('{x}', REPLY_DAYS.staff));
+}
+
+// покупка у клуба: сначала клуб отвечает на сумму, затем агент игрока пришлёт требования к зарплате
+function offerBuy(id, clubId) {
+  const p = S.squads[clubId].find(q => q.id === id);
+  const amount = amountOf(document.getElementById('bo-' + id));
+  if (!p) return finNote(t('none'));
+  if (!(amount > 0)) return finNote(t('badSum'));
+  if (negFor(id)) return finNote(t('alreadyPending'));
+  if (!canGive(clubId, id)) return finNote(t('cantGive'));
+  startNeg({ kind: 'buy', pid: id, clubId, fee: amount, done: false }, 'club', REPLY_DAYS.club);
+  finNote(t('offerSent').replace('{x}', REPLY_DAYS.club));
+}
+
+// свободный агент: клуба нет, сразу пишем агенту для переговоров о зарплате
+function offerFree(id) {
+  const p = S.pool.find(q => q.id === id);
+  if (!p) return finNote(t('none'));
+  if (negFor(id)) return finNote(t('alreadyPending'));
+  startNeg({ kind: 'free', pid: id, clubId: 'pool', fee: 0, done: false }, 'askWage', 1);
+  finNote(t('offerSent').replace('{x}', 1));
+}
+
+// продажа клубу: клуб ответит, согласен ли он на сумму
+function offerSell(id, clubId) {
+  const p = S.squads[S.me].find(q => q.id === id);
+  const amount = amountOf(document.getElementById('so-' + id));
+  if (!p) return finNote(t('none'));
+  if (!(amount > 0)) return finNote(t('badSum'));
+  if (negFor(id)) return finNote(t('alreadyPending'));
+  if (!canGive(S.me, id)) return finNote(t('cantGive'));
+  startNeg({ kind: 'sell', pid: id, clubId, fee: amount, done: false }, 'club', REPLY_DAYS.club);
+  finNote(t('offerSent').replace('{x}', REPLY_DAYS.club));
+}
+
+// письмо спонсору с предложением сотрудничества
+function proposeSponsor(id) {
+  const sp = SPONSORS.find(s => s.id === id);
+  if (!sp || S.sponsors.includes(id)) return;
+  if (negFor(id)) return finNote(t('alreadyPending'));
+  startNeg({ kind: 'sponsor', pid: id, done: false }, 'club', REPLY_DAYS.sponsor);
+  finNote(t('offerSent').replace('{x}', REPLY_DAYS.sponsor));
+}
+
+// PR-кампания: оплачивается сразу, PR-менеджер присылает отчёт через 2 дня
+function publicity(kind) {
+  if (!staffLvl('pr')) return flashView('finance', t('needPRMgr'));
+  const P = PUBLICITY[kind];
+  if (S.budget < P.cost) return finNote(t('noMoney'));
+  S.budget -= P.cost;
+  startNeg({ kind: 'pr', gain: Math.round(P.gain * (1 + 0.25 * staffLvl('pr'))), label: P.label, done: false }, 'club', REPLY_DAYS.pr);
+  finNote(t('offerSent').replace('{x}', REPLY_DAYS.pr));
+}
+
+// ответ пользователя на письмо: требования агента или условия спонсора
+function respondNeg(nid, action) {
+  const n = (S.neg || []).find(x => x.id === nid);
+  if (!n || n.stage !== 'wait') return;
+  if (n.kind === 'sponsor') {
+    if (action === 'accept') {
+      if (!S.sponsors.includes(n.pid)) S.sponsors.push(n.pid);
+      letter(null, sponsorFrom, bi('Контракт подписан', 'Келісімшарт қол қойылды'), bi('Спонсорский договор вступил в силу.', 'Демеушілік келісімшарт күшіне енді.'));
+    } else {
+      letter(null, sponsorFrom, bi('Переговоры завершены', 'Келіссөздер аяқталды'), bi('Вы отказались от условий. Спонсор ждёт нового предложения.', 'Сіз шарттардан бас тарттыңыз. Демеуші жаңа ұсынысты күтеді.'));
+    }
+    n.done = true;
+  } else if (action === 'decline') {
+    n.done = true;
+    letter(null, agentFrom, bi('Переговоры завершены', 'Келіссөздер аяқталды'), bi('Вы отказались от условий. Игрок уходит.', 'Сіз шарттардан бас тарттыңыз. Ойыншы кетеді.'));
+  } else {
+    const amt = action === 'accept' ? n.demand : amountOf(document.getElementById('nw-' + nid));
+    if (!(amt > 0)) return;
+    n.offer = amt;
+    n.stage = 'decide';
+    n.ans = S.day + 1;
+  }
+  S.neg = S.neg.filter(x => !x.done);
+  save();
+  go('mail');
+}
+
+// ----- автоматические шаги: по сроку ответа -----
+function stepNeg(n) {
+  if (n.stage === 'wait') {   // пользователь не ответил в срок
+    n.done = true;
+    letter(null, n.kind === 'sponsor' ? sponsorFrom : agentFrom, bi('Переговоры сорваны', 'Келіссөздер бұзылды'), bi('Срок ответа истёк.', 'Жауап беру мерзімі өтті.'));
+    return;
+  }
+  if (n.kind === 'staff') return stepStaff(n);
+  if (n.kind === 'pr') {
+    S.pr = Math.min(100, S.pr + n.gain);
+    n.done = true;
+    letter(null, prFrom, bi(`Отчёт: ${loc(n.label)}`, `Есеп: ${loc(n.label)}`), bi(`Кампания прошла. PR вырос на ${n.gain}, сейчас ${Math.round(S.pr)}.`, `Науқан өтті. PR ${n.gain} өсті, қазір ${Math.round(S.pr)}.`));
+    return;
+  }
+  if (n.kind === 'sponsor') {
+    const sp = SPONSORS.find(s => s.id === n.pid);
+    if (!sp) { n.done = true; return; }
+    if (S.pr >= sp.need) {
+      n.stage = 'wait'; n.ans = S.day + WAIT_DAYS;
+      letter(n, sponsorFrom, bi(`Условия: ${sp.name}`, `Шарттар: ${sp.name}`),
+        bi(`Мы готовы платить ${money(sp.inc)} в неделю. Ответьте в течение ${WAIT_DAYS} дн.`, `Біз аптасына ${money(sp.inc)} төлеуге дайынбыз. ${WAIT_DAYS} күн ішінде жауап беріңіз.`));
+    } else {
+      n.done = true;
+      letter(null, sponsorFrom, bi(`Отказ: ${sp.name}`, `Бас тарту: ${sp.name}`), bi(`Нужен PR ${sp.need}, у вас ${Math.round(S.pr)}. Усильте публичность и пишите снова.`, `PR ${sp.need} керек, сізде ${Math.round(S.pr)}. Жариялылықты күшейтіп, қайта жазыңыз.`));
+    }
+    return;
+  }
+  stepDeal(n);
+}
+
+function stepStaff(n) {
+  const c = n.cand, want = c.want;
+  const ok = n.amount >= want || (n.amount >= want * 0.85 && Math.random() < 0.5);
+  n.done = true;
+  if (ok && !S.staff[c.role]) {
+    S.staff[c.role] = { name: c.name, lvl: c.lvl, salary: n.amount, look: c.look };
+    letter(null, staffFrom, bi(`Контракт подписан: ${c.name}`, `Келісімшарт қол қойылды: ${c.name}`),
+      bi(`${c.name} принял предложение: ${money(n.amount)} в неделю.`, `${c.name} ұсынысты қабылдады: аптасына ${money(n.amount)}.`));
+  } else {
+    if (!ok) S.cands.push(c);   // кандидат остаётся доступен для нового предложения
+    letter(null, staffFrom, bi(`Отказ: ${c.name}`, `Бас тарту: ${c.name}`),
+      bi(`${c.name} отказался: ожидал ${money(want)} в неделю, вы предложили ${money(n.amount)}.`, `${c.name} бас тартты: ${money(want)} күтті, сіз ${money(n.amount)} ұсындыңыз.`));
+  }
+}
+
+// конкурент за свободного игрока: другой клуб с деньгами предлагает свою зарплату, обычно выше требований
+const rivalCan = (r, p) => S.squads[r.clubId].length < 20 && (S.cash[r.clubId] || 0) >= worth(p);
+function rivalFor(p, demand) {
+  if (Math.random() < 0.4) return null;                    // в 40% случаев конкурентов нет
+  const ids = CLUBS.map(c => c.id).filter(id => id !== S.me && S.squads[id].length < 20 && (S.cash[id] || 0) >= worth(p));
+  if (!ids.length) return null;
+  return { clubId: pick(ids), wage: Math.round(demand * (1.1 + Math.random() * 0.25) / 1e5) * 1e5 };
+}
+const rivalTxt = (n, lang) => (n.rival ? ' ' + T[lang].rivalInfo.replace('{c}', clubName(n.rival.clubId)).replace('{w}', money(n.rival.wage)) : '');
+
+// сделки с игроком: клуб → агент с требованиями → ответ пользователя → решение игрока
+function stepDeal(n) {
+  const p = dealPlayer(n);
+  const fail = why => { n.done = true; letter(null, dealFrom, bi(`Сделка сорвана: ${p ? p.name : '—'}`, `Мәміле бұзылды: ${p ? p.name : '—'}`), why); };
+  if (!p) return fail(bi('Игрок уже недоступен.', 'Ойыншы қолжетімсіз.'));
+
+  if (n.stage === 'club') {   // клуб отвечает
+    if (n.kind === 'sell') {
+      const max = bidFor(p, n.clubId);
+      n.done = true;
+      if (n.fee > max) return letter(null, dealFrom, bi(`Отказ: ${p.name}`, `Бас тарту: ${p.name}`), bi(`${clubName(n.clubId)} готов платить максимум ${money(max)}.`, `${clubName(n.clubId)} ең көбі ${money(max)} төлеуге дайын.`));
+      if (S.cash[n.clubId] < n.fee || S.squads[n.clubId].length >= 20) return letter(null, dealFrom, bi(`Отмена: ${p.name}`, `Болдырмау: ${p.name}`), bi('У клуба не хватает денег или места.', 'Клубта ақша немесе орын жетіспейді.'));
+      return moveTo(p.id, S.me, n.clubId, n.fee);
+    }
+    const ask = askFor(p);
+    const ok = n.fee >= ask || (n.fee >= ask * 0.9 && Math.random() < 0.5);
+    if (!ok) return fail(bi(`Клуб отказал: минимум ${money(ask)}, вы предложили ${money(n.fee)}.`, `Клуб бас тартты: ең аз ${money(ask)}, сіз ${money(n.fee)} ұсындыңыз.`));
+    n.stage = 'askWage'; n.ans = S.day + 1;
+    letter(null, dealFrom, bi(`Клуб согласен: ${p.name}`, `Клуб келісті: ${p.name}`), bi(`Клуб принял сумму ${money(n.fee)}. Агент игрока свяжется с требованиями.`, `Клуб ${money(n.fee)} сомасын қабылдады. Ойыншының агенті талаптарын жібереді.`));
+    return;
+  }
+  if (n.stage === 'askWage') {   // агент присылает требования к зарплате
+    n.demand = demandOf(p);
+    n.rival = n.kind === 'free' ? rivalFor(p, n.demand) : null;
+    n.stage = 'wait'; n.ans = S.day + WAIT_DAYS;
+    letter(n, agentFrom, bi(`Требования: ${p.name}`, `Талаптар: ${p.name}`),
+      bi(`Игрок ждёт ${money(n.demand)} в неделю. Ответьте в течение ${WAIT_DAYS} дн.: примите требования или предложите свою сумму.` + rivalTxt(n, 'ru'),
+         `Ойыншы аптасына ${money(n.demand)} күтеді. ${WAIT_DAYS} күн ішінде жауап беріңіз: талапты қабылдаңыз немесе өз соманы ұсыныңыз.` + rivalTxt(n, 'kz')));
+    return;
+  }
+  if (n.stage === 'decide') {   // решение игрока по предложенной зарплате
+    n.done = true;
+    if (n.rival && rivalCan(n.rival, p) && n.offer < n.rival.wage) {   // конкурент предложил больше — игрок уходит к нему
+      moveTo(p.id, 'pool', n.rival.clubId, worth(p));
+      const w = money(n.rival.wage), c = clubName(n.rival.clubId);
+      return letter(null, agentFrom, bi(`Игрок ушёл: ${p.name}`, `Ойыншы кетті: ${p.name}`),
+        bi(T.ru.rivalWon.replace('{c}', c).replace('{w}', w), T.kz.rivalWon.replace('{c}', c).replace('{w}', w)));
+    }
+    const ok = n.offer >= n.demand || (n.offer >= n.demand * 0.9 && Math.random() < 0.5);
+    if (!ok) return letter(null, agentFrom, bi(`Отказ: ${p.name}`, `Бас тарту: ${p.name}`), bi(`Игрок отказался: ждал ${money(n.demand)} в неделю.`, `Ойыншы бас тартты: аптасына ${money(n.demand)} күтті.`));
+    if (n.kind === 'buy' && n.fee > S.budget) return letter(null, dealFrom, bi(`Отмена: ${p.name}`, `Болдырмау: ${p.name}`), bi('На счёте не хватает денег.', 'Шотта ақша жеткіліксіз.'));
+    if (S.squads[S.me].length >= 20) return letter(null, dealFrom, bi(`Отмена: ${p.name}`, `Болдырмау: ${p.name}`), bi('В составе уже 20 игроков.', 'Құрамда 20 ойыншы бар.'));
+    const from = n.kind === 'free' ? 'pool' : n.clubId;
+    moveTo(p.id, from, S.me, n.kind === 'free' ? 0 : n.fee);
+    p.wage = n.offer;
+  }
+}
+
+// каждый день: проверяем, кому пришёл срок ответа
+function resolveNeg() {
+  if (!S || !S.neg || !S.neg.length) return;
+  S.neg.filter(n => !n.done && S.day >= n.ans).forEach(stepNeg);
+  S.neg = S.neg.filter(n => !n.done);
+}
+
+// список переговоров для экранов: group = 'staff' | 'transfers' | 'sponsors'
+const NEG_GROUP = { staff: ['staff'], transfers: ['buy', 'free', 'sell'], sponsors: ['sponsor', 'pr'] };
+function negTitle(n) {
+  if (n.kind === 'staff') return `${n.cand.name} (${t('roles')[n.cand.role]})`;
+  if (n.kind === 'sponsor') return (SPONSORS.find(s => s.id === n.pid) || { name: '—' }).name;
+  if (n.kind === 'pr') return loc(n.label);
+  const p = dealPlayer(n);
+  const name = p ? p.name : '—';
+  return n.kind === 'sell' ? `${t('sell')}: ${name} → ${clubName(n.clubId)}` : `${t('buy')}: ${name}`;
+}
+function stageText(n) {
+  return { club: t('stClub'), askWage: t('stAgent'), wait: t('stWait'), decide: t('stDecide') }[n.stage] || '';
+}
+function pendingHTML(group) {
+  const list = (S.neg || []).filter(n => NEG_GROUP[group].includes(n.kind));
+  if (!list.length) return '';
+  return `<section class="card"><b>${t('pendingOffers')}</b>` +
+    list.map(n => `<small>${negTitle(n)} · ${n.fee ? money(n.fee) : ''} · ${stageText(n)} · ${Math.max(0, n.ans - S.day)} ${t('days')}</small>`).join('') +
+    `</section>`;
+}
+
+</script>
+  <script>
+// ===== Состояние и сохранение =====
+const SAVE_KEY = 'steppe-league-v2';
+let S = null;          // текущая карьера
+let RESULT = null;     // результат последнего матча
+let MATCH_CFG = null;  // настройки текущего матча
+let NOTICE = '';       // сообщение на экране (вместо alert); экран читает его и очищает
+let SQ_TAB = 'players';     // вкладка состава: players | staff | actions
+let FIN_TAB = 'transfers';  // вкладка финансов: transfers | sponsors
+
+const L = () => localStorage.getItem('steppe-lang') || 'ru';
+const t = k => T[L()][k];
+Object.assign(T.ru, { playerName: 'Игрок', posShort: 'Поз.' });
+Object.assign(T.kz, { playerName: 'Ойыншы', posShort: 'Ойын' });
+Object.assign(T.ru, { renameClub: 'Название клуба', renameBtn: 'Сохранить название', nameEmpty: 'Название не может быть пустым.', nameSaved: 'Название клуба изменено.', formation: 'Схема' });
+Object.assign(T.kz, { renameClub: 'Клуб атауы', renameBtn: 'Атауды сақтау', nameEmpty: 'Атау бос болмауы керек.', nameSaved: 'Клуб атауы өзгертілді.', formation: 'Схема' });
+Object.assign(T.ru, { backToActions: 'Назад к взаимодействиям', lineupTitle: 'Расстановка', lineupOpen: 'Открыть расстановку', lineupNote: 'Нажмите игрока, затем другого — они поменяются местами. Травмированные не выходят в основной состав.', injNoStart: 'Травмированный игрок не может стоять в основе.' });
+Object.assign(T.kz, { backToActions: 'Әрекеттерге оралу', lineupTitle: 'Орналасу', lineupOpen: 'Орналасуды ашу', lineupNote: 'Ойыншыны басыңыз, сосын басқасын — олар орын ауыстырады. Жарақаттылар негізгі құрамға шықпайды.', injNoStart: 'Жарақатты ойыншы негізгі құрамда тұра алмайды.' });
+Object.assign(T.ru, { hireInFinance: 'Нанимать и увольнять сотрудников можно в разделе «Финансы» → «Найм сотрудников».', hiring: 'Найм сотрудников', rivalInfo: ' Клуб {c} тоже предлагает {w} в неделю: предложите больше, иначе игрок уйдёт.', rivalWon: 'Игрок ушёл в клуб {c}: ваше предложение ниже {w} в неделю.' });
+Object.assign(T.kz, { hireInFinance: 'Қызметкерлерді «Қаржы» → «Қызметкерлерді жалдау» бөлімінен жалдауға және босатуға болады.', hiring: 'Қызметкерлерді жалдау', rivalInfo: ' {c} клубы да аптасына {w} ұсынады: көбірек ұсыныңыз, әйтпесе ойыншы кетеді.', rivalWon: 'Ойыншы {c} клубына кетті: сіздің ұсынысыңыз аптасына {w}-дан төмен.' });
+const $ = s => document.querySelector(s);
+const nm = c => (S && c.id === S.me && S.clubName) ? S.clubName : c.name[L()];   // свое название игрок может менять
+const myIdx = () => CLUBS.findIndex(c => c.id === S.me);
+// схемы: линии от вратаря к нападению — [x на поле, амплуа, число игроков]; первый всегда вратарь
+const FORMATION_LINES = {
+  '4-3-3': [[.03, 'GK', 1], [.15, 'DF', 4], [.3, 'MF', 3], [.42, 'FW', 3]],
+  '4-4-2': [[.03, 'GK', 1], [.15, 'DF', 4], [.3, 'MF', 4], [.42, 'FW', 2]],
+  '3-4-3': [[.03, 'GK', 1], [.15, 'DF', 3], [.3, 'MF', 4], [.42, 'FW', 3]],
+  '5-4-1': [[.03, 'GK', 1], [.15, 'DF', 5], [.3, 'MF', 4], [.42, 'FW', 1]],
+  '4-2-3-1': [[.03, 'GK', 1], [.15, 'DF', 4], [.26, 'MF', 2], [.36, 'MF', 3], [.44, 'FW', 1]]
+};
+// координаты слотов по схеме; для 4-3-3 — точные координаты матча
+const DEFAULT_433 = [[.03, .5], [.15, .18], [.15, .4], [.15, .6], [.15, .82], [.3, .25], [.3, .5], [.3, .75], [.42, .3], [.42, .5], [.42, .7]];
+const formCoords = name => (name === '4-3-3' ? DEFAULT_433 : FORMATION_LINES[name || '4-3-3'].flatMap(([x, , n]) => Array.from({ length: n }, (_, k) => [x, (k + 1) / (n + 1)])));
+const formRoles = name => FORMATION_LINES[name || '4-3-3'].flatMap(([, pos, n]) => Array(n).fill(pos));
+// смена схемы: на слоты ставятся лучшие здоровые игроки нужного амплуа, остальные — на скамейку
+function applyFormation(name) {
+  if (!FORMATION_LINES[name]) return;
+  const sq = S.squads[S.me];
+  const pool = sq.slice().sort((a, b) => b.ovr - a.ovr);
+  const healthy = p => p.inj <= 0;
+  const chosen = [];
+  formRoles(name).forEach(role => {
+    const q = pool.find(p => !chosen.includes(p) && healthy(p) && p.pos === role)
+      || pool.find(p => !chosen.includes(p) && healthy(p) && role !== 'GK' && p.pos !== 'GK')
+      || pool.find(p => !chosen.includes(p) && healthy(p));
+    if (q) chosen.push(q);
+  });
+  pool.forEach(p => { if (chosen.length < 11 && !chosen.includes(p)) chosen.push(p); });   // не хватает здоровых — дополняем травмированными
+  const rest = sq.filter(p => !chosen.includes(p));
+  sq.splice(0, sq.length, ...chosen.slice(0, 11), ...rest);
+  S.formation = name; LINEUP_SEL = null; save();
+  go('squad');
+}
+function renameClub() {
+  const v = ((document.getElementById('clubName') || {}).value || '').trim().slice(0, 30);
+  if (!v) { NOTICE = t('nameEmpty'); return go('squad'); }
+  S.clubName = v; save(); NOTICE = t('nameSaved'); go('squad');
+}
+const squadOvr = id => Math.round(S.squads[id].reduce((a, p) => a + p.ovr, 0) / S.squads[id].length);
+const save = () => localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+const load = () => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { return null; } };
+// тёмную форму в таблице подсвечиваем светлым текстом
+const readable = hex => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 < .25 ? '#d0d0d0' : hex; };
+// деньги хранятся в тенге, показываются как «10млн₸», «10тыс₸», «10 ₸»
+const money = v => {
+  const a = Math.abs(v), kz = L() === 'kz';
+  const fx = x => (Math.abs(x) < 10 ? x.toFixed(1) : Math.round(x).toString()).replace(/\.0$/, '');
+  if (a >= 1e9) return fx(v / 1e9) + 'млрд₸';
+  if (a >= 1e6) return fx(v / 1e6) + 'млн₸';
+  if (a >= 1e3) return fx(v / 1e3) + (kz ? 'мың₸' : 'тыс₸');
+  return v + ' ₸';
+};
+
+function newGame(i) {
+  const squads = {}, table = {};
+  CLUBS.forEach((c, k) => { squads[c.id] = makeSquad(c, k); });
+  CLUBS.forEach(c => { table[c.id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
+  S = { me: CLUBS[i].id, round: 0, day: 1, budget: 2e9, squads, table, cash: {}, pool: [],
+        mail: [], staff: {}, sponsors: [], pr: CLUBS[i].pr, tactic: 'balanced', autoStaff: false, cands: [], neg: [], plan: 'none' };
+  CLUBS.forEach(c => { if (c.id !== S.me) S.cash[c.id] = 2e9; });
+  ensureIds(); refreshPool();
+  S.cands = genCands();
+  welcomeMail();
+  save();
+  go('hub');
+}
+
+function applyResult(h, a, gh, ga) {
+  const H = S.table[CLUBS[h].id], A = S.table[CLUBS[a].id];
+  H.p++; A.p++; H.gf += gh; H.ga += ga; A.gf += ga; A.ga += gh;
+  if (gh > ga) { H.w++; H.pts += 3; A.l++; }
+  else if (gh < ga) { A.w++; A.pts += 3; H.l++; }
+  else { H.d++; A.d++; H.pts++; A.pts++; }
+}
+
+function simRound() {
+  const [h, a] = FIXTURES[S.round];
+  const g = o => Math.max(0, Math.round(Math.random() * 2.5 + (o - 65) / 15 - 0.5));
+  const gh = g(squadOvr(CLUBS[h].id)), ga = g(squadOvr(CLUBS[a].id));
+  applyResult(h, a, gh, ga);
+  moraleAfter(CLUBS[h].id, gh, CLUBS[a].id, ga);
+  S.round++;
+  afterRound();
+  save();
+  go('hub');
+}
+
+// подготовка матча: состав (травмированные заменяются), тактика тренера, обработчик итога
+function matchCfg(oppId, friendly, onDone) {
+  const mine = CLUBS.find(c => c.id === S.me), opp = CLUBS.find(c => c.id === oppId);
+  prepareLineup(S.squads[S.me], true);
+  prepareLineup(S.squads[oppId], false);
+  return {
+    lang: L(),
+    myClub: nm(mine), oppClub: nm(opp),
+    myColor: mine.color, oppColor: opp.color, myShorts: mine.shorts, oppShorts: opp.shorts,
+    mySquad: S.squads[S.me], oppSquad: S.squads[oppId],
+    tactic: S.tactic, coach: staffLvl('coach'), friendly, form: formCoords(S.formation),
+    onEnd: (gm, gop, injuries) => onDone(gm, gop, injuries)
+  };
+}
+
+// в основе после замен не хватает здоровых игроков: матч не играется
+const lineupBroken = () => { prepareLineup(S.squads[S.me], true); return S.squads[S.me].slice(0, 11).some(p => p.inj > 0); };
+function techLoss(h, a, meHome, oppId, friendly) {
+  const opp = CLUBS.find(c => c.id === oppId);
+  mail(bi('Администрация клуба', 'Клуб әкімшілігі'), bi(`Техническое поражение: ${nm(opp)}`, `Техникалық жеңіліс: ${nm(opp)}`),
+    bi('В основе не хватает здоровых игроков: матч засчитан 0:3.', 'Негізгі құрамда сау ойыншылар жетіспейді: матч 0:3 есебімен есептелді.'));
+  if (friendly) passDays(1);
+  else { applyResult(h, a, meHome ? 0 : 3, meHome ? 3 : 0); S.round++; afterRound(); }
+  RESULT = { gm: 0, gop: 3, out: 'loss', reward: 0, opp: nm(opp), injured: [], friendly };
+  save(); go('result');
+}
+
+function startMatch() {
+  const [h, a] = FIXTURES[S.round];
+  const meHome = CLUBS[h].id === S.me;
+  const oppId = meHome ? CLUBS[a].id : CLUBS[h].id;
+  const opp = CLUBS.find(c => c.id === oppId);
+  if (lineupBroken()) return techLoss(h, a, meHome, oppId, false);
+  MATCH_CFG = matchCfg(oppId, false, (gm, gop, injuries) => {
+    const gh = meHome ? gm : gop, ga = meHome ? gop : gm;
+    applyResult(h, a, gh, ga);
+    moraleAfter(CLUBS[h].id, gh, CLUBS[a].id, ga);
+    const out = gm > gop ? 'win' : gm < gop ? 'loss' : 'draw';
+    const reward = (out === 'win' ? 6e8 : out === 'draw' ? 2.5e8 : 1e8) + 1e8 * gm;
+    S.budget += reward;
+    const injured = applyInjuries(injuries, oppId);
+    mail(bi('Администрация клуба', 'Клуб әкімшілігі'), bi(`Матч ${gm}:${gop} (${nm(opp)})`, `Матч ${gm}:${gop} (${nm(opp)})`),
+      bi(`Призовые: ${money(reward)}.`, `Сыйақы: ${money(reward)}.`));
+    S.round++;
+    afterRound();
+    RESULT = { gm, gop, out, reward, opp: nm(opp), injured, friendly: false };
+    save();
+    go('result');
+  });
+  go('match');
+}
+
+// товарищеский матч: не влияет на таблицу, призовые скромнее, идёт один день
+function startFriendly(oppId) {
+  const opp = CLUBS.find(c => c.id === oppId);
+  if (lineupBroken()) return techLoss(null, null, false, oppId, true);
+  MATCH_CFG = matchCfg(oppId, true, (gm, gop, injuries) => {
+    const out = gm > gop ? 'win' : gm < gop ? 'loss' : 'draw';
+    const reward = 2e7 + 1e7 * gm;
+    S.budget += reward;
+    moraleAfter(S.me, gm, oppId, gop);
+    const injured = applyInjuries(injuries, oppId);
+    mail(bi('Администрация клуба', 'Клуб әкімшілігі'), bi(`Товарищеский матч ${gm}:${gop} (${nm(opp)})`, `Досттық матч ${gm}:${gop} (${nm(opp)})`),
+      bi(`Призовые: ${money(reward)}. Таблица не изменилась.`, `Сыйақы: ${money(reward)}. Кесте өзгерген жоқ.`));
+    passDays(1);
+    RESULT = { gm, gop, out, reward, opp: nm(opp), injured, friendly: true };
+    save();
+    go('result');
+  });
+  go('match');
+}
+
+// тренировка: при тренере бесплатно, без него 50 млн; занимает весь состав
+function train(back = 'hub') {
+  const cost = staffLvl('coach') ? 0 : 5e7;
+  if (S.budget < cost) return flashView(back, t('noMoney'));
+  S.budget -= cost;
+  S.squads[S.me].forEach(p => {
+    ['pace', 'shot', 'pass', 'def'].forEach(k => p[k] = clamp(p[k] + 1));
+    p.ovr = ovrOf(p);
+  });
+  save();
+  flashView(back, t('trainDone'));
+}
+
+function tableHTML() {
+  const rows = CLUBS.map(c => ({ c, s: S.table[c.id] }))
+    .sort((x, y) => y.s.pts - x.s.pts || (y.s.gf - y.s.ga) - (x.s.gf - x.s.ga) || y.s.gf - x.s.gf);
+  return `<table class="tbl"><tr><th>#</th><th>${t('club')}</th><th>${t('played')}</th><th>${t('w')}</th>
+    <th>${t('d')}</th><th>${t('l')}</th><th>${t('gf')}</th><th>${t('ga')}</th><th>${t('pts')}</th><th>${t('ovr')}</th></tr>` +
+    rows.map((r, i) => `<tr class="${r.c.id === S.me ? 'me' : ''}"><td>${i + 1}</td>
+      <td style="color:${readable(r.c.color)}">${nm(r.c)}</td><td>${r.s.p}</td><td>${r.s.w}</td><td>${r.s.d}</td>
+      <td>${r.s.l}</td><td>${r.s.gf}</td><td>${r.s.ga}</td><td>${r.s.pts}</td><td>${squadOvr(r.c.id)}</td></tr>`).join('') +
+    `</table>`;
+}
+
+// ===== Трансферы =====
+// цена игрока зависит от показателей; у каждого игрока свой коэффициент m (настроение клуба), он хранится в сохранении
+const worth = p => Math.max(1e6, Math.round(1e7 * Math.pow(1.2177, p.ovr - 60) / 1e5) * 1e5);
+const askPrice = p => Math.round(worth(p) * p.m);                       // что просит клуб
+const askFor = p => Math.round(askPrice(p) * discount());               // с учётом скидки менеджера
+const poolPrice = p => Math.round(worth(p) * discount());               // свободный агент
+const bidFor = (p, clubId) => Math.max(1, Math.min(S.cash[clubId] || 0, Math.round(worth(p) * (0.85 - (p.m - 1))))); // что клуб готов дать
+const newId = () => 'p' + Math.random().toString(36).slice(2, 9);
+const clubName = id => nm(CLUBS.find(c => c.id === id));
+const finNote = s => flashView('finance', s);
+
+// фигурка игрока для карточек и списков: цвет формы передаётся явно (клуба или свободного агента)
+function figHTML(p, color, shorts) {
+  const l = lookOf(p);
+  return `<canvas class="fig" width="16" height="24" data-c="${color}" data-s="${shorts}" data-n="${p.num}" data-skin="${l.skin}" data-hair="${l.hair}"></canvas>`;
+}
+
+// заготовки головы по амплуа: цвета волос и причёска (стили сохраняются у игрока)
+const HEAD_TPL = {
+  GK: { style: 'buzz', hair: ['#111111', '#2a1d12', '#5a3720'] },
+  DF: { style: 'short', hair: ['#2a1d12', '#4a3020', '#8b5a2b'] },
+  MF: { style: 'side', hair: ['#4a3020', '#8b5a2b', '#c9a46a'] },
+  FW: { style: 'spiky', hair: ['#c9a46a', '#9a9a9a', '#111111'] }
+};
+function randPlayer(pos, base) {
+  const st = k => clamp(Math.round(base + BIAS[pos][k] + Math.random() * 10 - 5));
+  const p = { id: newId(), num: 20 + Math.floor(Math.random() * 79), name: pick(FIRST) + ' ' + pick(LAST), pos,
+              pace: st('pace'), shot: st('shot'), pass: st('pass'), def: st('def'),
+              m: +(1 + Math.random() * .25).toFixed(2) };
+  p.ovr = ovrOf(p);
+  p.look = randomLook();   // свободный агент получает случайный внешний вид и форму
+  p.look.hair = pick(HEAD_TPL[pos].hair); p.head = HEAD_TPL[pos].style;   // заготовка головы по амплуа
+  fixPlayer(p);
+  return p;
+}
+
+function refreshPool() {
+  S.pool = ['GK', 'DF', 'MF', 'FW', 'DF', 'MF'].map(pos => randPlayer(pos, 50 + Math.floor(Math.random() * 14)));
+}
+
+function ensureIds() {
+  const fix = p => {
+    if (!p.id) p.id = newId();
+    if (p.m === undefined) p.m = +(1 + Math.random() * .25).toFixed(2);
+    fixPlayer(p);
+  };
+  Object.values(S.squads).forEach(sq => sq.forEach(fix));
+  S.pool.forEach(fix);
+}
+
+function pay(clubId, d) {
+  if (clubId === S.me) S.budget += d;
+  else S.cash[clubId] = (S.cash[clubId] || 0) + d;
+}
+
+// убрать игрока из состава; если он был в старте, на его место встаёт запасной того же амплуа
+function takePlayer(clubId, id) {
+  const sq = S.squads[clubId];
+  const i = sq.findIndex(q => q.id === id);
+  if (i < 0) return null;
+  const [p] = sq.splice(i, 1);
+  if (i < 11) {
+    const j = sq.findIndex((q, k) => k >= 10 && q.pos === p.pos);
+    if (j >= 0) { const [r] = sq.splice(j, 1); sq.splice(i, 0, r); }
+  }
+  return p;
+}
+
+// можно ли отдать игрока: в составе должно остаться 11 игроков и вратарь
+function canGive(clubId, id) {
+  const sq = S.squads[clubId], i = sq.findIndex(q => q.id === id);
+  if (i < 0 || sq.length - 1 < 11) return false;
+  if (i < 11 && sq[i].pos === 'GK' && !sq.some((q, k) => k >= 11 && q.pos === 'GK')) return false;
+  return true;
+}
+
+// перевод игрока: from — клуб или 'pool' (свободный агент), price — сумма, которую платит to
+function moveTo(id, from, to, price) {
+  let p;
+  if (from === 'pool') {
+    const i = S.pool.findIndex(q => q.id === id);
+    if (i < 0) return false;
+    [p] = S.pool.splice(i, 1);
+  } else {
+    p = takePlayer(from, id);
+    if (!p) return false;
+    pay(from, price);
+  }
+  S.squads[to].push(p);
+  const club = CLUBS.find(c => c.id === to);
+  if (club) p.look = { ...lookOf(p), color: club.color, shorts: club.shorts };   // после перехода — форма нового клуба
+  pay(to, -price);
+  logMove(p, from, to, price);
+  return true;
+}
+
+// ИИ-клуб продаёт запасного только если в запасе остаётся игрок того же амплуа
+const hasBackup = (clubId, p) => S.squads[clubId].slice(11).some(q => q !== p && q.pos === p.pos);
+
+// клубы иногда сами продают запасных друг другу
+function aiTrade() {
+  if (Math.random() > .35) return;
+  const ids = CLUBS.map(c => c.id).filter(id => id !== S.me);
+  const sellers = ids.filter(id => S.squads[id].length > 12);
+  if (!sellers.length) return;
+  const from = pick(sellers);
+  const to = pick(ids.filter(id => id !== from && S.squads[id].length < 20));
+  if (!to) return;
+  const cands = S.squads[from].slice(11).filter(p => hasBackup(from, p) && (S.cash[to] || 0) >= askPrice(p));
+  if (!cands.length) return;
+  const p = pick(cands);
+  moveTo(p.id, from, to, askPrice(p));
+}
+
+// ИИ покупает свободного игрока, если тот сильнее слабейшего основного на его позиции и хватает тенге
+function aiBuyFree() {
+  CLUBS.map(c => c.id).filter(id => id !== S.me).forEach(id => {
+    const sq = S.squads[id];
+    if (sq.length >= 20 || Math.random() > 0.15) return;     // клуб не каждый тур ищет игрока
+    const cands = S.pool.filter(p => !negFor(p.id) && (S.cash[id] || 0) >= worth(p) && p.ovr > Math.min(...sq.slice(0, 11).filter(q => q.pos === p.pos).map(q => q.ovr)));
+    if (!cands.length) return;
+    const best = cands.reduce((x, y) => (y.ovr > x.ovr ? y : x));
+    moveTo(best.id, 'pool', id, worth(best));
+    // новичок встаёт в основу вместо самого слабого игрока своей позиции
+    const q = S.squads[id];
+    const starters = q.map((p, i) => [p, i]).filter(([p, i]) => i < 11 && p.pos === best.pos);
+    const weakest = starters.reduce((x, y) => (y[0].ovr < x[0].ovr ? y : x), starters[0]);
+    if (weakest && best.ovr > weakest[0].ovr) {
+      const last = q.length - 1;
+      [q[weakest[1]], q[last]] = [q[last], q[weakest[1]]];
+    }
+  });
+}
+
+// после каждого тура: деньги и трансферы ИИ, затем неделя календаря (дни, зарплаты, спонсоры, почта)
+function afterRound() {
+  CLUBS.forEach(c => { if (c.id !== S.me) S.cash[c.id] = (S.cash[c.id] || 0) + 1e8; });   // доход клубов за тур
+  aiBuyFree();
+  aiTrade();
+  passDays(DAYS_PER_ROUND);
+  weekly();
+}
+
+// миграция старых сохранений: касса клубов, свободные игроки, id, коэффициенты, новые поля карьеры
+function migrate() {
+  if (!S) return;
+  if (!CLUBS.some(c => c.id === S.me)) { S = null; return; }   // неизвестный клуб: сохранение не подходит
+  CLUBS.forEach((c, k) => {
+    if (!S.squads[c.id]) S.squads[c.id] = makeSquad(c, k);
+    if (!S.table[c.id]) S.table[c.id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 };
+  });
+  S.cash = S.cash || {};
+  S.pool = S.pool || [];
+  S.mail = S.mail || [];
+  S.staff = S.staff || {};
+  S.sponsors = S.sponsors || [];
+  if (S.pr === undefined) S.pr = 25;
+  if (!S.day) S.day = S.round * DAYS_PER_ROUND + 1;
+  S.tactic = S.tactic || 'balanced';
+  if (S.autoStaff === undefined) S.autoStaff = false;
+  S.neg = S.neg || [];
+  S.offers = null;   // старая схема предложений больше не используется
+  S.plan = S.plan || 'none';
+  S.formation = S.formation || '4-3-3';
+  if (S.budget < 1e6) { S.budget *= 1e6; Object.keys(S.cash).forEach(k => { S.cash[k] *= 1e6; }); }   // старые сохранения: единицы в млн
+  CLUBS.forEach(c => { if (c.id !== S.me && S.cash[c.id] === undefined) S.cash[c.id] = 2e9; });
+  ensureIds();
+  if (!S.pool.length) refreshPool();
+  if (!S.cands) S.cands = genCands();
+  (S.cands || []).forEach(c => { if (c.look) c.name = fitName(c.name, c.look.gender); });
+  Object.values(S.staff || {}).forEach(h => { if (h && h.look) h.name = fitName(h.name, h.look.gender); });
+}
+
+// ===== Экраны =====
+// вкладка «Игроки»: карточки с моралью, ХП и травмами
+// расстановка: координаты слотов те же, что в матче (наша половина поля)
+const LINEUP_FORM = [[.03, .5], [.15, .18], [.15, .4], [.15, .6], [.15, .82], [.3, .25], [.3, .5], [.3, .75], [.42, .3], [.42, .5], [.42, .7]];
+let LINEUP_SEL = null;   // выбранный игрок для обмена (индекс в составе)
+function lineupHTML() {
+  const sq = S.squads[S.me], club = CLUBS[myIdx()];
+  const card = (p, i, style) => `<div class="slot${LINEUP_SEL === i ? ' sel' : ''}" style="${style}" onclick="lineupPick(${i})">
+      ${p.inj > 0 ? '<span class="inj-x">✕</span>' : ''}${figHTML(p, club.color, club.shorts)}
+      <b>${p.num}. ${p.name.split(' ').pop()}</b><br><small>${t('pos')[p.pos]} · ${p.ovr}</small></div>`;
+  const FC = formCoords(S.formation);
+  const pitch = sq.slice(0, 11).map((p, i) => card(p, i, `left:${(FC[i][1] * 100).toFixed(1)}%;top:${(6 + (1 - FC[i][0] / .45) * 86).toFixed(1)}%`)).join('');
+  const forms = Object.keys(FORMATION_LINES).map(f => `<button class="${S.formation === f ? 'on' : ''}" onclick="applyFormation('${f}')">${f}</button>`).join('');
+  const bench = sq.slice(11).map((p, k) => card(p, k + 11, '')).join('');
+  return `<p class="hint">${t('lineupNote')}</p>
+    <nav class="tabs">${forms}</nav>
+    <div class="pitch">${pitch}</div>
+    <p class="hint">${t('bench')}</p>
+    <div class="bench-row">${bench}</div>`;
+}
+function lineupPick(i) {
+  const sq = S.squads[S.me];
+  if (LINEUP_SEL === null) { LINEUP_SEL = i; return go('squad'); }
+  const a = LINEUP_SEL; LINEUP_SEL = null;
+  if (a !== i) {
+    const pa = sq[a], pb = sq[i];
+    if ((pa.inj > 0 && i < 11) || (pb.inj > 0 && a < 11)) NOTICE = t('injNoStart');   // травмированный не встаёт в основу
+    else { sq[a] = pb; sq[i] = pa; save(); }
+  }
+  go('squad');
+}
+
+// вкладка «Игроки»: расстановка на поле, запасные и таблица со всеми статами
+function playersHTML(club) {
+  return lineupHTML() + statsTableHTML();
+}
+function statsTableHTML() {
+  const head = [t('posShort'), t('ovr'), t('pace'), t('shot'), t('pass'), t('def'), t('morale'), t('hp'), t('inj')]
+    .map(h => `<th>${h}</th>`).join('');
+  const rows = S.squads[S.me].map((p, i) => `<tr class="${i >= 11 ? 'bench' : ''}">
+      <td>${p.num}</td><td class="nm">${p.name}</td><td>${t('pos')[p.pos]}</td><td><b>${p.ovr}</b></td>
+      <td>${p.pace}</td><td>${p.shot}</td><td>${p.pass}</td><td>${p.def}</td>
+      <td>${Math.round(p.mor)}</td><td>${Math.round(p.hp)}</td><td class="${p.inj > 0 ? 'bad' : ''}">${p.inj > 0 ? p.inj + ' ' + t('days') : '—'}</td></tr>`).join('');
+  return `<div class="stats-wrap"><table class="stats"><thead><tr><th>№</th><th>${t('playerName')}</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// вкладка «Штат»: предложение контракта с зарплатой; ответ придёт письмом через OFFER_DAYS дней
+// ===== Портреты сотрудников: пиксельная голова и плечи 16×16 =====
+const PORT_SKIN = ['#f1c7a5', '#e0ac84', '#c68a5e', '#a86d43', '#7d4e2c', '#5a3720'];
+const PORT_HAIR = ['#2a1d12', '#4a3020', '#111111', '#8b5a2b', '#c9a46a', '#9a9a9a'];
+const CASUAL = ['#4f6d8a', '#8a6d4f', '#6b8a4f', '#8a4f6b', '#5a5a5a', '#2f4f5f', '#a0805a', '#7a3b3b', '#3f5f7f'];
+const UNIFORM = ['#c62828', '#1565c0', '#2e7d32', '#f9a825', '#6a1b9a', '#00838f', '#ef6c00', '#ad1457'];
+const TRACKSUIT = ['#1f4fa3', '#2e7d32', '#37474f', '#7a1f1f', '#2b2b2b'];
+const pickP = a => a[Math.floor(Math.random() * a.length)];
+// внешность по роли; пол случайный для всех
+function staffLook(role) {
+  const base = { skin: pickP(PORT_SKIN), hair: pickP(PORT_HAIR), gender: Math.random() < .5 ? 'm' : 'f' };
+  if (role === 'coach') return { ...base, top: pickP(TRACKSUIT), style: 'tracksuit' };          // однотонные спортивки
+  if (role === 'doctor' || role === 'psych') return { ...base, top: '#f4f4f4', style: 'coat' };  // белый халат
+  if (role === 'scout') return { ...base, top: pickP(UNIFORM), style: 'uniform' };              // случайная форма
+  if (role === 'assistant') return { ...base, top: pickP(CASUAL), style: Math.random() < .5 ? 'shirt' : 'stripe' }; // случайная одежда
+  return { ...base, top: pickP(CASUAL), style: 'shirt' };                                      // менеджер и PR: обычная одежда
+}
+const portraitHTML = look => `<canvas class="portrait" width="16" height="16" data-look='${JSON.stringify(look)}'></canvas>`;
+const dkHex = (hex, f = .7) => { const n = parseInt(hex.slice(1), 16); return `rgb(${Math.round((n >> 16) * f)},${Math.round(((n >> 8) & 255) * f)},${Math.round((n & 255) * f)})`; };
+function drawPortraits(root) {
+  root.querySelectorAll('canvas.portrait').forEach(cv => {
+    const L = JSON.parse(cv.dataset.look), g = cv.getContext('2d');
+    const r = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+    g.clearRect(0, 0, 16, 16);
+    g.imageSmoothingEnabled = false;
+    const f = L.gender === 'f';
+    if (f) r(3, 3, 10, 9, L.hair);                              // длинные волосы сзади
+    r(5, 3, 6, 7, L.skin); r(4, 4, 8, 5, L.skin);               // лицо (без черт)
+    r(4, 2, 8, 2, L.hair);                                      // волосы сверху
+    if (!f) { r(4, 4, 1, 2, L.hair); r(11, 4, 1, 2, L.hair); }  // короткие виски
+    r(6, 10, 4, 1, dkHex(L.skin));                              // шея
+    r(2, 11, 12, 5, L.top); r(1, 12, 1, 3, L.top); r(14, 12, 1, 3, L.top);   // плечи и рукава
+    if (L.style === 'coat') { r(7, 11, 2, 5, '#d0d0d0'); r(6, 11, 1, 3, '#bdbdbd'); r(9, 11, 1, 3, '#bdbdbd'); }
+    if (L.style === 'tracksuit') { r(8, 11, 1, 5, '#e8e8e8'); r(1, 12, 1, 3, dkHex(L.top)); r(14, 12, 1, 3, dkHex(L.top)); }
+    if (L.style === 'uniform') r(6, 11, 4, 1, '#ffffff');
+    if (L.style === 'shirt') r(6, 11, 4, 1, '#e8e8e8');
+    if (L.style === 'stripe') { r(3, 13, 10, 1, dkHex(L.top)); r(3, 15, 10, 1, dkHex(L.top)); }
+  });
+}
+// readonly: вкладка состава только показывает штат; найм и увольнение — в разделе «Финансы»
+function staffHTML(readonly = false) {
+  return `<p class="hint">${readonly ? t('hireInFinance') : t('staffNote')}</p>${readonly ? '' : pendingHTML('staff')}` + ROLE_KEYS.map(role => {
+    const h = S.staff[role];
+    const cands = S.cands.filter(c => c.role === role);
+    cands.forEach(c => { if (!c.look) c.look = staffLook(role); });
+    if (h && !h.look) h.look = staffLook(role);
+    return `<section class="card"><div class="frow">${h ? portraitHTML(h.look) : ''}<div><b>${t('roles')[role]}</b><small>${t('roleDesc')[role]}</small></div></div>` +
+      (h
+        ? `<small>${h.name} · ${t('lvl')} ${h.lvl} · ${money(h.salary)} ${t('perWeek')}</small>
+           ${readonly ? '' : `<button onclick="fire('${role}')">${t('fire')}</button>`}`
+        : (cands.length && !readonly
+            ? cands.map(c => `<div class="prow">${portraitHTML(c.look)}<div><b>${c.name}</b><small>${t('lvl')} ${c.lvl} · ${t('wantSalary')}: ${money(c.want)} ${t('perWeek')}</small></div>
+                <input type="number" id="so-st-${c.id}" value="${c.want}" title="${t('perWeek')}">
+                <button onclick="offerStaff('${c.id}')">${t('offerBtn')}</button></div>`).join('')
+            : `<small>${t('vacancy')}</small>`)) +
+      `</section>`;
+  }).join('');
+}
+
+// вкладка «Взаимодействия»: беседа с психологом (до 5), план тренировки, тактика, автоуправление
+function actionsHTML() {
+  const ok = r => !!S.staff[r];
+  const list = S.squads[S.me].map(p => `<label class="pick"><input type="checkbox" class="psel" value="${p.id}" onchange="limitPick(this)"> ${p.num}. ${p.name}${p.inj > 0 ? ` (${t('inj')} ${p.inj})` : ''}</label>`).join('');
+  const plans = [['none', t('planNone')], ['all', t('planAll')], ['pace', t('pace')], ['shot', t('shot')], ['pass', t('pass')], ['def', t('def')]]
+    .map(([v, l]) => `<option value="${v}" ${S.plan === v ? 'selected' : ''}>${l}</option>`).join('');
+  const tac = [['balanced', 'tacBal'], ['attack', 'tacAtt'], ['defense', 'tacDef']]
+    .map(([v, k]) => `<option value="${v}" ${S.tactic === v ? 'selected' : ''}>${t(k)}</option>`).join('');
+  return `
+    <section class="card"><b>${t('talkTitle')}</b><small>${t('talkMax')}</small>
+      ${ok('psych')
+        ? `<div class="picks">${list}</div><p id="talkHint" class="hint"></p><button onclick="act('psych')">${t('actPsych')}</button>`
+        : `<button disabled>${t('actPsych')}</button><small>${t('needStaff')}: ${t('roles').psych}</small>`}
+    </section>
+    <section class="card"><b>${t('planTitle')}</b>
+      <label>${t('planTitle')}: <select ${ok('coach') ? '' : 'disabled'} onchange="setPlan(this.value)">${plans}</select></label>
+      <button onclick="act('coach')">${ok('coach') ? t('trainFree') : t('train')}</button>
+      ${ok('coach') ? '' : `<small>${t('needStaff')}: ${t('roles').coach}</small>`}
+    </section>
+    <section class="card">
+      <label>${t('tactic')}: <select ${ok('coach') ? '' : 'disabled'} onchange="setTactic(this.value)">${tac}</select></label>
+      ${ok('coach') ? '' : `<small>${t('needStaff')}: ${t('roles').coach}</small>`}
+    </section>
+    <section class="card"><b>${t('renameClub')}</b><div class="prow"><input id="clubName" maxlength="30" value="${nm(CLUBS[myIdx()])}"><button onclick="renameClub()">${t('renameBtn')}</button></div></section>
+    <section class="card"><button onclick="toggleAuto()">${t('autoStaff')}: ${S.autoStaff ? t('on') : t('off')}</button>
+      <small>${t('autoStaffNote')}</small></section>`;
+}
+
+// вкладка «Трансферы»: все сделки отправляются предложением, ответ придёт письмом через пару дней
+function transfersHTML() {
+  const me = S.me, others = CLUBS.filter(c => c.id !== me);
+  const row = p => `<b>${p.num}. ${p.name}</b> · ${t('pos')[p.pos]} · ${t('ovr')} ${p.ovr}<br>` +
+    `<small>${t('pace')} ${p.pace} · ${t('shot')} ${p.shot} · ${t('pass')} ${p.pass} · ${t('def')} ${p.def}</small>` +
+    `<small>${t('morale')} ${Math.round(p.mor ?? 70)} · ${t('hp')} ${Math.round(p.hp ?? 100)}</small>`;
+  let html = pendingHTML('transfers');
+  html += `<section class="card"><h3>${t('freeAgents')}</h3>`;
+  html += S.pool.length
+    ? S.pool.map(p => `<div class="prow"><div class="frow">${figHTML(p, lookOf(p).color, lookOf(p).shorts)}<div>${row(p)}</div></div><button onclick="offerFree('${p.id}')">${t('offerBtn')} ${money(poolPrice(p))}</button></div>`).join('')
+    : `<p class="hint">${t('none')}</p>`;
+  html += `</section>`;
+  others.forEach(c => {
+    html += `<details class="card" style="--c:${c.color}"><summary><b>${nm(c)}</b> · ${t('clubBudget')}: ${money(S.cash[c.id])}</summary>` +
+      S.squads[c.id].map(p => `<div class="prow"><div>${row(p)}</div>` +
+        `<input type="number" id="bo-${p.id}" value="${askFor(p)}" title="${t('bidFrom')}">` +
+        `<button onclick="offerBuy('${p.id}','${c.id}')">${t('offerBtn')}</button></div>`).join('') +
+      `</details>`;
+  });
+  html += `<section class="card"><h3>${t('sell')}</h3>`;
+  html += S.squads[me].map(p => {
+    const best = Math.max(...others.map(c => bidFor(p, c.id)));
+    return `<div class="prow"><div>${row(p)}</div><input type="number" id="so-${p.id}" value="${best}" title="${t('bidFrom')}">` +
+      others.map(c => `<button onclick="offerSell('${p.id}','${c.id}')">${nm(c)}</button>`).join('') + `</div>`;
+  }).join('');
+  return html + `</section>`;
+}
+
+// вкладка «Рекламодатели»: PR, публичность через PR-менеджера и три уровня спонсоров
+function sponsorsHTML() {
+  const pr = Math.round(S.pr);
+  const ok = !!staffLvl('pr');
+  let html = pendingHTML('sponsors') + `<section class="card"><b>PR: ${pr}/100</b><div class="bar"><i style="width:${pr}%"></i></div>
+    <small>${t('sponsorIncome')}: ${money(sponsorIncome())} ${t('perWeek')}</small></section>`;
+  html += `<section class="card"><b>${t('publicity')}</b><small>${ok ? t('publicityNote') : t('needPRMgr')}</small>` +
+    Object.entries(PUBLICITY).map(([k, P]) => `<button ${ok ? '' : 'disabled'} onclick="publicity('${k}')">${loc(P.label)} · ${money(P.cost)} · PR +${P.gain}</button>`).join('') +
+    `</section>`;
+  [['A', t('tierA')], ['B', t('tierB')], ['C', t('tierC')]].forEach(([tier, label]) => {
+    html += `<h3>${label}</h3>` + SPONSORS.filter(s => s.tier === tier).map(sp => {
+      const on = S.sponsors.includes(sp.id);
+      const inTalk = !!negFor(sp.id);
+      const action = on ? `<small class="ok">${t('active')}</small>`
+        : inTalk ? `<small>${t('inReply')}</small>`
+        : `<button onclick="proposeSponsor('${sp.id}')">${t('sponsorProposal')}</button>`;
+      return `<section class="card"><b>${sp.name}</b> <small>${t('ind')[sp.ind]} · ${t('needPR')}: ${sp.need} · ${money(sp.inc)} ${t('perWeek')}</small>${action}</section>`;
+    }).join('');
+  });
+  return html;
+}
+
+// кнопки ответа прямо в письме: требования агента или условия спонсора
+function mailControls(m) {
+  const n = m.nid && (S.neg || []).find(x => x.id === m.nid);
+  if (!n || n.stage !== 'wait') return '';
+  if (n.kind === 'sponsor') return `<div class="ctrl"><button onclick="respondNeg('${n.id}','accept')">${t('signIt')}</button>
+    <button class="ghost" onclick="respondNeg('${n.id}','decline')">${t('decline')}</button></div>`;
+  return `<div class="ctrl"><small>${t('demand')}: ${money(n.demand)} ${t('perWeek')}</small>
+    <input type="number" id="nw-${n.id}" value="${n.demand}">
+    <button onclick="respondNeg('${n.id}','offer')">${t('counter')}</button>
+    <button onclick="respondNeg('${n.id}','accept')">${t('acceptDemand')}</button>
+    <button class="ghost" onclick="respondNeg('${n.id}','decline')">${t('decline')}</button></div>`;
+}
+
+const VIEWS = {
+  start(el) {
+    el.innerHTML = `<section class="hero">
+        <button class="ghost lang" onclick="toggleLang('start')">${t('langBtn')}</button>
+        <div class="hero-in">
+          <span class="ball">⚽</span>
+          <h1>${t('appTitle')}</h1>
+          <div class="menu">
+            ${S ? `<button class="primary" onclick="go('hub')"><span class="ic">▶</span>${t('continueGame')}</button>` : ''}
+            <button class="${S ? '' : 'primary'}" onclick="go('pick')"><span class="ic">🏟️</span>${t('newGame')}</button>
+            <button onclick="go('load')"><span class="ic">💾</span>${t('load')}</button>
+          </div>
+        </div>
+      </section>`;
+  },
+
+  pick(el) {
+    el.innerHTML = `<h2>${t('chooseClub')}</h2>` + CLUBS.map((c, i) => {
+      const sq = makeSquad(c, i);
+      const ovr = Math.round(sq.reduce((a, p) => a + p.ovr, 0) / sq.length);
+      return `<button class="card" style="--c:${c.color}" onclick="newGame(${i})"><b>${nm(c)}</b><small>${c.city[L()]} · ${t('ovr')} ${ovr}</small></button>`;
+    }).join('') + `<button class="ghost big" onclick="go('start')">${t('back')}</button>`;
+  },
+
+  load(el) {
+    el.innerHTML = `<h2>${t('load')}</h2>${slotsHTML(false)}<button class="ghost big" onclick="go('start')">${t('back')}</button>`;
+  },
+
+  save(el) {
+    const msg = NOTICE; NOTICE = '';
+    el.innerHTML = `<h2>${t('save')}</h2>${msg ? `<p class="hint">${msg}</p>` : ''}${slotsHTML(true)}
+      <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+  },
+
+  hub(el) {
+    const me = CLUBS[myIdx()];
+    const msg = NOTICE; NOTICE = '';
+    if (S.round >= FIXTURES.length) {
+      el.innerHTML = `<h2>${t('seasonOver')}</h2>${tableHTML()}
+        <button class="big" onclick="S.round=0;newGame(myIdx())">${t('newSeason')}</button>`;
+      return;
+    }
+    const [h, a] = FIXTURES[S.round];
+    const involved = CLUBS[h].id === S.me || CLUBS[a].id === S.me;
+    const un = unreadCount();
+    el.innerHTML = `
+      ${msg ? `<p class="hint">${msg}</p>` : ''}
+      <section class="card" style="--c:${me.color}">
+        <h2 style="margin:0">${nm(me)}</h2>
+        <small>${me.city[L()]} · ${t('day')} ${S.day}</small>
+        <p>${t('budget')}: <b>${money(S.budget)}</b> · ${t('rating')}: <b>${squadOvr(me.id)}</b> · PR: <b>${Math.round(S.pr)}</b></p>
+        <small>${t('staffCost')}: ${money(staffSalary())} ${t('perWeek')}</small>
+      </section>
+      <section class="card">
+        <p>${t('round')} ${S.round + 1}/${FIXTURES.length}</p>
+        <p class="fx">${nm(CLUBS[h])} — ${nm(CLUBS[a])}</p>
+        ${involved
+          ? `<button class="big" onclick="startMatch()">${t('playMatch')}</button>`
+          : `<button class="big" onclick="simRound()">${t('simRound')}</button>`}
+      </section>
+      <nav class="grid3">
+        <button onclick="go('squad')"><span class="ic">👥</span>${t('squad')}</button>
+        <button onclick="go('table')"><span class="ic">🏆</span>${t('table')}</button>
+        <button onclick="go('stadium')"><span class="ic">🏟️</span>${t('stadium')}</button>
+        <button onclick="go('finance')"><span class="ic">💰</span>${t('finance')}</button>
+        <button onclick="go('save')"><span class="ic">💾</span>${t('save')}</button>
+        <button onclick="train()"><span class="ic">🏋️</span>${staffLvl('coach') ? t('trainFree') : t('train')}</button>
+        <button onclick="go('friendly')"><span class="ic">🤝</span>${t('friendly')}</button>
+        <i></i>
+        <button onclick="go('mail')"><span class="ic">✉️</span>${t('mail')}${un ? ` (${un})` : ''}</button>
+      </nav>
+      <button class="ghost" onclick="go('start')">${t('exit')}</button>`;
+  },
+
+  squad(el) {
+    const club = CLUBS[myIdx()];
+    const msg = NOTICE; NOTICE = '';
+    const tabs = [['players', t('tabPlayers')], ['staff', t('tabStaff')], ['actions', t('tabActions')]];
+    let html = `<h2>${t('squad')}: ${nm(club)}</h2>
+      <nav class="tabs">${tabs.map(([k, l]) => `<button class="${SQ_TAB === k ? 'on' : ''}" onclick="setTab('${k}')">${l}</button>`).join('')}</nav>
+      ${msg ? `<p class="hint">${msg}</p>` : ''}`;
+    if (SQ_TAB === 'staff') html += staffHTML(true);
+    else if (SQ_TAB === 'actions') html += actionsHTML();
+    else if (SQ_TAB === 'lineup') html += lineupHTML();
+    else html += playersHTML(club);
+    el.innerHTML = html + (SQ_TAB === 'lineup' ? '' : `<button class="ghost big" onclick="go('hub')">${t('back')}</button>`);
+    drawFigs(el); drawPortraits(el);
+  },
+
+  finance(el) {
+    const msg = NOTICE; NOTICE = '';
+    const tabs = [['sponsors', t('sponsors')], ['transfers', t('transfers')], ['staff', t('hiring')]];
+    const body = FIN_TAB === 'sponsors' ? sponsorsHTML() : FIN_TAB === 'staff' ? staffHTML() : transfersHTML();
+    el.innerHTML = `<h2>${t('finance')}</h2><p class="fx">${t('budget')}: <b>${money(S.budget)}</b></p>
+      <nav class="tabs">${tabs.map(([k, l]) => `<button class="${FIN_TAB === k ? 'on' : ''}" onclick="setFinTab('${k}')">${l}</button>`).join('')}</nav>
+      ${msg ? `<p class="hint">${msg}</p>` : ''}${body}
+      <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+    drawPortraits(el); drawFigs(el);                 // портреты сотрудников и фигурки свободных игроков
+  },
+
+  mail(el) {
+    const list = S.mail.map(m => `<details class="mail${m.read ? '' : ' unread'}" ontoggle="readMail('${m.id}')">
+      <summary>${loc(m.subj)} <small>${t('day')} ${m.day} · ${loc(m.from)}</small></summary><p>${loc(m.body)}</p>${mailControls(m)}</details>`).join('');
+    el.innerHTML = `<h2>${t('mail')}</h2>${list || `<p class="hint">${t('noMail')}</p>`}
+      <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+  },
+
+  friendly(el) {
+    el.innerHTML = `<h2>${t('friendly')}</h2><p class="hint">${t('friendlyNote')}</p>` +
+      CLUBS.filter(c => c.id !== S.me).map(c => `<button class="card" style="--c:${c.color}" onclick="startFriendly('${c.id}')"><b>${nm(c)}</b><small>${t('ovr')} ${squadOvr(c.id)}</small></button>`).join('') +
+      `<button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+  },
+
+  table(el) {
+    el.innerHTML = `<h2>${t('table')}</h2>${tableHTML()}
+      <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+  },
+
+  stadium(el) {
+    el.innerHTML = `<h2>${t('stadium')}: ${nm(CLUBS[myIdx()])}</h2>
+      <canvas id="std" class="stadium" width="320" height="200"></canvas>
+      <p class="hint">${t('stadiumDesc')}</p>
+      <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+    drawStadium(document.getElementById('std').getContext('2d'));
+  },
+
+  match(el) {
+    Match.start(el, MATCH_CFG);
+  },
+
+  result(el) {
+    const r = RESULT;
+    el.innerHTML = `<h2>${r.friendly ? t('friendly') : t('result')}</h2>
+      <p class="score">${nm(CLUBS[myIdx()])} ${r.gm} : ${r.gop} ${r.opp}</p>
+      <p class="fx">${t(r.out)} · ${t('reward')}: ${money(r.reward)}</p>
+      ${r.injured.length ? `<p class="hint">${t('injuredList')}: ${r.injured.join(', ')}</p>` : ''}
+      <button class="big" onclick="go('hub')">${t('next')}</button>`;
+  }
+};
+
+function go(view) {
+  const langBtn = view === 'match' ? '' :
+    `<button class="ghost" onclick="toggleLang('${view}')">${t('langBtn')}</button>`;
+  const saveBtn = (view === 'match' || !S) ? '' : `<button class="save-btn" onclick="go('save')">${t('saveGame')}</button>`;
+  $('#app').className = 'v-' + view;
+  $('#app').innerHTML = `<header class="top"><b>${t('appTitle')}</b><span>${saveBtn}${langBtn}</span></header><main id="view"></main>`;
+  VIEWS[view]($('#view'));
+}
+
+function toggleLang(view) {
+  localStorage.setItem('steppe-lang', L() === 'ru' ? 'kz' : 'ru');
+  go(view);
+}
+
+// ===== Скрытое меню тестировщика =====
+// открывается: 7 нажатий по названию игры за 3 секунды или Ctrl+Shift+D
+const DBG = { taps: [], panel: null };
+const dbgInMatch = () => !!document.querySelector('.m-screen');
+function dbgToggle() {
+  if (DBG.panel) { DBG.panel.remove(); DBG.panel = null; return; }
+  dbgRender();
+}
+function dbgRender() {
+  if (!DBG.panel) {
+    DBG.panel = document.createElement('div');
+    DBG.panel.id = 'dbgPanel';
+    DBG.panel.style.cssText = 'position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px;color:#fff;font:14px monospace;overflow:auto';
+    document.body.appendChild(DBG.panel);
+  }
+  const btn = (a, label) => `<button onclick="dbgAct('${a}')" style="width:min(340px,80vw);padding:10px;font:14px monospace;background:#1d3a2a;color:#fff;border:1px solid #4a7a5a;border-radius:6px">${label}</button>`;
+  const info = S ? `клуб: ${S.me} · бюджет: ${Math.round(S.budget).toLocaleString('ru')} · игроков: ${S.squads[S.me].length}` : 'карьера не начата';
+  DBG.panel.innerHTML = `<b style="font-size:16px">Меню тестировщика</b><div style="opacity:.7">${info}</div>
+    ${S ? btn('money', '+10 млн в бюджет') + btn('fit', 'Все игроки: здоровы, мораль 100') + btn('days', 'Пропустить 7 дней') : ''}
+    ${dbgInMatch() ? btn('fan', 'Фанат на поле (в матче)') + btn('end', 'Закончить матч (в матче)') : ''}
+    ${S ? btn('reset', 'Сбросить карьеру') : ''}
+    ${btn('close', 'Закрыть')}`;
+}
+function dbgAct(a) {
+  if (a === 'close') return dbgToggle();
+  if (a === 'reset') {
+    if (!confirm('Удалить карьеру?')) return dbgRender();
+    S = null; try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    dbgToggle(); return go('start');
+  }
+  if (a === 'money' && S) { S.budget += 1e7; save(); }
+  if (a === 'fit' && S) { S.squads[S.me].forEach(p => { p.inj = 0; p.hp = 100; p.mor = 100; }); save(); }
+  if (a === 'days' && S) { passDays(7); save(); }
+  if (a === 'fan' && dbgInMatch()) Match.dbg.spawnFan();
+  if (a === 'end' && dbgInMatch()) Match.dbg.endNow();
+  if (S && !dbgInMatch() && (a === 'money' || a === 'fit' || a === 'days')) go('hub');
+  dbgRender();
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest && e.target.closest('h1, .top b');
+  if (!t) return;
+  const now = Date.now();
+  DBG.taps = DBG.taps.filter(x => now - x < 3000).concat(now);
+  if (DBG.taps.length >= 7) { DBG.taps = []; dbgToggle(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.shiftKey && e.code === 'KeyD') { e.preventDefault(); dbgToggle(); }
+});
+
+// ===== Старт =====
+S = load();
+// старые сохранения без нового клуба и новых полей: добавляем недостающее
+migrate();
+if (!S) { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+go(S ? 'hub' : 'start');
+
+</script>
+  <script>
+// ===== Персонаж в стиле Terraria: 16×24, тёмный контур, объём (свет/тень), без лица =====
+// символы: o — контур; h/H/d — волосы (основной, блик, тень); s/S — кожа и тень;
+// k/K/L — футболка (основной, тень, свет); w/W — шорты; e — пояс; b/B — бутсы (основной, блик)
+const SPR_W = 16, SPR_H = 24, FOOT_Y = 23;
+const SKINS = ['#f1c7a5', '#e0ac84', '#c68a5e', '#a86d43', '#7d4e2c', '#5a3720'];
+const HAIRS = ['#2a1d12', '#4a3020', '#111111', '#8b5a2b', '#c9a46a', '#9a9a9a'];
+const KIT_COLORS = ['#c62828', '#1565c0', '#2e7d32', '#f9a825', '#ffffff', '#6a1b9a', '#00838f', '#ef6c00', '#37474f', '#ad1457'];
+const SHORTS_COLORS = ['#ffffff', '#111111', '#1b5e20', '#0d47a1', '#f9a825', '#bdbdbd'];
+const pickOf = a => a[Math.floor(Math.random() * a.length)];
+function randomLook() {
+  return { skin: pickOf(SKINS), hair: pickOf(HAIRS), color: pickOf(KIT_COLORS), shorts: pickOf(SHORTS_COLORS) };
+}
+// внешний вид игрока фиксирован: создаётся один раз и хранится в игроке
+function lookOf(p) { if (!p.look) p.look = randomLook(); return p.look; }
+const spriteCache = {};
+
+function shade(hex) {
+  const n = parseInt(hex.slice(1), 16), f = v => Math.round(v * .6);
+  return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`;
+}
+function lum(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+}
+function lighten(hex) {
+  const n = parseInt(hex.slice(1), 16), f = v => Math.round(v + (255 - v) * .35);
+  return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`;
+}
+
+// позы ног: x — левый столбец ноги, dy — подъём ноги, fx — сдвиг бутсы вперёд/назад
+const LEG_POSES = {
+  stand: { L: { x: 5, dy: 0, fx: -1 }, R: { x: 9, dy: 0, fx: 0 } },
+  walk:  { L: { x: 4, dy: 0, fx: -2 }, R: { x: 10, dy: 0, fx: 1 } },
+  walk2: { L: { x: 10, dy: 0, fx: 1 }, R: { x: 4, dy: 0, fx: -2 } },
+  run1:  { L: { x: 3, dy: -1, fx: -3 }, R: { x: 10, dy: 0, fx: 1 } },
+  run2:  { L: { x: 7, dy: 0, fx: 0 }, R: { x: 4, dy: -1, fx: -2 } },
+  kick:  { L: { x: 5, dy: 0, fx: -1 }, R: { x: 10, dy: -2, fx: 4 } }
+};
+
+function buildSprite(frame) {
+  const g = Array.from({ length: SPR_H }, () => Array(SPR_W).fill(' '));
+  const put = (x0, y0, x1, y1, ch) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (y >= 0 && y < SPR_H && x >= 0 && x < SPR_W) g[y][x] = ch; };
+  const P = LEG_POSES[frame] || LEG_POSES.stand;
+  // голова: овал 8×8, сверху и сзади — волосы с бликом и тенью
+  for (let y = 1; y <= 8; y++) for (let x = 3; x <= 12; x++) {
+    const dx = (x - 7.5) / 4.6, dy = (y - 4.5) / 4.2;
+    if (dx * dx + dy * dy > 1) continue;
+    let ch = 's';
+    if (y <= 3 || (x <= 4 && y <= 5)) ch = 'h';
+    if (ch === 'h' && y <= 2 && x >= 6 && x <= 9) ch = 'H';
+    if (ch === 'h' && x >= 11) ch = 'd';
+    if (ch === 's' && x >= 11) ch = 'S';
+    g[y][x] = ch;
+  }
+  put(6, 9, 9, 9, 'S');                              // шея
+  // торс: футболка с объёмом, пояс
+  put(5, 10, 10, 15, 'k'); put(5, 10, 5, 15, 'L'); put(10, 10, 10, 15, 'K');
+  put(5, 16, 10, 16, 'e');
+  // руки: рукав, предплечье и кисть
+  put(3, 10, 4, 11, 'k'); put(3, 12, 4, 14, 's'); put(3, 15, 4, 15, 'S');
+  put(11, 10, 12, 11, 'K'); put(11, 12, 12, 14, 's'); put(11, 15, 12, 15, 'S');
+  // шорты
+  put(5, 17, 10, 19, 'w'); put(10, 17, 10, 19, 'W');
+  // ноги и бутсы по позе
+  ['L', 'R'].forEach(side => {
+    const l = P[side];
+    put(l.x, 20, l.x + 1, 21 + l.dy, 's');
+    put(l.x + l.fx, 22 + l.dy, l.x + l.fx + 2, 23, 'b');
+    put(l.x + l.fx, 22 + l.dy, l.x + l.fx + 2, 22 + l.dy, 'B');
+  });
+  // контур: пустые клетки рядом с фигурой становятся тёмными
+  const out = g.map(r => r.slice());
+  for (let y = 0; y < SPR_H; y++) for (let x = 0; x < SPR_W; x++) {
+    if (g[y][x] !== ' ') continue;
+    const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => {
+      const yy = y + dy, xx = x + dx;
+      return yy >= 0 && yy < SPR_H && xx >= 0 && xx < SPR_W && g[yy][xx] !== ' ';
+    });
+    if (near) out[y][x] = 'o';
+  }
+  return out;
+}
+
+function getSprite(color, num, lying, skin, frame, shorts, hair) {
+  const f = lying ? 'stand' : (frame || 'stand');
+  const hr = hair || HAIRS[0];
+  const key = [color, num, lying ? 'L' : 'S', skin, f, shorts, hr].join('|');
+  if (spriteCache[key]) return spriteCache[key];
+  const grid = buildSprite(f);
+  const sh = shorts || '#f2f2f2';
+  const pal = { o: '#111111', h: hr, H: lighten(hr), d: shade(hr), s: skin, S: shade(skin),
+                k: color, K: shade(color), L: lighten(color), w: sh, W: shade(sh), e: '#4a3626',
+                b: '#1a1a1a', B: '#3a3a3a' };
+  const cv = document.createElement('canvas');
+  cv.width = SPR_W; cv.height = SPR_H;
+  const g = cv.getContext('2d');
+  grid.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (ch === ' ') return;
+    g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1);
+  }));
+  // номер на футболке
+  g.fillStyle = lum(color) > .5 ? '#111111' : '#ffffff'; g.font = '5px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(String(num), 8, 12);
+  let outCv = cv;
+  if (lying) {                       // лежащий игрок: силуэт повёрнут на 90°
+    outCv = document.createElement('canvas');
+    outCv.width = SPR_H; outCv.height = SPR_W;
+    const h = outCv.getContext('2d');
+    h.translate(SPR_H, 0); h.rotate(Math.PI / 2);
+    h.drawImage(cv, 0, 0);
+  }
+  spriteCache[key] = outCv;
+  return outCv;
+}
+
+// отрисовка всех канвасов с классом fig внутри root: цвет и номер берутся из data-атрибутов
+// ===== Фигуры толпы: та же сетка 16×24, что и у игроков, с вариантами: вид сзади, жилет, сидя, захват, камера =====
+// o — опции: back (вид со спины — волосы вместо лица), vest (цвет жилета, вместо футболки), sit (сидя),
+// grab (рука вперёд), cam (камера в руках)
+function buildFigure(frame, o = {}) {
+  const g = Array.from({ length: SPR_H }, () => Array(SPR_W).fill(' '));
+  const put = (x0, y0, x1, y1, ch) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (y >= 0 && y < SPR_H && x >= 0 && x < SPR_W) g[y][x] = ch; };
+  const P = LEG_POSES[frame] || LEG_POSES.stand;
+  // голова: при виде сзади — только волосы
+  for (let y = 1; y <= 8; y++) for (let x = 3; x <= 12; x++) {
+    const dx = (x - 7.5) / 4.6, dy = (y - 4.5) / 4.2;
+    if (dx * dx + dy * dy > 1) continue;
+    let ch = 's';
+    if (y <= 3 || (x <= 4 && y <= 5) || o.back) ch = 'h';
+    if (ch === 'h' && y <= 2 && x >= 6 && x <= 9) ch = 'H';
+    if (ch === 'h' && x >= 11) ch = 'd';
+    if (ch === 's' && x >= 11) ch = 'S';
+    g[y][x] = ch;
+  }
+  put(6, 9, 9, 9, 'S');                                              // шея
+  // торс: футболка или жилет
+  if (o.vest) { put(5, 10, 10, 15, 'v'); put(5, 10, 5, 15, 'v'); put(10, 10, 10, 15, 'V'); put(3, 10, 4, 11, 'k'); put(11, 10, 12, 11, 'k'); }
+  else { put(5, 10, 10, 15, 'k'); put(5, 10, 5, 15, 'L'); put(10, 10, 10, 15, 'K'); put(3, 10, 4, 11, 'k'); put(11, 10, 12, 11, 'K'); }
+  put(5, 16, 10, 16, 'e');
+  // руки: при захвате — вперёд, иначе — вдоль тела
+  put(3, 12, 4, 14, 's'); put(3, 15, 4, 15, 'S');
+  if (o.grab) { put(11, 11, 15, 12, 'k'); put(13, 12, 15, 13, 's'); put(15, 12, 15, 13, 'S'); }
+  else { put(11, 12, 12, 14, 's'); put(11, 15, 12, 15, 'S'); }
+  if (o.cam) { put(11, 12, 13, 13, 'C'); put(12, 12, 13, 12, 'B'); }   // камера в руке
+  // шорты
+  put(5, 17, 10, 19, 'w'); put(10, 17, 10, 19, 'W');
+  if (o.sit) {                                                       // сидит: бедро вперёд, голень вниз
+    put(8, 18, 13, 19, 'w'); put(12, 20, 13, 22, 's'); put(12, 23, 14, 23, 'b');
+  } else {
+    ['L', 'R'].forEach(side => {
+      const l = P[side];
+      put(l.x, 20, l.x + 1, 21 + l.dy, 's');
+      put(l.x + l.fx, 22 + l.dy, l.x + l.fx + 2, 23, 'b');
+      put(l.x + l.fx, 22 + l.dy, l.x + l.fx + 2, 22 + l.dy, 'B');
+    });
+  }
+  // контур
+  const out = g.map(r => r.slice());
+  for (let y = 0; y < SPR_H; y++) for (let x = 0; x < SPR_W; x++) {
+    if (g[y][x] !== ' ') continue;
+    const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => {
+      const yy = y + dy, xx = x + dx;
+      return yy >= 0 && yy < SPR_H && xx >= 0 && xx < SPR_W && g[yy][xx] !== ' ';
+    });
+    if (near) out[y][x] = 'o';
+  }
+  return out;
+}
+
+// спрайт фигуры толпы: внешний вид берётся из look, жилет и камера — из опций
+const crowdCache = {};
+function getCrowdSprite(look, frame, o, flip) {
+  const key = [look.color, look.skin, look.hair, look.shorts, frame, JSON.stringify(o), o.vest || '', flip ? 'F' : 'R'].join('|');
+  if (crowdCache[key]) return crowdCache[key];
+  if (Object.keys(crowdCache).length > 800) for (const k in crowdCache) delete crowdCache[k];
+  let grid = buildFigure(frame, o);
+  if (flip) grid = grid.map(r => r.slice().reverse());
+  const sh = look.shorts;
+  const vest = o.vest || look.color;
+  const pal = { o: '#111111', h: look.hair, H: lighten(look.hair), d: shade(look.hair), s: look.skin, S: shade(look.skin),
+                k: look.color, K: shade(look.color), L: lighten(look.color), w: sh, W: shade(sh), e: '#4a3626',
+                b: '#1a1a1a', B: '#3a3a3a', v: vest, V: shade(vest), C: '#262626' };
+  const cv = document.createElement('canvas');
+  cv.width = SPR_W; cv.height = SPR_H;
+  const g = cv.getContext('2d');
+  grid.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== ' ') { g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1); } }));
+  crowdCache[key] = cv;
+  return cv;
+}
+
+function drawFigs(root) {
+  root.querySelectorAll('canvas.fig').forEach(cv => {
+    const n = +cv.dataset.n, skin = cv.dataset.skin || SKINS[n % SKINS.length], hair = cv.dataset.hair || HAIRS[0];
+    const spr = getSprite(cv.dataset.c, n, false, skin, 'stand', cv.dataset.s, hair);
+    const g = cv.getContext('2d');
+    g.clearRect(0, 0, cv.width, cv.height);
+    g.imageSmoothingEnabled = false;
+    g.drawImage(spr, 0, 0, cv.width, cv.height);
+  });
+}
+
+
+function drawPitch(c, x, y, w, h) {
+  const s = 8;
+  for (let i = 0; i < w; i += s) {
+    c.fillStyle = (i / s) % 2 ? '#2e8b3e' : '#34a047';
+    c.fillRect(x + i, y, Math.min(s, w - i), h);
+  }
+  c.strokeStyle = '#ffffff'; c.lineWidth = 1;
+  c.strokeRect(x + .5, y + .5, w - 1, h - 1);
+  c.beginPath(); c.moveTo(x + w / 2, y); c.lineTo(x + w / 2, y + h); c.stroke();
+  c.beginPath(); c.arc(x + w / 2, y + h / 2, h * .15, 0, Math.PI * 2); c.stroke();
+}
+
+function drawStadium(c) {
+  const W = 320, H = 200;
+  const pal = ['#e74c3c', '#f1c40f', '#ecf0f1', '#3498db'];
+  for (let y = 0; y < H; y += 6) {
+    c.fillStyle = (y / 6) % 2 ? '#3b3f47' : '#4a4f59';
+    c.fillRect(0, y, W, 6);
+    for (let x = 0; x < W; x += 4) {
+      if ((x * 7 + y * 3) % 11 < 3) { c.fillStyle = pal[(x + y) % 4]; c.fillRect(x, y + 1, 2, 2); }
+    }
+  }
+  drawPitch(c, 14, 14, W - 28, H - 28);
+}
+
+// ===== Аркада 11 на 11: большое поле, камера, аут, подкаты, фолы, штрафные =====
+const Match = (() => {
+  const VW = 480, VH = 270;                    // видимая часть поля (экран камеры), в логических единицах
+  const RES = 2;                               // внутреннее разрешение канваса: вдвое чётче
+  const W = 960, H = 540, DUR = 90, GH = 38;   // размер поля в игровых единицах
+  const GT = H / 2 - GH, GB = H / 2 + GH;
+  const BOX_W = 120, BOX_H = 220, SPOT = 80;   // штрафная площадь и точка пенальти
+  const SPRINT = 1.5;                           // множитель скорости при спринте
+  const IDLE_MS = 10000, AUTO_SPEED = 2;        // без касаний 10 с — авто-игра; авто-игра идёт в 2 раза быстрее
+  const CAM = { zoom: 1, lerp: 4 };             // zoom < 1 — камера отдаляется, > 1 — приближается
+  const GK_COLOR = '#ff8fd8';
+  const FORM = [[.03, .5], [.15, .18], [.15, .4], [.15, .6], [.15, .82],
+                [.3, .25], [.3, .5], [.3, .75], [.42, .3], [.42, .5], [.42, .7]];
+  const KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyJ', 'KeyK', 'Sprint'];
+  const MAP = { KeyW: 'ArrowUp', KeyS: 'ArrowDown', KeyA: 'ArrowLeft', KeyD: 'ArrowRight',
+                ShiftLeft: 'Sprint', ShiftRight: 'Sprint' };
+
+  let c, cfg, teams, ball, score, timeLeft, last, raf, running = false, ref = null;
+  let keys = {}, joy = { x: 0, y: 0 }, joyId = null, ox = 0, oy = 0;
+  let ctrl = null, kickCd = 0, cpuCd = [0, 0], tackleCd = [0, 0];
+  let flash = 0, flashKey = 'goal', pen = null;
+  let benches = [[], []], subsLeft = 3, subOpen = false, subPick = null;
+  let fk = null;        // свободный удар: {t — команда, которая бьёт, timer}
+  let thr = null;       // аут: {t — команда, которая вбрасывает, taker, timer}
+  let lastTeam = 0;     // команда, которая последней касалась мяча (для аутов)
+  let switchCd = 0;     // пауза между автоматическими сменами игрока
+  let camX = W / 2, camY = H / 2;
+  let passPulse = false, slidePulse = false, switchPulse = false;
+  let auto = false, lastInput = 0, autoCd = 0;
+  let phase = 'play', photoT = 0, photoHold = 0, finishing = false;   // play → photo (построение перед фотографами) → результат
+  let fans = [], stewards = [], photogs = [], nextFan = Infinity, nextPhotog = 6;
+  let injuries = [];                            // травмы за матч: {side, id, dmg, days}
+
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const cl = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  // игрок выходит на матч с показателями, которые зависят от морали и ХП; тактика тренера сдвигает команду
+  function makeTeam(squad, side, tac) {
+    return squad.map((p, i) => {
+      const f = ((cfg && cfg.form) || FORM)[i] || [.2, .5];   // запасные стоят у своей скамейки
+      const bx = side === 0 ? f[0] * W : (1 - f[0]) * W;
+      const by = f[1] * H;
+      const k = (0.92 + 0.08 * (p.mor ?? 70) / 100) * (0.85 + 0.15 * (p.hp ?? 100) / 100);
+      const st = s => clamp(Math.round(p[s] * k + (tac ? (tac[s] || 0) : 0)));
+      return { pid: p.id, inj: (p.inj || 0) > 0, pendingSub: false,
+               num: p.num, label: p.name.split(' ').pop(), pos: p.pos,
+               pace: st('pace'), shot: st('shot'), def: st('def'), side, bx, by, x: bx, y: by,
+               ax: side === 0 ? 1 : -1, ay: 0, down: 0, slide: 0, hit: false, diveY: by,
+               kickT: 0, px: bx, py: by, spd: 0,
+               skin: lookOf(p).skin, hair: lookOf(p).hair };
+    });
+  }
+
+  const alive = team => team.filter(p => p.down <= 0);
+
+  function nearest(team, pt) {
+    let best = null, bd = Infinity;
+    alive(team).forEach(p => { const d = dist(p, pt); if (d < bd) { bd = d; best = p; } });
+    return best;
+  }
+
+  function nearestOpp(p, r) {
+    let best = null, bd = r;
+    alive(teams[1 - p.side]).forEach(q => { const d = dist(p, q); if (d < bd) { bd = d; best = q; } });
+    return best;
+  }
+
+  function stepTo(p, tx, ty, sp, dt) {
+    const dx = tx - p.x, dy = ty - p.y, l = Math.hypot(dx, dy);
+    if (l > 1) {
+      const k = Math.min(l, sp * dt) / l;
+      p.x += dx * k; p.y += dy * k;
+      p.ax = dx / l; p.ay = dy / l;
+    }
+    p.x = cl(p.x, 4, W - 4); p.y = cl(p.y, 4, H - 4);
+  }
+
+  function formTarget(p) {
+    return { x: cl(p.bx + (ball.x - W / 2) * .25, 6, W - 6), y: cl(p.by + (ball.y - H / 2) * .25, 6, H - 6) };
+  }
+
+  // удар: направление нормализуется, team — кто ударил (для аутов)
+  function kick(dx, dy, power, team) {
+    const l = Math.hypot(dx, dy) || 1;
+    ball.vx = dx / l * power; ball.vy = dy / l * power;
+    if (team !== undefined) lastTeam = team;
+  }
+
+  function aimAt(goalX, power, spread, team) {
+    const dx = goalX - ball.x, dy = H / 2 + (Math.random() - .5) * spread - ball.y;
+    kick(dx, dy, power, team);
+  }
+
+  function touch(p) {
+    if (p.down > 0) return;
+    const dx = ball.x - p.x, dy = ball.y - p.y, d = Math.hypot(dx, dy) || .01;
+    if (d < 7) {
+      ball.x = p.x + dx / d * 7; ball.y = p.y + dy / d * 7;
+      ball.vx += dx / d * 30; ball.vy += dy / d * 30;
+      lastTeam = p.side;
+    }
+  }
+
+  // пас от игрока p своим: выбирает лучшего партнёра впереди, иначе бьёт по направлению взгляда
+  function passFrom(p, team) {
+    p.kickT = .3;
+    let best = null, bs = -Infinity;
+    alive(team).forEach(q => {
+      if (q === p) return;
+      const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
+      if (d < 20 || d > 180) return;
+      const s = (dx * p.ax + dy * p.ay) / d - d / 400;
+      if (s > bs) { bs = s; best = q; }
+    });
+    if (best) {
+      const dx = best.x - p.x, dy = best.y - p.y, d = Math.hypot(dx, dy);
+      kick(dx / d, dy / d, 90 + d * .3, p.side);
+    } else {
+      kick(p.ax, p.ay, 90, p.side);
+    }
+  }
+
+  function setFlash(k) { flashKey = k; flash = 1.2; }
+
+  function kickoff() {
+    ball = { x: W / 2, y: H / 2, vx: 0, vy: 0 };
+    teams.forEach(team => team.forEach(p => { p.x = p.bx; p.y = p.by; p.slide = 0; p.hit = false; }));
+    ctrl = null; thr = null;
+    camX = W / 2; camY = H / 2;
+  }
+
+  function goal(team) {
+    score[team]++;
+    setFlash('goal');
+    kickoff();
+  }
+
+  // физика мяча: 'goal' — гол засчитан, 'out' — мяч за боковой линией, иначе null
+  function ballPhysics(dt) {
+    ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+    const f = Math.pow(.4, dt); ball.vx *= f; ball.vy *= f;
+    if (ball.y <= 3 || ball.y >= H - 3) { ball.y = cl(ball.y, 3, H - 3); return 'out'; }
+    const mouth = ball.y > GT && ball.y < GB;
+    if (ball.x >= W - 2 && mouth) { goal('me'); return 'goal'; }
+    if (ball.x <= 2 && mouth) { goal('cpu'); return 'goal'; }
+    if (ball.x < 2) { ball.x = 2; ball.vx = Math.abs(ball.vx); }
+    if (ball.x > W - 2) { ball.x = W - 2; ball.vx = -Math.abs(ball.vx); }
+    return null;
+  }
+
+  // ----- аут: мяч за боковой линией, вбрасывает команда, которая не касалась мяча последней -----
+  function startThrow() {
+    const t = 1 - lastTeam;
+    const y = ball.y < H / 2 ? 8 : H - 8, x = cl(ball.x, 10, W - 10);
+    ball = { x, y, vx: 0, vy: 0 };
+    const taker = nearest(teams[t], ball);
+    if (!taker) { kickoff(); return; }
+    const inward = y < H / 2 ? 1 : -1;
+    taker.x = x; taker.y = y + inward * 8;
+    taker.ax = t === 0 ? 1 : -1; taker.ay = inward;
+    thr = { t, taker, timer: 1.2 };
+    ctrl = t === 0 ? taker : null;
+    setFlash('throwIn');
+  }
+
+  function updateThrow(dt) {
+    const { t, taker } = thr;
+    thr.timer -= dt;
+    alive(teams[1 - t]).forEach(p => {   // соперники отходят от места аута
+      const d = dist(p, ball) || 1;
+      if (d < 40) stepTo(p, ball.x + (p.x - ball.x) / d * 40, ball.y + (p.y - ball.y) / d * 40, 150, dt);
+    });
+    const human = t === 0;
+    if (!human) passPulse = false;                        // нажатие «Пас» во время чужого аута не должно копиться
+    if (thr.timer > 0 && !(human && passPulse)) return;   // человек может вбросить раньше, кнопкой «Пас»
+    passPulse = false;
+    thr = null;
+    if (human) ctrl = taker;
+    passFrom(taker, teams[t]);
+  }
+
+  // ----- фолы и штрафные -----
+  // травма: шанс выше у подката; ХП и дни восстановления зависят от силы удара
+  function maybeInjure(tk, v) {
+    if (v.pendingSub) return false;
+    if (Math.random() > (tk.slide > 0 ? .15 : .05)) return false;
+    const dmg = 8 + Math.floor(Math.random() * 23);            // 8–30 ХП
+    v.pendingSub = true;
+    injuries.push({ side: v.side, id: v.pid, dmg, days: Math.round(dmg * 1.2) + 4 });
+    return true;
+  }
+
+  // травмированный уходит с поля: на его место встаёт запасной того же амплуа, если есть
+  function injurySub(t, p) {
+    p.pendingSub = false;
+    const field = teams[t], bench = benches[t];
+    let j = bench.findIndex(q => q.pos === p.pos);
+    if (j < 0 && p.pos !== 'GK') j = bench.findIndex(q => q.pos !== 'GK');
+    if (j < 0) return;                       // замен нет — игрок доигрывает с пониженными ХП
+    const inn = bench.splice(j, 1)[0];
+    inn.x = p.x; inn.y = p.y; inn.bx = p.bx; inn.by = p.by;
+    inn.down = 0; inn.slide = 0; inn.hit = false;
+    p.down = 0; p.slide = 0;
+    field[field.indexOf(p)] = inn;
+    if (ctrl === p) ctrl = inn;
+    setFlash('injury');
+  }
+
+  function resolveTackle(tk, v) {
+    const clean = Math.random() < .4 + (tk.def - v.pace * .5) / 150;
+    if (clean) {
+      if (dist(v, ball) < 14) kick(tk.ax, tk.ay, 70, tk.side);   // отобрал мяч
+      return;
+    }
+    foul(tk, v);
+  }
+
+  function foul(tk, v) {
+    v.down = 1.3;
+    setFlash('foul');
+    maybeInjure(tk, v);
+    const inBox = tk.side === 0
+      ? (v.x < BOX_W && Math.abs(v.y - H / 2) < BOX_H / 2)
+      : (v.x > W - BOX_W && Math.abs(v.y - H / 2) < BOX_H / 2);
+    if (inBox) { startPenalty(1 - tk.side); return; }
+    ball = { x: cl(v.x, 6, W - 6), y: cl(v.y, 6, H - 6), vx: 0, vy: 0 };
+    fk = { t: 1 - tk.side, timer: 1.5 };   // свободный удар команде, которой сделали фол
+  }
+
+  function startPenalty(t) {
+    const spotX = t === 0 ? W - SPOT : SPOT;   // точка пенальти, внутри штрафной
+    pen = { t, spotX, timer: t === 0 ? 6 : 1.6, shot: false, after: 0, saved: false, saveDone: false, gk: null };
+    ball = { x: spotX, y: H / 2, vx: 0, vy: 0 };
+    teams.forEach(team => team.forEach(p => { p.x = p.bx; p.y = p.by; p.slide = 0; }));
+    ctrl = null;
+    setFlash('pen');
+  }
+
+  function shootPen() {
+    const t = pen.t, gk = teams[1 - t][0], taker = teams[t][8];
+    // направление: у человека — стиком (вверх/вниз), у ИИ — случайно
+    const dirY = t === 0
+      ? (joy.y < -.25 ? -1 : joy.y > .25 ? 1 : (Math.random() < .5 ? -1 : 1))
+      : (Math.random() < .5 ? -1 : 1);
+    const guess = Math.random() < .5 ? -1 : 1;     // куда бросился вратарь
+    const correct = guess === dirY;
+    const saveP = correct ? .55 + gk.def / 300 - (taker.shot - 60) / 300 : .06;
+    taker.kickT = .3; pen.shot = true; pen.after = 1.6; pen.saved = Math.random() < saveP; pen.gk = gk;
+    gk.diveY = H / 2 + guess * 22;
+    const tx = t === 0 ? W : 0, ty = H / 2 + dirY * 22;
+    const dx = tx - pen.spotX, dy = ty - H / 2;
+    kick(dx, dy, 200 + taker.shot * .4, t);
+  }
+
+  function updatePen(dt) {
+    if (!pen.shot) {
+      pen.timer -= dt;
+      if ((pen.t === 0 && (auto || keys.Space) && kickCd <= 0) || pen.timer <= 0) { shootPen(); kickCd = .3; }
+      return;
+    }
+    const gk = pen.gk;
+    stepTo(gk, gk.x, gk.diveY, 220, dt);
+    if (pen.saved && !pen.saveDone && Math.abs(ball.x - gk.x) < 14) {
+      pen.saveDone = true;
+      ball.vx = 0; ball.vy = 0;
+      setFlash('save');
+    }
+    const r = ballPhysics(dt);
+    if (r === 'out') { pen = null; kickoff(); return; }   // мяч ушёл за линию: матч продолжается с центра
+    pen.after -= dt;
+    if (r === 'goal') { pen = null; return; }
+    if (pen.after <= 0) { pen = null; kickoff(); }
+  }
+
+  // свободный удар: мяч стоит на месте фола, соперники отходят на 60 px, затем бьёт команда
+  function updateFK(dt) {
+    fk.timer -= dt;
+    alive(teams[1 - fk.t]).forEach(p => {
+      const d = dist(p, ball), l = d || 1;
+      if (d < 60) stepTo(p, ball.x + (p.x - ball.x) / l * 60, ball.y + (p.y - ball.y) / l * 60, 150, dt);
+    });
+    if (fk.timer > 0) return;
+    const t = fk.t;
+    fk = null;
+    const taker = nearest(teams[t], ball);
+    if (!taker) return;
+    taker.x = ball.x; taker.y = ball.y - 8;   // исполнитель стоит у мяча
+    taker.kickT = .3;
+    if (t === 0) { ctrl = taker; return; }     // человек бьёт сам ⚽ или пасом
+    aimAt(t === 0 ? W : 0, 90 + taker.shot * .4, 90, t);     // ИИ пробивает в ворота соперника
+  }
+
+  // ----- выбор управляемого игрока -----
+  // вратарь участвует в выборе только когда мяч в его штрафной
+  function pickCtrl(exclude) {
+    let best = null, bd = Infinity, gk = null;
+    teams[0].forEach((p, i) => {
+      if (p.down > 0 || p === exclude) return;
+      if (i === 0) gk = p;
+      if (i === 0 && ball.x > BOX_W + 60) return;
+      const d = dist(p, ball);
+      if (d < bd) { bd = d; best = p; }
+    });
+    return best || gk;   // если в поле остался только вратарь, управляем им
+  }
+
+  // умная смена: фокус остаётся на текущем игроке, пока он бежит или ведёт мяч;
+  // переключаемся, только если кто-то из команды заметно ближе к мячу; ручная смена — кнопкой «Смена»
+  function selectCtrl(mag, dt) {
+    switchCd -= dt;
+    if (!ctrl || ctrl.down > 0) { ctrl = pickCtrl(null); switchCd = .4; return; }
+    if (switchPulse) {
+      switchPulse = false;
+      const nx = pickCtrl(ctrl);
+      if (nx) { ctrl = nx; switchCd = .6; }
+      return;
+    }
+    const dCur = dist(ctrl, ball);
+    if (switchCd > 0 || dCur < 30 || ctrl.slide > 0) return;   // ведём мяч или в борьбе
+    if (mag > .15 && dCur < 110) return;                       // активно бежим — не перескакиваем
+    const best = pickCtrl(null);
+    if (best && best !== ctrl && dist(best, ball) < dCur - 25) { ctrl = best; switchCd = .6; }
+  }
+
+  // ----- камера: следит за мячом и управляемым игроком, не выходит за поле -----
+  function updateCam(dt) {
+    const z = CAM.zoom, hw = VW / (2 * z), hh = VH / (2 * z * TILT);   // TILT — сжатие по вертикали (ниже)
+    let tx = ctrl ? ball.x * .6 + ctrl.x * .4 : ball.x;
+    let ty = ctrl ? ball.y * .6 + ctrl.y * .4 : ball.y;
+    if (phase === 'photo') { tx = W / 2; ty = H + 20; }                  // камера уходит к построению
+    const k = Math.min(1, dt * CAM.lerp);
+    camX = cl(camX + (tx - camX) * k, hw, W - hw);
+    camY = cl(camY + (ty - camY) * k, hh - 28, H - hh + (phase === 'photo' ? 78 : 40));              // чуть выше и ниже поля — видны фотографы
+  }
+
+  // ----- замены: игрок с скамейки выходит вместо игрока на поле -----
+  function openSub() {
+    subOpen = true; subPick = null;
+    keys = {}; passPulse = false; slidePulse = false; switchPulse = false;   // сбрасываем нажатия, сделанные до панели
+    document.getElementById('subPanel').style.display = 'flex';
+    renderSub();
+  }
+
+  function closeSub() {
+    subOpen = false; subPick = null;
+    document.getElementById('subPanel').style.display = 'none';
+  }
+
+  function renderSub() {
+    const box = document.getElementById('subPanel'), tx = T[cfg.lang], bench = benches[0];
+    let html = `<h3>${tx.benchTitle}</h3><p>${tx.subsLeft}: ${subsLeft}</p>`;
+    if (!bench.length) html += `<p>${tx.noBench}</p>`;
+    else if (subsLeft <= 0) html += `<p>${tx.subsLeft}: 0</p>`;
+    else if (subPick === null) {
+      bench.forEach((p, i) => { html += `<button data-b="${i}">${p.num}. ${p.label} · ${tx.pos[p.pos]}</button>`; });
+    } else {
+      html += `<p>${tx.pickField}</p>`;
+      const isGK = bench[subPick].pos === 'GK';
+      teams[0].forEach((p, i) => {
+        if ((i === 0) !== isGK) return;   // вратарь заменяет только вратаря
+        html += `<button data-f="${i}">${p.num}. ${p.label} · ${tx.pos[p.pos]}</button>`;
+      });
+    }
+    html += `<button class="ghost" data-close="1">${tx.cancel}</button>`;
+    box.innerHTML = html;
+    box.querySelectorAll('[data-b]').forEach(b => { b.onclick = () => { subPick = +b.dataset.b; renderSub(); }; });
+    box.querySelectorAll('[data-f]').forEach(b => { b.onclick = () => doSub(subPick, +b.dataset.f); });
+    box.querySelector('[data-close]').onclick = closeSub;
+  }
+
+  function doSub(bi, fi) {
+    const field = teams[0], bench = benches[0];
+    const out = field[fi], inn = bench.splice(bi, 1)[0];
+    inn.x = out.x; inn.y = out.y; inn.bx = out.bx; inn.by = out.by;
+    inn.down = 0; inn.slide = 0; inn.hit = false;
+    out.down = 0; out.slide = 0;
+    field[fi] = inn;
+    bench.push(out);
+    if (ctrl === out) ctrl = null;
+    subsLeft--;
+    closeSub();
+  }
+
+  function onKey(e) {
+    inputNow();
+    if (subOpen) return;   // пока открыта панель замен, клавиши не действуют
+    const k = MAP[e.code] || e.code;
+    if (KEYS.includes(k)) { keys[k] = true; e.preventDefault(); }
+    if (e.code === 'KeyJ') passPulse = true;
+    if (e.code === 'KeyK') slidePulse = true;
+    if (e.code === 'KeyQ') switchPulse = true;
+  }
+  function onKeyUp(e) { keys[MAP[e.code] || e.code] = false; }
+
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+    removeEventListener('keydown', onKey);
+    removeEventListener('keyup', onKeyUp);
+  }
+
+  function finish() {
+    if (finishing) return;
+    finishing = true;
+    stop();
+    cfg.onEnd(score.me, score.cpu, injuries);
+  }
+
+  // ----- фанаты на поле и фотографы у бровки -----
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const CREW_X = [150, 480, 810];
+
+  function spawnFan() {
+    fanHalt = true;                                        // судья останавливает игру
+    const look = randomLook(), top = Math.random() < .5, y0 = top ? -10 : H + 10, x0 = rnd(150, 810);
+    fans.push({ x: x0, y: y0, tx: ball.x, ty: ball.y, state: 'run', t: 0, retarget: 0,
+                skin: look.skin, hair: look.hair, color: look.color, shorts: look.shorts,
+                num: '', label: '', ax: 1, ay: 0, down: 0, slide: 0, kickT: 0, px: 0, py: 0, spd: 0, speed: rnd(58, 70) });
+    // два охранника в жилетах выбегают с той же стороны и догоняют фаната
+    [-1, 1].forEach(d => {
+      const l = randomLook();
+      stewards.push({ x: x0 + d * 70, y: y0, side: d, state: 'wait', delay: rnd(1.2, 2),
+                      skin: l.skin, hair: l.hair, color: '#b7f000', shorts: '#1c1f24',
+                      num: '', label: '', ax: 1, ay: 0, down: 0, slide: 0, kickT: 0, px: 0, py: 0, spd: 0, speed: 80 });
+    });
+    if (flash <= 0) setFlash('fan');
+  }
+
+  function spawnPhotog(tx, life, bottom) {
+    const look = randomLook(), fromLeft = Math.random() < .5;
+    const atBottom = bottom !== undefined ? bottom : Math.random() < .5;
+    photogs.push({ x: fromLeft ? -26 : W + 26, y: atBottom ? H + 6 : -6, top: !atBottom, tx, state: 'in', life, kneel: Math.random() < .4,
+                   cd: rnd(.3, 1.2), fl: 0, vest: pick(['#ff7a1a', '#ffd200', '#33c0ff', '#e8e8e8']),
+                   skin: look.skin, hair: look.hair, px: 0, py: 0, spd: 0 });
+  }
+
+  function updateFans(dt) {
+    fans.forEach(f => {
+      f.t += dt; f.retarget -= dt;
+      if (f.state === 'run') {
+        if (f.retarget <= 0) { f.tx = ball.x + rnd(-70, 70); f.ty = ball.y + rnd(-50, 50); f.retarget = rnd(.8, 1.6); }
+        const caught = stewards.some(s => s.state === 'chase' && Math.hypot(s.x - f.x, s.y - f.y) < 8);
+        if (caught || f.t > 16) {                       // фаната остановили: ведут к ближней бровке
+          f.state = 'caught'; f.tx = f.x; f.ty = f.y < H / 2 ? -22 : H + 22; f.speed = 38;
+          stewards.forEach(s => { s.state = 'escort'; });
+        }
+      }
+      const dx = f.tx - f.x, dy = f.ty - f.y, d = Math.hypot(dx, dy);
+      if (d > 1) { const st = Math.min(d, f.speed * dt); f.x += dx / d * st; f.y += dy / d * st; f.ax = dx / d; f.ay = dy / d; }
+    });
+    stewards.forEach(s => {
+      const f = fans[0];
+      if (s.state === 'wait') { s.delay -= dt; if (s.delay <= 0) s.state = 'chase'; return; }
+      if (!f) return;
+      if (s.state === 'escort') { s.x += (f.x + s.side * 7 - s.x) * Math.min(1, dt * 6); s.y += (f.y - 1 - s.y) * Math.min(1, dt * 6); s.ax = f.ax; s.ay = f.ay; return; }
+      const dx = f.x - s.x, dy = f.y - s.y, d = Math.hypot(dx, dy);
+      if (d > 1) { const st = Math.min(d, s.speed * dt); s.x += dx / d * st; s.y += dy / d * st; s.ax = dx / d; s.ay = dy / d; }
+    });
+    if (fans.length && fans[0].state === 'caught' && (fans[0].y < -14 || fans[0].y > H + 14)) { fans = []; stewards = []; }
+  }
+
+  function updatePhotogs(dt) {
+    photogs.forEach(g => {
+      g.fl = Math.max(0, g.fl - dt);
+      if (g.state === 'in' || g.state === 'out') {
+        const dx = g.tx - g.x, st = Math.min(Math.abs(dx), 46 * dt);
+        g.x += Math.sign(dx) * st;
+        if (g.state === 'in' && Math.abs(dx) < 2) g.state = 'stay';
+      }
+      if (g.state === 'stay') {
+        g.life -= dt;
+        g.cd -= dt;
+        if (g.cd <= 0) { g.fl = .15; g.cd = phase === 'photo' ? rnd(.45, 1.3) : rnd(.7, 2.6); }
+        if (g.life <= 0) { g.state = 'out'; g.tx = g.x < W / 2 ? -30 : W + 30; }
+      }
+    });
+    photogs = photogs.filter(g => !(g.state === 'out' && (g.x < -28 || g.x > W + 28)));
+  }
+
+  function updateAmbient(dt) {
+    if (phase === 'play') {
+      nextFan -= dt; nextPhotog -= dt;
+      if (nextFan <= 0) { spawnFan(); nextFan = Infinity; }   // фанат — максимум один раз за матч
+      if (nextPhotog <= 0) {
+        if (photogs.length < 3) {
+          let tx = rnd(70, 890);
+          for (let i = 0; i < 6 && CREW_X.some(cx => Math.abs(cx - tx) < 34); i++) tx = rnd(70, 890);
+          spawnPhotog(tx, rnd(8, 16));
+        }
+        nextPhotog = rnd(6, 14);
+      }
+    }
+    updateFans(dt);
+    updatePhotogs(dt);
+  }
+
+  // ----- после финального свистка: обе команды строятся в ряд перед фотографами -----
+  const LINE_Y = H - 46;
+  function startPhoto() {
+    phase = 'photo'; photoT = 0; photoHold = 0;
+    pen = null; fk = null; thr = null; ctrl = null;
+    teams.forEach((team, t) => {
+      team.forEach(p => { p.down = 0; p.slide = 0; p.kickT = 0; p.pendingSub = false; });
+      const order = team.slice().sort((a, b) => a.x - b.x);
+      order.forEach((p, i) => { p.slot = { x: W / 2 + (t === 0 ? -34 - (10 - i) * 16.6 : 34 + i * 16.6), y: LINE_Y }; });
+    });
+    [-170, -110, -60, 60, 110, 170].forEach(dx => spawnPhotog(W / 2 + dx, 999, true));   // место у центра занято камерой
+    setFlash('fullTime'); flash = 3;
+    const sk = document.getElementById('skipBtn');
+    if (sk) sk.parentElement.classList.add('m-photo');
+  }
+  function updatePhoto(dt) {
+    photoT += dt;
+    flash = Math.max(0, flash - dt);
+    let allIn = true;
+    teams.forEach(team => team.forEach(p => {
+      stepTo(p, p.slot.x, p.slot.y, 95, dt);
+      if (Math.hypot(p.slot.x - p.x, p.slot.y - p.y) > 1.5) allIn = false; else { p.ax = 0; p.ay = 1; }
+    }));
+    if (ref) stepTo(ref, W / 2, LINE_Y, 85, dt);
+    updateFans(dt); updatePhotogs(dt);
+    const here = photogs.filter(g => g.state === 'stay' && g.life > 100).length >= 4;
+    if (allIn && here) photoHold += dt;
+    if (photoHold > 4 || photoT > 16) finish();
+  }
+
+  function update(dt) {
+    timeLeft -= dt;
+    if (timeLeft <= 0) { timeLeft = 0; startPhoto(); return; }
+    flash = Math.max(0, flash - dt);
+    kickCd -= dt; cpuCd[0] -= dt; cpuCd[1] -= dt; tackleCd[0] -= dt; tackleCd[1] -= dt;
+    teams.forEach(team => team.forEach(p => { p.down = Math.max(0, p.down - dt); }));
+    teams.forEach((team, t) => team.forEach(p => { if (p.pendingSub && p.down <= 0) injurySub(t, p); }));
+
+    if (pen) { updatePen(dt); return; }
+    if (fk) { updateFK(dt); return; }
+    if (thr) { updateThrow(dt); return; }
+
+    // ввод: джойстик или стрелки/WASD
+    let dx = joy.x, dy = joy.y;
+    const kx = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0);
+    const ky = (keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0);
+    if (kx || ky) { const l = Math.hypot(kx, ky); dx = kx / l; dy = ky / l; }
+    if (auto) { const ai = autoInput(dt); dx = ai.dx; dy = ai.dy; keys.Space = ai.shoot; if (ai.pass) passPulse = true; }
+    const mag = Math.min(1, Math.hypot(dx, dy));
+
+    selectCtrl(mag, dt);
+    if (!ctrl) return;
+
+    // подкат: короткий рывок вперёд, игрок падает
+    if (slidePulse && ctrl.slide <= 0 && ctrl.down <= 0) { ctrl.slide = .55; ctrl.hit = false; }
+    slidePulse = false;
+
+    if (ctrl.slide > 0) {
+      ctrl.slide -= dt;
+      const v = 170 * Math.max(0, ctrl.slide / .55);
+      ctrl.x += ctrl.ax * v * dt; ctrl.y += ctrl.ay * v * dt;
+      ctrl.x = cl(ctrl.x, 4, W - 4); ctrl.y = cl(ctrl.y, 4, H - 4);
+      if (!ctrl.hit) {
+        const victim = nearestOpp(ctrl, 14);
+        if (victim) { ctrl.hit = true; resolveTackle(ctrl, victim); }
+      }
+    } else if (mag > .15) {
+      const l = Math.hypot(dx, dy);
+      ctrl.ax = dx / l; ctrl.ay = dy / l;
+      const sp = (30 + ctrl.pace * .35) * mag * (keys.Sprint ? SPRINT : 1);
+      ctrl.x += ctrl.ax * sp * dt; ctrl.y += ctrl.ay * sp * dt;
+    }
+    if (!ctrl || pen || fk) return;   // подкат мог назначить пенальти или фол
+    ctrl.x = cl(ctrl.x, 4, W - 4); ctrl.y = cl(ctrl.y, 4, H - 4);
+
+    // удар и пас
+    if (keys.Space && kickCd <= 0 && ctrl.slide <= 0 && dist(ctrl, ball) < 16) {
+      if (mag > .15) kick(ctrl.ax, ctrl.ay, 120 + ctrl.shot * .5, 0);
+      else kick(W - ball.x, H / 2 - ball.y, 120 + ctrl.shot * .5, 0);
+      kickCd = .4; ctrl.kickT = .3;
+    }
+    if (passPulse && dist(ctrl, ball) < 18) passFrom(ctrl, teams[0]);
+    passPulse = false;
+
+    // остальные игроки
+    teams.forEach((team, t) => {
+      let chaser = null, cd = Infinity;
+      alive(team).forEach((p, i) => {
+        if (i === 0 || p === ctrl) return;
+        const d = dist(p, ball);
+        if (d < cd) { cd = d; chaser = p; }
+      });
+      team.forEach((p, i) => {
+        if (p === ctrl || p.down > 0) return;
+        if (i === 0) {  // вратарь у ворот, выбегает на мяч рядом с штрафной
+          const gx = t === 0 ? 8 : W - 8;
+          if (dist(p, ball) < 45) stepTo(p, ball.x, ball.y, 45, dt);
+          else stepTo(p, gx, cl(ball.y, GT, GB), 40, dt);
+        } else if (p === chaser) {
+          stepTo(p, ball.x, ball.y, 30 + p.pace * .3, dt);
+        } else if (p.slide <= 0) {
+          const tg = formTarget(p);
+          stepTo(p, tg.x, tg.y, 22 + p.pace * .22, dt);
+        }
+      });
+
+      // ИИ иногда делает подкат, если рядом соперник с мячом
+      if (chaser && tackleCd[t] <= 0 && dist(chaser, ball) < 12 && Math.random() < .08) {
+        const v = nearestOpp(chaser, 11);
+        if (v) {
+          tackleCd[t] = 2;
+          resolveTackle(chaser, v);
+        }
+      }
+
+      // удар ИИ у мяча
+      const kicker = alive(team).find((p, i) => i > 0 && p !== ctrl && dist(p, ball) < 12);
+      if (kicker && cpuCd[t] <= 0 && !fk && !pen && !thr) {
+        const goalX = t === 0 ? W : 0;
+        const inZone = t === 0 ? ball.x > W * .55 : ball.x < W * .45;
+        if (inZone) aimAt(goalX, 120 + kicker.shot * .5, 50, t);
+        else aimAt(goalX, 80 + kicker.shot * .4, 90, t);
+        cpuCd[t] = 1.2; kicker.kickT = .3;
+      }
+    });
+    if (pen || fk || thr) return;
+
+    // касания мяча и движение мяча
+    teams.forEach(team => team.forEach(touch));
+    if (ballPhysics(dt) === 'out') startThrow();
+  }
+
+  // ----- авто-игра и управление -----
+  function setAuto(v) {
+    auto = v;
+    if (v) setFlash('autoOn');
+    const b = document.getElementById('autoBtn');
+    if (b) b.classList.toggle('on', v);
+  }
+  function inputNow() {
+    lastInput = performance.now();
+    if (auto) setAuto(false);
+  }
+  // решения вместо игрока: бежать к мячу; у мяча — пас или удар к воротам соперника
+  function autoInput(dt) {
+    const out = { dx: 0, dy: 0, shoot: false, pass: false };
+    autoCd -= dt;
+    if (!ctrl) return out;
+    const bx = ball.x - ctrl.x, by = ball.y - ctrl.y, bl = Math.hypot(bx, by) || 1;
+    if (dist(ctrl, ball) > 14) { out.dx = bx / bl; out.dy = by / bl; return out; }
+    const gx = W - ball.x, gy = H / 2 - ball.y, gl = Math.hypot(gx, gy) || 1;
+    out.dx = gx / gl; out.dy = gy / gl;
+    if (autoCd <= 0) { autoCd = .5; if (Math.random() < .4) out.pass = true; else out.shoot = true; }
+    return out;
+  }
+
+  // ----- отрисовка: камера телетрансляции, поле видно под углом 40° -----
+  const TILT = Math.sin(40 * Math.PI / 180);   // сжатие по вертикали = синус угла камеры
+  const PERSP = .3;                             // перспектива: ближняя к зрителю часть поля крупнее
+  function proj(x, y) {
+    const f = 1 + PERSP * (y / H - .5), z = CAM.zoom;
+    return { x: VW / 2 + (x - camX) * z * f, y: VH / 2 + (y - camY) * z * TILT * f, s: z * f };
+  }
+  function poly(pts, fill, stroke) {
+    c.beginPath();
+    pts.forEach((q, i) => (i ? c.lineTo(q.x, q.y) : c.moveTo(q.x, q.y)));
+    c.closePath();
+    if (fill) { c.fillStyle = fill; c.fill(); }
+    if (stroke) { c.strokeStyle = stroke; c.lineWidth = 1.4; c.lineJoin = 'round'; c.stroke(); }
+  }
+  function drawField() {
+    for (let x = 0, i = 0; x < W; x += 8, i++) {
+      poly([proj(x, 0), proj(x + 8, 0), proj(x + 8, H), proj(x, H)], i % 2 ? '#6fb85a' : '#7cc46a');
+    }
+    const rect = (x0, y0, x1, y1) => [proj(x0, y0), proj(x1, y0), proj(x1, y1), proj(x0, y1)];
+    const ln = '#ffffff';
+    poly(rect(0, 0, W, H), null, ln);
+    poly(rect(0, H / 2 - BOX_H / 2, BOX_W, H / 2 + BOX_H / 2), null, ln);
+    poly(rect(W - BOX_W, H / 2 - BOX_H / 2, W, H / 2 + BOX_H / 2), null, ln);
+    poly([proj(W / 2, 0), proj(W / 2, H)], null, ln);
+    const circ = [];
+    for (let i = 0; i < 48; i++) {
+      const a = i / 48 * Math.PI * 2;
+      circ.push(proj(W / 2 + Math.cos(a) * H * .15, H / 2 + Math.sin(a) * H * .15));
+    }
+    poly(circ, null, ln);
+  }
+  // ворота: белые стойки и перекладина, сетка на задней и боковых стенках; dir — куда уходит сетка от линии ворот
+  function drawGoal(x0, dir) {
+    const LIFT = 26, back = x0 + dir * 14;
+    const at = (x, y, h) => { const q = proj(x, y); return { x: q.x, y: q.y - h * q.s, s: q.s }; };
+    // сетка: заливка и узор
+    poly([proj(back, GT), proj(back, GB), at(back, GB, LIFT), at(back, GT, LIFT)], 'rgba(255,255,255,.16)', null);
+    c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = .7;
+    c.beginPath();
+    for (let k = 0; k <= 8; k++) {                          // вертикали сетки
+      const y = GT + (GB - GT) * k / 8;
+      const b = proj(back, y), t = at(back, y, LIFT);
+      c.moveTo(b.x, b.y); c.lineTo(t.x, t.y);
+    }
+    for (let j = 0; j <= 5; j++) {                          // горизонтали сетки
+      const h = LIFT * j / 5, a = at(back, GT, h), b = at(back, GB, h);
+      c.moveTo(a.x, a.y); c.lineTo(b.x, b.y);
+    }
+    for (const y of [GT, GB]) {                             // сетка по верхнему краю и бокам
+      const a = at(x0, y, LIFT), b = at(back, y, LIFT);
+      c.moveTo(a.x, a.y); c.lineTo(b.x, b.y);
+      const p0 = proj(x0, y), p1 = proj(back, y);
+      c.moveTo(p0.x, p0.y); c.lineTo(p1.x, p1.y);
+    }
+    for (let k = 1; k < 5; k++) {                           // вертикальные нити боковых стенок
+      const h = LIFT * k / 5, a = at(x0, GT, h), b = at(back, GT, h), d = at(x0, GB, h), e = at(back, GB, h);
+      c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.moveTo(d.x, d.y); c.lineTo(e.x, e.y);
+    }
+    c.stroke();
+    // белые стойки и перекладина
+    c.strokeStyle = '#ffffff'; c.lineCap = 'round';
+    const q1 = proj(x0, GT), q2 = proj(x0, GB), t1 = at(x0, GT, LIFT), t2 = at(x0, GB, LIFT);
+    c.lineWidth = 2.2 * q1.s;
+    c.beginPath(); c.moveTo(q1.x, q1.y); c.lineTo(t1.x, t1.y); c.moveTo(q2.x, q2.y); c.lineTo(t2.x, t2.y); c.stroke();
+    c.beginPath(); c.moveTo(t1.x, t1.y); c.lineTo(t2.x, t2.y); c.stroke();
+    c.lineWidth = 1; c.strokeStyle = '#ffffff';
+  }
+  function drawBall() {
+    const q = proj(ball.x, ball.y);
+    c.fillStyle = 'rgba(0,0,0,.3)';
+    c.beginPath(); c.ellipse(q.x, q.y + 1, 3 * q.s, 1.2 * q.s, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#ffffff';
+    c.beginPath(); c.arc(q.x, q.y - 2.5 * q.s, 2.5 * q.s, 0, Math.PI * 2); c.fill();
+  }
+  // чёрная камера на стойке с оператором, как на стадионах; стоит за боковой линией
+  function drawCrew(x, y) {
+    const q = proj(x, y), s = q.s;
+    c.fillStyle = '#121316'; c.fillRect(q.x - 12 * s, q.y - 6 * s, 24 * s, 6 * s);             // основание
+    c.fillStyle = '#23262d'; c.fillRect(q.x - 2.2 * s, q.y - 34 * s, 4.4 * s, 28 * s);        // стойка
+    c.fillStyle = '#0b0c0e'; c.fillRect(q.x - 9 * s, q.y - 42 * s, 18 * s, 9 * s);            // кабина
+    c.fillStyle = '#000000'; c.beginPath(); c.arc(q.x + 10 * s, q.y - 38 * s, 4 * s, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(120,150,200,.55)'; c.beginPath(); c.arc(q.x + 9 * s, q.y - 39 * s, 1.4 * s, 0, Math.PI * 2); c.fill();
+  }
+  // фотограф: пиксельная фигура как у игроков; идёт к месту, стоит и снимает; вспышка у камеры
+  function drawPhotog(g) {
+    const moving = g.state === 'in' || g.state === 'out';
+    const frame = moving ? ((performance.now() / 420 | 0) % 2 ? 'walk2' : 'walk') : 'stand';
+    const flip = g.tx < g.x;
+    drawFig(g.x, g.y, { skin: g.skin, hair: g.hair, color: g.vest, shorts: '#22262e' }, frame, { cam: true, back: !g.top }, flip);
+    if (g.fl > 0) {                                        // вспышка у камеры
+      const q = proj(g.x, g.y), s = q.s, a = Math.min(1, g.fl / .15), fx = q.x + (flip ? -4 : 4) * s, fy = q.y - 13 * s, r = 11 * s;
+      const gr = c.createRadialGradient(fx, fy, 0, fx, fy, r);
+      gr.addColorStop(0, 'rgba(255,255,255,' + a + ')'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = gr; c.beginPath(); c.arc(fx, fy, r, 0, Math.PI * 2); c.fill();
+    }
+  }
+  // фигура толпы на поле: спрайт 16×24 с текущей позой; y — ноги
+  function drawFig(x, y, look, frame, o, flip) {
+    const q = proj(x, y), s = q.s;
+    const spr = getCrowdSprite(look, frame, o, flip);
+    const w = SPR_W * s, h = SPR_H * s;
+    c.imageSmoothingEnabled = false;
+    c.drawImage(spr, q.x - w / 2, q.y + 5 * s - h, w, h);
+    c.imageSmoothingEnabled = true;
+  }
+  function drawFan(f) {                                    // болельщики только бегут
+    drawFig(f.x, f.y, { skin: f.skin, hair: f.hair, color: f.color, shorts: f.shorts },
+      (performance.now() / 160 | 0) % 2 ? 'run2' : 'run1', {}, f.ax < 0);
+  }
+  function drawSteward(s) {                                // охрана: бежит, идёт за фанатом или хватает его
+    const f = fans[0];
+    const grab = s.state === 'chase' && !!f && Math.hypot(s.x - f.x, s.y - f.y) < 14;
+    let frame = 'stand';
+    if (!grab && s.state === 'escort') frame = (performance.now() / 260 | 0) % 2 ? 'walk2' : 'walk';
+    else if (!grab && s.state === 'chase') frame = (performance.now() / 160 | 0) % 2 ? 'run2' : 'run1';
+    drawFig(s.x, s.y, { skin: s.skin, hair: s.hair, color: s.color, shorts: s.shorts }, frame, { grab }, s.ax < 0);
+  }
+  // операторы у камер: нижние — со спины, верхние — спереди; в жилетах; стоят, сидят, медленно ходят
+  const OP_VEST = '#f08a1c';
+  let ops = [];
+  function initOps() {
+    ops = [];
+    CREW_X.forEach(cx => {
+      const look = { skin: pickOf(SKINS), hair: pickOf(HAIRS), color: '#2b2b2b', shorts: '#1a1a1a' };
+      [{ y: H + 16, back: true }, { y: -8, back: false }].forEach(v => ops.push({
+        x: cx - 18, y: v.y, back: v.back, look, lo: cx - 40, hi: cx - 14, speed: 9, dir: 1,
+        mode: 'stand', wait: rnd(1, 4), t: 0, frame: 'stand', flip: false
+      }));
+    });
+  }
+  // фанат на поле: игра стоит, игроки отходят к бровке и смотрят, судья подходит к фанату;
+  // матч возобновляется, когда охрана поймала фаната и увела его с поля
+  let fanHalt = false;
+  function updateHalt(dt) {
+    const f = fans[0];
+    teams.forEach(team => team.forEach(p => {
+      stepTo(p, cl(p.x, 60, W - 60), p.y < H / 2 ? -26 : H + 26, 70, dt);
+      if (f) p.ax = f.x < p.x ? -1 : 1;                   // смотрят в сторону фаната
+    }));
+    if (ref && f) stepTo(ref, cl(f.x, 60, W - 60), cl(f.y, 40, H - 40), 85, dt);
+    updateFans(dt); updatePhotogs(dt);
+    if (!fans.length) fanHalt = false;                    // фаната увели — матч продолжается
+  }
+  function updateOps(dt) {
+    ops.forEach(o => {
+      o.t += dt; o.wait -= dt;
+      if (o.wait <= 0) {
+        const r = Math.random();
+        o.mode = r < .4 ? 'stand' : r < .7 ? 'sit' : 'walk';
+        o.wait = o.mode === 'stand' ? 4 + Math.random() * 3 : o.mode === 'sit' ? 5 + Math.random() * 4 : 4 + Math.random() * 2;
+        if (o.mode === 'walk') o.dir = Math.random() < .5 ? 1 : -1;
+      }
+      if (o.mode === 'walk') {
+        o.x += o.dir * o.speed * dt;
+        if (o.x < o.lo || o.x > o.hi) { o.dir = -o.dir; o.x = Math.max(o.lo, Math.min(o.hi, o.x)); }
+        o.flip = o.dir < 0;
+        o.frame = (o.t / .8 | 0) % 2 ? 'walk2' : 'walk';
+      } else { o.frame = 'stand'; o.flip = false; }
+    });
+  }
+  function drawOp(o) {
+    drawFig(o.x, o.y, o.look, o.frame, { back: o.back, vest: OP_VEST, sit: o.mode === 'sit' }, o.flip);
+  }
+  // судья: бежит вдоль линии за мячом, в чёрной форме
+  function updateRef(dt) {
+    if (!ref) ref = { x: W / 2, y: H / 2, px: W / 2, py: H / 2, spd: 0, skin: '#a86d43', hair: '#111111', num: '', label: '', down: 0, slide: 0, kickT: 0 };
+    const tx = W / 2 + (ball.x - W / 2) * .55, ty = Math.max(50, Math.min(H - 50, ball.y));
+    const dx = tx - ref.x, dy = ty - ref.y, d = Math.hypot(dx, dy), step = Math.min(d, 85 * dt);
+    if (d > 0) { ref.x += dx / d * step; ref.y += dy / d * step; }
+  }
+  function marker(p) {                          // жёлтый треугольник над управляемым игроком
+    if (p.down > 0 || p.slide > 0) return;
+    const q = proj(p.x, p.y), top = q.y + 5 * q.s - SPR_H * q.s;
+    c.fillStyle = '#ffd200';
+    c.beginPath();
+    c.moveTo(q.x, top - 10 * q.s); c.lineTo(q.x - 3 * q.s, top - 15 * q.s); c.lineTo(q.x + 3 * q.s, top - 15 * q.s);
+    c.fill();
+  }
+  function player(p, color, shorts) {
+    const q = proj(p.x, p.y), s = q.s;
+    const lying = p.down > 0 || p.slide > 0;
+    let frame = 'stand';
+    if (!lying) {
+      if (p.kickT > 0) frame = 'kick';
+      else if (p.spd > 35) frame = (performance.now() / 110 | 0) % 2 ? 'run2' : 'run1';
+      else if (p.spd > 8) frame = (performance.now() / 220 | 0) % 2 ? 'walk2' : 'walk';
+    }
+    const spr = getSprite(color, p.num, lying, p.skin, frame, shorts, p.hair, p.ax < 0);
+    let topY;
+    c.imageSmoothingEnabled = false;                      // игроки остаются пиксельными
+    if (lying) {
+      const w = SPR_H * s, h = SPR_W * s;
+      c.drawImage(spr, q.x - w / 2, q.y - h / 2, w, h);
+      topY = q.y - h / 2;
+    } else {
+      const w = SPR_W * s, h = SPR_H * s;
+      c.drawImage(spr, q.x - w / 2, q.y + 5 * s - h, w, h);
+      topY = q.y + 5 * s - h;
+    }
+    c.imageSmoothingEnabled = true;
+    if (phase !== 'photo') {                                  // в построении подписи не нужны
+      c.font = Math.round(5 * s) + 'px monospace'; c.textAlign = 'center';
+      c.fillStyle = '#000'; c.fillText(p.label, q.x + 1, topY - 1);
+      c.fillStyle = '#fff'; c.fillText(p.label, q.x, topY - 2);
+    }
+  }
+
+  function draw() {
+    c.setTransform(RES, 0, 0, RES, 0, 0);
+    c.fillStyle = '#2a2e35'; c.fillRect(0, 0, VW, VH);       // трибуны и асфальт за полем
+    drawField();
+    drawGoal(0, -1); drawGoal(W, 1);
+    // игроки, мяч, судья и камеры — от дальних к ближним, чтобы ближние перекрывали дальних
+    const items = [{ y: ball.y, fn: drawBall }];
+    [150, 480, 810].forEach(x => {                            // операторы за обеими боковыми линиями
+      items.push({ y: -12, fn: () => drawCrew(x, -12) });
+      items.push({ y: H + 12, fn: () => drawCrew(x, H + 12) });
+    });
+    if (ref) items.push({ y: ref.y, fn: () => player(ref, '#1c1c1c', '#1c1c1c') });
+    ops.forEach(o => items.push({ y: o.y, fn: () => drawOp(o) }));
+    fans.forEach(f => items.push({ y: f.y, fn: () => drawFan(f) }));
+    stewards.forEach(s => items.push({ y: s.y, fn: () => drawSteward(s) }));
+    photogs.forEach(g => items.push({ y: g.y, fn: () => drawPhotog(g) }));
+    teams.forEach((team, t) => team.forEach((p, i) => {
+      if (p === ctrl) return;
+      items.push({ y: p.y, fn: () => player(p, i === 0 ? GK_COLOR : (t === 0 ? cfg.myColor : cfg.oppColor), i === 0 ? '#111111' : (t === 0 ? cfg.myShorts : cfg.oppShorts)) });
+    }));
+    if (ctrl) items.push({ y: ctrl.y, fn: () => { player(ctrl, ctrl === teams[0][0] ? GK_COLOR : cfg.myColor, ctrl === teams[0][0] ? '#111111' : cfg.myShorts); marker(ctrl); } });
+    items.sort((a, b) => a.y - b.y).forEach(it => it.fn());
+
+    // надписи на экране (без камеры)
+    c.setTransform(RES, 0, 0, RES, 0, 0);
+    if (flash > 0) {
+      c.font = 'bold 22px monospace'; c.textAlign = 'center'; c.fillStyle = '#ffd200';
+      c.fillText(T[cfg.lang][flashKey], VW / 2, flashKey === 'fullTime' ? 80 : 34);
+    }
+    if (pen && !pen.shot && pen.t === 0) {   // подсказка при пенальти у человека
+      c.font = '12px monospace'; c.textAlign = 'center'; c.fillStyle = '#ffd200';
+      c.fillText('⚽ ' + T[cfg.lang].pen, VW / 2, VH - 8);
+    }
+    document.getElementById('hTime').textContent = `${T[cfg.lang].time}: ${Math.ceil(timeLeft)}`;
+    document.getElementById('hScore').textContent = `${cfg.myClub} ${score.me} : ${score.cpu} ${cfg.oppClub}`;
+  }
+
+  function frame(now) {
+    if (!running) return;
+    const dt = Math.min(.05, (now - last) / 1000);
+    last = now;
+    if (!subOpen && !matchMedia('(orientation: portrait)').matches) {
+      if (!auto && now - lastInput > IDLE_MS) setAuto(true);   // никто не касался — играет авто-игра
+      const k = auto ? AUTO_SPEED : 1;
+      if (phase === 'photo') { updatePhoto(dt); updateCam(dt); updateOps(dt); }
+      else if (fanHalt) { updateHalt(dt * k); updateCam(dt * k); updateOps(dt * k); }
+      else { update(dt * k); if (phase === 'play') updateRef(dt * k); updateAmbient(dt * k); updateCam(dt * k); updateOps(dt * k); }
+    }
+    // скорость и таймер удара для выбора позы спрайта
+    teams.forEach(team => team.forEach(p => {
+      p.spd = Math.hypot(p.x - p.px, p.y - p.py) / Math.max(dt, .001);
+      p.px = p.x; p.py = p.y;
+      p.kickT = Math.max(0, p.kickT - dt);
+    }));
+    if (ref) { ref.spd = Math.hypot(ref.x - ref.px, ref.y - ref.py) / Math.max(dt, .001); ref.px = ref.x; ref.py = ref.y; }
+    fans.concat(stewards, photogs).forEach(q => { q.spd = Math.hypot(q.x - q.px, q.y - q.py) / Math.max(dt, .001); q.px = q.x; q.py = q.y; });
+    if (running) { draw(); raf = requestAnimationFrame(frame); }
+  }
+
+  function start(el, config) {
+    stop();
+    cfg = config; running = true; keys = {}; joy = { x: 0, y: 0 }; joyId = null;
+    auto = false; autoCd = 0; lastInput = performance.now();
+    passPulse = false; slidePulse = false; switchPulse = false;
+    const a = makeTeam(cfg.mySquad, 0, tacticMods(cfg.tactic, cfg.coach)), b = makeTeam(cfg.oppSquad, 1, null);
+    teams = [a.slice(0, 11), b.slice(0, 11)];
+    benches = [a.slice(11).filter(p => !p.inj), b.slice(11).filter(p => !p.inj)];
+    injuries = [];
+    subsLeft = 3; subOpen = false; subPick = null;
+    score = { me: 0, cpu: 0 };
+    phase = 'play'; photoT = 0; photoHold = 0; finishing = false; fans = []; stewards = []; photogs = []; initOps(); fanHalt = false; nextFan = Math.random() < .3 ? rnd(12, 70) : Infinity; nextPhotog = rnd(3, 8);
+    timeLeft = DUR; kickCd = 0; cpuCd = [0, 0]; tackleCd = [0, 0]; flash = 0; pen = null;
+    fk = null; thr = null; lastTeam = 0; switchCd = 0;
+    kickoff();
+
+    const tx = T[cfg.lang];
+    el.innerHTML = `
+      <div class="m-screen">
+        <canvas id="pitch" width="${VW * RES}" height="${VH * RES}"></canvas>
+        <div class="m-hud"><span id="hTime"></span><span id="hScore"></span></div>
+        <button class="m-top-btn m-sub-btn" id="subBtn">${tx.sub}</button>
+        <button class="m-top-btn m-auto-btn" id="autoBtn">${tx.auto}</button>
+        <button class="m-top-btn m-fs" id="fsBtn">⛶</button>
+        <button class="m-top-btn m-exit" id="exitBtn">${tx.exit}</button>
+        <button class="m-top-btn m-skip" id="skipBtn">${tx.next}</button>
+        <div class="m-sub-panel" id="subPanel"></div>
+        <div class="m-joy" id="joyZone"><div class="joy-base" id="joyBase"></div><div class="joy-knob" id="joyKnob"></div></div>
+        <div class="m-btns">
+          <button class="round b-sw" id="btnSwitch">${tx.switchP}</button>
+          <button class="round b-sp" id="btnSprint">${tx.sprint}</button>
+          <button class="round b-sl" id="btnSlide">${tx.slide}</button>
+          <button class="round b-pa" id="btnPass">${tx.pass}</button>
+          <button class="round big b-sh" id="btnShoot">⚽</button>
+        </div>
+      </div>
+      <div class="rotate">${tx.rotate}</div>`;
+
+    c = el.querySelector('#pitch').getContext('2d');
+    c.imageSmoothingEnabled = true;
+
+    el.querySelector('#skipBtn').onclick = () => finish();
+    el.querySelector('#exitBtn').onclick = () => { stop(); go('hub'); };
+    el.querySelector('#subBtn').onclick = () => { if (!pen) openSub(); };
+    el.querySelector('#autoBtn').onclick = () => setAuto(!auto);
+    el.querySelector('#fsBtn').onclick = () => {
+      const d = document.documentElement;
+      if (d.requestFullscreen) d.requestFullscreen().catch(() => {});
+    };
+
+    // джойстик: плавающий, появляется там, где касается палец
+    const zone = el.querySelector('#joyZone');
+    const base = el.querySelector('#joyBase'), knob = el.querySelector('#joyKnob');
+    const show = (x, y) => {
+      base.style.display = knob.style.display = 'block';
+      base.style.left = knob.style.left = x + 'px';
+      base.style.top = knob.style.top = y + 'px';
+    };
+    const hide = () => {
+      base.style.display = knob.style.display = 'none';
+      joy = { x: 0, y: 0 }; joyId = null;
+    };
+    zone.addEventListener('pointerdown', e => {
+      inputNow();
+      joyId = e.pointerId;
+      const r = zone.getBoundingClientRect();
+      ox = e.clientX; oy = e.clientY;
+      show(ox - r.left, oy - r.top);
+      zone.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    zone.addEventListener('pointermove', e => {
+      if (e.pointerId !== joyId) return;
+      const dx = e.clientX - ox, dy = e.clientY - oy, d = Math.hypot(dx, dy) || 1;
+      const m = Math.min(d, 50), r = zone.getBoundingClientRect();
+      joy = { x: dx / d * m / 50, y: dy / d * m / 50 };
+      knob.style.left = (ox - r.left + dx / d * m) + 'px';
+      knob.style.top = (oy - r.top + dy / d * m) + 'px';
+    });
+    ['pointerup', 'pointercancel'].forEach(ev => zone.addEventListener(ev, e => { if (e.pointerId === joyId) hide(); }));
+
+    // кнопки удара, спринта, паса, подката и смены игрока
+    const hold = (sel, key) => {
+      const b = el.querySelector(sel);
+      b.addEventListener('pointerdown', e => { inputNow(); keys[key] = true; e.preventDefault(); });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, () => { keys[key] = false; }));
+    };
+    hold('#btnShoot', 'Space');
+    hold('#btnSprint', 'Sprint');
+    el.querySelector('#btnPass').addEventListener('pointerdown', e => { inputNow(); passPulse = true; e.preventDefault(); });
+    el.querySelector('#btnSlide').addEventListener('pointerdown', e => { inputNow(); slidePulse = true; e.preventDefault(); });
+    el.querySelector('#btnSwitch').addEventListener('pointerdown', e => { inputNow(); switchPulse = true; e.preventDefault(); });
+
+    addEventListener('keydown', onKey);
+    addEventListener('keyup', onKeyUp);
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+
+  // команды тестировщика: доступны только через скрытое меню
+  return { start, stop, dbg: {
+    spawnFan: () => { if (phase === 'play' && !fans.length) spawnFan(); },
+    endNow: () => { timeLeft = 0.01; }
+  } };
+})();
+
+</script>
+</body>
+</html>

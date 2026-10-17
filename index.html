@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Steppe Manager</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700;800&display=swap">
+<style>
+:root {
+  --paper: #f4efe2;
+  --card: #fffdf6;
+  --ink: #1d2a22;
+  --muted: #56655b;
+  --pitch: #2f7a45;
+  --pitch-d: #235f35;
+  --gold: #e3a73c;
+  --rust: #c9542e;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 16px/1.55 Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  overflow-x: hidden;
+}
+h1, h2, h3 { font-family: Unbounded, Manrope, system-ui, sans-serif; line-height: 1.2; text-wrap: balance; margin: 0; }
+p { margin: 0; text-wrap: pretty; }
+a { color: inherit; }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 0; }
+
+/* header */
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding-block: 16px;
+}
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.brand svg { width: 36px; height: 36px; flex: none; }
+.brand b { font: 800 17px/1 Unbounded, Manrope, sans-serif; letter-spacing: .02em; }
+.lang {
+  font-weight: 700; font-size: 14px; padding: 8px 12px; border-radius: 999px;
+  border: 2px solid var(--ink); background: var(--card); color: var(--ink);
+}
+
+/* buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  border: 2px solid var(--ink); border-radius: 14px; padding: 14px 22px;
+  font: 800 16px/1 Manrope, sans-serif; text-decoration: none; color: var(--ink);
+  background: var(--gold); box-shadow: 0 4px 0 var(--ink);
+  transition: transform .08s ease, box-shadow .08s ease;
+  cursor: pointer;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--ink); }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.btn.ghost { background: var(--card); }
+.btn.big { width: 100%; max-width: 360px; font-size: 18px; padding: 18px 22px; }
+
+/* hero */
+.hero { display: grid; gap: 22px; padding-block: 8px 36px; }
+.eyebrow {
+  display: inline-block; font-weight: 800; font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--rust);
+}
+.hero h1 { font-size: clamp(30px, 8vw, 52px); margin-top: 10px; }
+.lead { color: var(--muted); font-size: 17px; margin-top: 14px; max-width: 34em; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.pitch {
+  border: 2px solid var(--ink); border-radius: 20px; overflow: hidden;
+  box-shadow: 0 6px 0 var(--ink); background: var(--pitch); max-width: 100%;
+}
+.pitch svg { display: block; width: 100%; height: auto; }
+.hint { font-size: 14px; color: var(--muted); margin-top: 12px; }
+
+/* sections */
+section { padding-block: 36px; border-top: 2px dashed rgba(29,42,34,.25); }
+section > h2 { font-size: clamp(22px, 5.5vw, 30px); }
+.sub { color: var(--muted); margin-top: 10px; max-width: 40em; }
+
+.grid { display: grid; gap: 14px; margin-top: 22px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 900px) { .grid.three { grid-template-columns: repeat(3, 1fr); } }
+
+.card {
+  background: var(--card); border: 2px solid var(--ink); border-radius: 18px;
+  padding: 20px; box-shadow: 0 4px 0 var(--ink); min-width: 0;
+}
+.card .ic {
+  width: 44px; height: 44px; border-radius: 12px; border: 2px solid var(--ink);
+  display: grid; place-items: center; background: var(--paper); margin-bottom: 14px;
+}
+.card .ic svg { width: 24px; height: 24px; }
+.card h3 { font-size: 16px; }
+.card p { color: var(--muted); margin-top: 8px; font-size: 15px; }
+
+.steps { counter-reset: s; display: grid; gap: 14px; margin-top: 22px; padding: 0; list-style: none; }
+.steps li {
+  display: flex; gap: 14px; align-items: flex-start; background: var(--card);
+  border: 2px solid var(--ink); border-radius: 16px; padding: 16px 18px;
+}
+.steps .n {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--ink);
+  display: grid; place-items: center; font: 800 15px/1 Unbounded, sans-serif; background: var(--gold);
+}
+.steps p { color: var(--muted); margin-top: 4px; font-size: 15px; }
+.steps b { font-weight: 800; }
+
+.final {
+  background: var(--pitch); color: #f6f2e6; border: 2px solid var(--ink);
+  border-radius: 22px; padding: 28px 22px; box-shadow: 0 6px 0 var(--ink);
+  display: grid; gap: 16px; justify-items: start; margin-block: 8px 36px;
+}
+.final h2 { font-size: clamp(22px, 5.5vw, 28px); }
+.final p { color: #dcead9; }
+.final .btn { box-shadow: 0 4px 0 #0f2e18; border-color: #0f2e18; }
+
+footer {
+  border-top: 2px dashed rgba(29,42,34,.25); padding-block: 22px 30px;
+  color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap;
+  gap: 8px 16px; justify-content: space-between;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <a class="brand" href="#top" id="top" aria-label="Steppe Manager">
+      <svg viewBox="0 0 36 36" aria-hidden="true">
+        <circle cx="18" cy="18" r="16" fill="#fffdf6" stroke="#1d2a22" stroke-width="2"/>
+        <path d="M18 6l5 3.6-1.9 5.9h-6.2L13 9.6z" fill="#1d2a22"/>
+        <path d="M6.5 15.5l5.5-1.8 3.6 4.4-2.2 5.2H7.4z" fill="#1d2a22" opacity=".85"/>
+        <path d="M29.5 15.5l-5.5-1.8-3.6 4.4 2.2 5.2h5.5z" fill="#1d2a22" opacity=".85"/>
+        <path d="M12 29.5l2.4-4.8h7.2l2.4 4.8z" fill="#1d2a22" opacity=".85"/>
+      </svg>
+      <b>STEPPE MANAGER</b>
+    </a>
+    <a class="btn ghost" href="play.html" style="box-shadow:0 2px 0 var(--ink);padding:9px 14px;font-size:14px;">Играть</a>
+  </header>
+
+  <div class="hero">
+    <div>
+      <span class="eyebrow">Футбольный менеджер · в браузере</span>
+      <h1>Поднимите клуб из степи до высшей лиги</h1>
+      <p class="lead">Покупайте игроков, нанимайте штаб, выстраивайте тактику и сами выходите на поле в матче. Никакой установки: открыл ссылку — и игра готова.</p>
+      <div class="cta">
+        <a class="btn big" href="play.html">▶&nbsp; Играть в браузере</a>
+        <a class="btn ghost" href="#features">Что внутри</a>
+      </div>
+      <p class="hint">Работает на телефоне и компьютере. Прогресс сохраняется в вашем браузере.</p>
+    </div>
+
+    <div class="pitch" role="img" aria-label="Футбольное поле на фоне степи">
+      <svg viewBox="0 0 600 360" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f6d9a0"/>
+            <stop offset="1" stop-color="#f4efe2"/>
+          </linearGradient>
+          <pattern id="stripes" width="75" height="360" patternUnits="userSpaceOnUse">
+            <rect width="37.5" height="360" fill="#2f7a45"/>
+            <rect x="37.5" width="37.5" height="360" fill="#2a6e3e"/>
+          </pattern>
+        </defs>
+        <rect width="600" height="130" fill="url(#sky)"/>
+        <path d="M0 130 L80 96 L150 118 L240 84 L330 116 L420 90 L520 112 L600 96 L600 130 Z" fill="#c9a36a" opacity=".55"/>
+        <path d="M0 130 L120 110 L220 126 L340 104 L460 124 L600 108 L600 130 Z" fill="#b38a52" opacity=".7"/>
+        <rect y="130" width="600" height="230" fill="url(#stripes)"/>
+        <g fill="none" stroke="#f6f2e6" stroke-width="4" opacity=".95">
+          <rect x="30" y="150" width="540" height="190" rx="2"/>
+          <line x1="300" y1="150" x2="300" y2="340"/>
+          <circle cx="300" cy="245" r="42"/>
+          <circle cx="300" cy="245" r="3" fill="#f6f2e6"/>
+          <rect x="30" y="200" width="90" height="90"/>
+          <rect x="480" y="200" width="90" height="90"/>
+          <rect x="30" y="222" width="34" height="46"/>
+          <rect x="536" y="222" width="34" height="46"/>
+        </g>
+        <g stroke="#1d2a22" stroke-width="3" fill="#fffdf6">
+          <circle cx="470" cy="205" r="13"/>
+          <path d="M470 194 l5 4 -2 6 h-6 l-2 -6z" fill="#1d2a22"/>
+        </g>
+        <g>
+          <rect x="120" y="285" width="46" height="62" rx="10" fill="#c9542e" stroke="#1d2a22" stroke-width="3"/>
+          <circle cx="143" cy="268" r="13" fill="#f2c9a0" stroke="#1d2a22" stroke-width="3"/>
+          <rect x="130" y="342" width="10" height="14" fill="#1d2a22"/>
+          <rect x="146" y="342" width="10" height="14" fill="#1d2a22"/>
+        </g>
+        <g>
+          <rect x="380" y="180" width="40" height="54" rx="9" fill="#fffdf6" stroke="#1d2a22" stroke-width="3"/>
+          <circle cx="400" cy="166" r="12" fill="#f2c9a0" stroke="#1d2a22" stroke-width="3"/>
+          <rect x="390" y="232" width="9" height="12" fill="#1d2a22"/>
+          <rect x="403" y="232" width="9" height="12" fill="#1d2a22"/>
+        </g>
+        <circle cx="262" cy="330" r="11" fill="#fffdf6" stroke="#1d2a22" stroke-width="3"/>
+        <path d="M262 322 l4 3 -1.5 4.5 h-5 l-1.5 -4.5z" fill="#1d2a22"/>
+      </svg>
+    </div>
+  </div>
+
+  <section id="features">
+    <h2>Что внутри</h2>
+    <p class="sub">Карьера, которая не заканчивается на поле: каждое решение влияет на бюджет, репутацию и состав.</p>
+    <div class="grid">
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg></div>
+        <h3>Свой клуб</h3>
+        <p>Назовите клуб, выберите форму и ведите его от местной команды к высшей лиге. Соперники тоже развиваются по тем же правилам.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.8-3.4 3.2-5 6-5s5.2 1.6 6 5"/><path d="M16 5l2 2 4-4"/></svg></div>
+        <h3>Трансферы</h3>
+        <p>Ведите переговоры о зарплате и условиях, следите за свободными игроками и не дайте конкурентам забрать лучших.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h18M12 4v16"/></svg></div>
+        <h3>Тактика и формации</h3>
+        <p>Выбирайте схему, расставляйте игроков на позиции и заранее готовьте состав. Травмированные игроки отмечаются в составе.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7l3 2.2-1.2 3.6h-3.6L9 9.2z"/></svg></div>
+        <h3>Матчи с управлением</h3>
+        <p>Ведите игру сами: джойстиком управляйте полевым игроком, делайте замены и следите за болельщиками, которые выбегают на поле.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><path d="M4 19h16M7 16V9m5 7V5m5 11v-6"/></svg></div>
+        <h3>Финансы и штаб</h3>
+        <p>Спонсоры, зарплаты, доходы и расходы. Тренеры, врачи и скауты влияют на развитие игроков и на результат.</p>
+      </article>
+      <article class="card">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="4"/></svg></div>
+        <h3>Ваш стиль</h3>
+        <p>Играйте атакующим стилем, держите оборону или делайте ставку на молодёжь. Правила одинаковы для всех, выбор за вами.</p>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Как начать</h2>
+    <p class="sub">Первый матч можно сыграть уже через минуту после старта.</p>
+    <ol class="steps">
+      <li><span class="n">1</span><div><b>Откройте игру</b><p>Нажмите «Играть в браузере». Установка не нужна.</p></div></li>
+      <li><span class="n">2</span><div><b>Назовите клуб и соберите состав</b><p>Посмотрите рынок игроков, выберите схему и первых игроков.</p></div></li>
+      <li><span class="n">3</span><div><b>Выходите на поле</b><p>Играйте матчи, зарабатывайте деньги и развивайте клуб из сезона в сезон.</p></div></li>
+    </ol>
+  </section>
+
+  <div class="final">
+    <h2>Готовы стать тренером?</h2>
+    <p>Степь ждёт свою команду. Начните карьеру прямо сейчас.</p>
+    <a class="btn" href="play.html">▶&nbsp; Играть в браузере</a>
+  </div>
+
+  <footer>
+    <span>© 2026 Steppe Manager</span>
+    <span>Играйте в браузере на любом устройстве</span>
+  </footer>
+
+</div>
+</body>
+</html>
