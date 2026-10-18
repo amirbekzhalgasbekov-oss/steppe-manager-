@@ -26,6 +26,10 @@ canvas.stadium{width:100%;max-width:960px;image-rendering:pixelated;display:bloc
 .tbl{width:100%;border-collapse:collapse}
 .tbl td,.tbl th{padding:6px;border-bottom:1px solid #2a3a30;text-align:center}
 .tbl tr.me{background:#244d33}
+.tbl tr.up td:first-child{box-shadow:inset 3px 0 #2e8b3e}
+.tbl tr.dn td:first-child{box-shadow:inset 3px 0 #d62828}
+.divh{margin:18px 0 4px;font-family:monospace;color:#e0b000;text-align:center}
+.divh.mine::after{content:' ★'}
 .hud{display:flex;justify-content:space-between;font-family:monospace;font-size:18px;max-width:960px;margin:8px auto}
 .hint{text-align:center;opacity:.7;font-size:14px}
 .score{font-size:44px;text-align:center;font-family:monospace}
@@ -349,26 +353,36 @@ const T = {
 // ===== Клубы Степной лиги =====
 const CLUBS = [
   // цвета: color — футболка, shorts — шорты; названия изменены (авторские права)
-  { id: 'volki', name: { ru: 'ФК Жёлтые Волки', kz: 'ФК Сары Бөрілер' }, city: { ru: 'Алматы', kz: 'Алматы' }, color: '#f2c500', shorts: '#111111', ovr: 78, pr: 70 },
-  { id: 'stolichny', name: { ru: 'ФК Столичный', kz: 'ФК Столичный' }, city: { ru: 'Астана', kz: 'Астана' }, color: '#8fd3ff', shorts: '#f2c500', ovr: 76, pr: 65 },
-  { id: 'kostanay',  name: { ru: 'ФК Костанай', kz: 'ФК Қостанай' }, city: { ru: 'Костанай', kz: 'Қостанай' }, color: '#1d7a3a', shorts: '#f2f2f2', ovr: 72, pr: 40 },
-  { id: 'ugolshchiki', name: { ru: 'ФК Угольщики', kz: 'ФК Көміршілер' }, city: { ru: 'Караганда', kz: 'Қарағанды' }, color: '#f28c28', shorts: '#111111', ovr: 72, pr: 45 },
-  { id: 'kyzylorda', name: { ru: 'ФК Красные Волки', kz: 'ФК Қызыл Бөрілер' }, city: { ru: 'Кызылорда', kz: 'Қызылорда' }, color: '#1a1a1a', shorts: '#d62828', ovr: 72, pr: 35 },
-  { id: 'aktobinsk', name: { ru: 'ФК Красный Мяч Запад', kz: 'ФК Қызыл Доп Батыс' }, city: { ru: 'Актобе', kz: 'Ақтөбе' }, color: '#d62828', shorts: '#f2f2f2', ovr: 72, pr: 45 },
-  { id: 'yamyshev', name: { ru: 'ФК Ямышев', kz: 'ФК Ямышев' }, city: { ru: 'Ямышев', kz: 'Ямышев' }, color: '#14316b', shorts: '#f2f2f2', ovr: 68, pr: 50 },
-  { id: 'shkolniki', name: { ru: 'ФК Школьники', kz: 'ФК Мектепшілер' }, city: { ru: 'Байконур', kz: 'Байқоңыр' }, color: '#ffffff', shorts: '#d62828', ovr: 62, pr: 30, budget: 1.8e9 },
-  // последний слот занимает свой клуб (если игрок его создаёт), поэтому Актауцы стоит последним
-  { id: 'aktauzy', name: { ru: 'ФК Актауцы', kz: 'ФК Ақтаулықтар' }, city: { ru: 'Актау', kz: 'Ақтау' }, color: '#ffd21f', shorts: '#0a2a8a', ovr: 71, pr: 42 }
+  // div — стартовый дивизион (1 — Высшая, 2 — Первая, 3 — Вторая). Последний слот занимает свой клуб
+  // (если игрок его создаёт, он стартует во Второй лиге), поэтому Озёрный стоит последним
+  // ===== Высшая лига =====
+  { id: 'volki', div: 1, name: { ru: 'ФК Жёлтые Волки', kz: 'ФК Сары Бөрілер' }, city: { ru: 'Алматы', kz: 'Алматы' }, color: '#f2c500', shorts: '#111111', ovr: 78, pr: 70 },
+  { id: 'stolichny', div: 1, name: { ru: 'ФК Столичный', kz: 'ФК Столичный' }, city: { ru: 'Астана', kz: 'Астана' }, color: '#8fd3ff', shorts: '#f2c500', ovr: 76, pr: 65 },
+  { id: 'kostanay', div: 1,  name: { ru: 'ФК Костанай', kz: 'ФК Қостанай' }, city: { ru: 'Костанай', kz: 'Қостанай' }, color: '#1d7a3a', shorts: '#f2f2f2', ovr: 72, pr: 40 },
+  { id: 'ugolshchiki', div: 1, name: { ru: 'ФК Угольщики', kz: 'ФК Көміршілер' }, city: { ru: 'Караганда', kz: 'Қарағанды' }, color: '#f28c28', shorts: '#111111', ovr: 72, pr: 45 },
+  { id: 'aktobinsk', div: 1, name: { ru: 'ФК Красный Мяч Запад', kz: 'ФК Қызыл Доп Батыс' }, city: { ru: 'Актобе', kz: 'Ақтөбе' }, color: '#d62828', shorts: '#f2f2f2', ovr: 72, pr: 45 },
+  // ===== Первая лига =====
+  { id: 'kyzylorda', div: 2, name: { ru: 'ФК Красные Волки', kz: 'ФК Қызыл Бөрілер' }, city: { ru: 'Кызылорда', kz: 'Қызылорда' }, color: '#1a1a1a', shorts: '#d62828', ovr: 72, pr: 35 },
+  { id: 'yuzhny', div: 2, name: { ru: 'ФК Южный Ветер', kz: 'ФК Оңтүстік Жел' }, city: { ru: 'Шымкент', kz: 'Шымкент' }, color: '#7b3fb0', shorts: '#f2f2f2', ovr: 71, pr: 48 },
+  { id: 'aktauzy', div: 2, name: { ru: 'ФК Актауцы', kz: 'ФК Ақтаулықтар' }, city: { ru: 'Актау', kz: 'Ақтау' }, color: '#ffd21f', shorts: '#0a2a8a', ovr: 71, pr: 42 },
+  { id: 'semeitsy', div: 2, name: { ru: 'ФК Семейцы', kz: 'ФК Семейліктер' }, city: { ru: 'Семей', kz: 'Семей' }, color: '#c2185b', shorts: '#f2f2f2', ovr: 70, pr: 46 },
+  { id: 'chaiki', div: 2, name: { ru: 'ФК Каспийские Чайки', kz: 'ФК Каспий Шағалалары' }, city: { ru: 'Атырау', kz: 'Атырау' }, color: '#1e88e5', shorts: '#f2f2f2', ovr: 69, pr: 42 },
+  // ===== Вторая лига =====
+  { id: 'yamyshev', div: 3, name: { ru: 'ФК Ямышев', kz: 'ФК Ямышев' }, city: { ru: 'Ямышев', kz: 'Ямышев' }, color: '#14316b', shorts: '#f2f2f2', ovr: 68, pr: 50 },
+  { id: 'irtysh', div: 3, name: { ru: 'ФК Соколы Иртыша', kz: 'ФК Ертіс Сұңқарлары' }, city: { ru: 'Павлодар', kz: 'Павлодар' }, color: '#19a7a0', shorts: '#0b3d3a', ovr: 67, pr: 44 },
+  { id: 'zhetysu', div: 3, name: { ru: 'ФК Жетысу Стрелы', kz: 'ФК Жетісу Жебелері' }, city: { ru: 'Талдыкорган', kz: 'Талдықорған' }, color: '#a0522d', shorts: '#111111', ovr: 66, pr: 38 },
+  { id: 'shkolniki', div: 3, name: { ru: 'ФК Школьники', kz: 'ФК Мектепшілер' }, city: { ru: 'Байконур', kz: 'Байқоңыр' }, color: '#ffffff', shorts: '#d62828', ovr: 62, pr: 30, budget: 1.8e9 },
+  { id: 'ozerny', div: 3, name: { ru: 'ФК Озёрный', kz: 'ФК Көлді' }, city: { ru: 'Кокшетау', kz: 'Көкшетау' }, color: '#7cb342', shorts: '#f2f2f2', ovr: 64, pr: 35 }
 ];
 
-// Расписание: TOURS[тур] — список матчей тура [домашний, гостевой] (индексы в CLUBS).
-// 9 клубов, 30 туров: в каждом туре играют 4 матча, один клуб отдыхает. Основа — круговой метод
-// на 10 позиций (десятая — «выходной»), 9 туров на круг; круги чередуются дома/в гостях, пары повторяются.
-const TOURS = (() => {
-  const TOTAL = 30;
-  const n = CLUBS.length % 2 ? CLUBS.length + 1 : CLUBS.length, BYE = -1;
-  const ids = CLUBS.map((_, i) => i);
-  if (n > CLUBS.length) ids.push(BYE);
+// Расписание: tours()[тур] — список матчей тура [домашний, гостевой] (индексы в CLUBS) сразу по всем дивизионам.
+// В каждом дивизионе круговой метод (при нечётном числе клубов добавляется «выходной»), 20 туров, круги чередуются
+// дома/в гостях. Состав дивизионов хранится в сохранении (S.divs) и меняется после сезона: вылет и повышение.
+const TOTAL_TOURS = 20;
+function roundRobin(list) {
+  const n = list.length % 2 ? list.length + 1 : list.length, BYE = -1;
+  const ids = list.slice();
+  if (n > list.length) ids.push(BYE);
   const base = [];
   for (let r = 0; r < n - 1; r++) {
     const tour = [];
@@ -381,12 +395,24 @@ const TOURS = (() => {
     ids.splice(1, 0, ids.pop());           // вращение: первый элемент стоит на месте
   }
   const out = [];
-  for (let k = 0; k < TOTAL; k++) {
-    const cycle = Math.floor(k / base.length), t = base[k % base.length];
-    out.push(cycle % 2 ? t.map(([h, a]) => [a, h]) : t);
+  for (let k = 0; k < TOTAL_TOURS; k++) {
+    const cycle = Math.floor(k / base.length), tr = base[k % base.length];
+    out.push(cycle % 2 ? tr.map(([h, a]) => [a, h]) : tr);
   }
   return out;
-})();
+}
+function buildTours(divs) {
+  const groups = {};
+  CLUBS.forEach((c, i) => { const d = divs[c.id] || 3; (groups[d] = groups[d] || []).push(i); });
+  const per = Object.keys(groups).sort().map(d => roundRobin(groups[d]));
+  return Array.from({ length: TOTAL_TOURS }, (_, k) => per.flatMap(p => p[k]));
+}
+let _toursKey = '', _toursVal = [];
+function tours() {
+  const key = JSON.stringify(S.divs) + CLUBS.map(c => c.id).join();
+  if (key !== _toursKey) { _toursVal = buildTours(S.divs); _toursKey = key; }
+  return _toursVal;
+}
 
 // ===== Вымышленные игроки (без реальных имён и лиц) =====
 const FIRST = ['Айдар', 'Нурлан', 'Данияр', 'Темирлан', 'Ерлан', 'Азамат', 'Руслан', 'Бауыржан', 'Марат', 'Алихан', 'Санжар'];
@@ -527,6 +553,42 @@ const STATS_SQUADS = {
     [99, 'Эльдар Обдразаков', 'FW', 85, 84, 66, 47, 71],
     [32, 'Нырымжан Соллайдин', 'GK', 60, 39, 56, 86, 60],
     [9, 'Иркин Тактарев', 'FW', 82, 83, 63, 46, 69]
+  ],
+  // прототип — «Ордабасы» (Шымкент): показатели условные, оценены по реальным игрокам; имена при загрузке заменяются случайными (randName)
+  yuzhny: [
+    [1, 'Вратарь 1', 'GK', 58, 38, 60, 86, 70, 76, 100],
+    [3, 'Защитник 3', 'DF', 76, 52, 60, 80, 70, 74, 100],
+    [5, 'Защитник 5', 'DF', 62, 50, 66, 82, 71, 78, 100],
+    [8, 'Защитник 8', 'DF', 64, 48, 58, 79, 68, 74, 100],
+    [55, 'Защитник 55', 'DF', 66, 50, 57, 80, 69, 72, 100],
+    [77, 'Полузащитник 77', 'MF', 78, 68, 70, 60, 71, 75, 100],
+    [16, 'Полузащитник 16', 'MF', 66, 66, 76, 64, 72, 76, 100],
+    [11, 'Полузащитник 11', 'MF', 72, 72, 76, 52, 73, 78, 100],
+    [10, 'Нападающий 10', 'FW', 77, 76, 66, 45, 72, 76, 100],
+    [9, 'Нападающий 9', 'FW', 82, 78, 62, 40, 72, 74, 100],
+    [45, 'Нападающий 45', 'FW', 74, 79, 60, 40, 71, 72, 100],
+    [13, 'Вратарь 13', 'GK', 55, 35, 55, 80, 63, 70, 100],
+    [22, 'Защитник 22', 'DF', 74, 66, 60, 74, 68, 74, 100],
+    [7, 'Полузащитник 7', 'MF', 70, 60, 68, 55, 66, 70, 100],
+    [20, 'Нападающий 20', 'FW', 80, 68, 55, 35, 64, 70, 100]
+  ],
+  // прототип — «Иртыш» (Павлодар): показатели условные, оценены по реальным игрокам; имена заменяются случайными
+  irtysh: [
+    [29, 'Вратарь 29', 'GK', 55, 35, 55, 80, 65, 72, 100],
+    [4, 'Защитник 4', 'DF', 62, 45, 58, 72, 65, 72, 100],
+    [26, 'Защитник 26', 'DF', 60, 42, 52, 78, 66, 70, 100],
+    [25, 'Защитник 25', 'DF', 62, 48, 60, 76, 67, 72, 100],
+    [22, 'Защитник 22', 'DF', 72, 45, 52, 72, 65, 70, 100],
+    [7, 'Полузащитник 7', 'MF', 62, 62, 70, 64, 67, 72, 100],
+    [19, 'Полузащитник 19', 'MF', 66, 60, 66, 62, 66, 70, 100],
+    [6, 'Полузащитник 6', 'MF', 74, 64, 72, 52, 68, 74, 100],
+    [10, 'Нападающий 10', 'FW', 78, 70, 60, 35, 67, 76, 100],
+    [97, 'Нападающий 97', 'FW', 80, 72, 58, 38, 68, 72, 100],
+    [9, 'Нападающий 9', 'FW', 76, 76, 62, 38, 69, 74, 100],
+    [1, 'Вратарь 1', 'GK', 50, 30, 52, 74, 58, 68, 100],
+    [15, 'Защитник 15', 'DF', 68, 40, 52, 68, 62, 70, 100],
+    [24, 'Полузащитник 24', 'MF', 70, 64, 70, 52, 66, 72, 100],
+    [45, 'Нападающий 45', 'FW', 76, 68, 52, 35, 64, 70, 100]
   ]
 };
 
@@ -1237,6 +1299,10 @@ let FIN_TAB = 'transfers';  // вкладка финансов: transfers | spon
 const L = () => localStorage.getItem('steppe-lang') || 'ru';
 const t = k => T[L()][k];
 Object.assign(T.ru, { playerName: 'Игрок', posShort: 'Поз.' });
+Object.assign(T.ru, { div1: 'Высшая лига', div2: 'Первая лига', div3: 'Вторая лига', season: 'Сезон', newSeason: 'Следующий сезон',
+  promoNote: 'Зелёная метка — повышение, красная — вылет. В конце сезона лидер нижней лиги и аутсайдер верхней меняются местами.' });
+Object.assign(T.kz, { div1: 'Жоғарғы лига', div2: 'Бірінші лига', div3: 'Екінші лига', season: 'Маусым', newSeason: 'Келесі маусым',
+  promoNote: 'Жасыл белгі — көтерілу, қызыл — түсіп қалу. Маусым соңында төменгі лиганың көшбасшысы мен жоғарғы лиганың соңғы клубы орын ауыстырады.' });
 Object.assign(T.kz, { playerName: 'Ойыншы', posShort: 'Ойын' });
 Object.assign(T.ru, { renameClub: 'Название клуба', renameBtn: 'Сохранить название', nameEmpty: 'Название не может быть пустым.', nameSaved: 'Название клуба изменено.', formation: 'Схема' });
 Object.assign(T.kz, { renameClub: 'Клуб атауы', renameBtn: 'Атауды сақтау', nameEmpty: 'Атау бос болмауы керек.', nameSaved: 'Клуб атауы өзгертілді.', formation: 'Схема' });
@@ -1304,7 +1370,8 @@ function newGame(i) {
   CLUBS.forEach(c => { table[c.id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
   S = { me: CLUBS[i].id, round: 0, tourFmt: 2, day: 1, budget: CLUBS[i].budget || 2e9, squads, table, cash: {}, pool: [],
         mail: [], staff: {}, sponsors: [], pr: CLUBS[i].pr, tactic: 'balanced', autoStaff: false, cands: [], neg: [], plan: 'none',
-        customClub: CLUBS[CLUBS.length - 1].id === 'custom' ? CLUBS[CLUBS.length - 1] : null };
+        customClub: CLUBS[CLUBS.length - 1].id === 'custom' ? CLUBS[CLUBS.length - 1] : null,
+        divs: Object.fromEntries(CLUBS.map(c => [c.id, c.div || 3])), season: 1 };
   CLUBS.forEach(c => { if (c.id !== S.me) S.cash[c.id] = c.budget || 2e9; });
   ensureIds(); refreshPool();
   S.cands = genCands();
@@ -1330,7 +1397,7 @@ function simMatch(h, a) {
 }
 // матчи текущего тура, в которых не играет клуб игрока (клуб игрока — только через startMatch)
 function simOtherMatches() {
-  TOURS[S.round].forEach(([h, a]) => {
+  tours()[S.round].forEach(([h, a]) => {
     if (CLUBS[h].id === S.me || CLUBS[a].id === S.me) return;
     simMatch(h, a);
   });
@@ -1375,7 +1442,7 @@ function techLoss(h, a, meHome, oppId, friendly) {
 }
 
 function startMatch() {
-  const [h, a] = TOURS[S.round].find(([x, y]) => CLUBS[x].id === S.me || CLUBS[y].id === S.me);
+  const [h, a] = tours()[S.round].find(([x, y]) => CLUBS[x].id === S.me || CLUBS[y].id === S.me);
   const meHome = CLUBS[h].id === S.me;
   const oppId = meHome ? CLUBS[a].id : CLUBS[h].id;
   const opp = CLUBS.find(c => c.id === oppId);
@@ -1432,15 +1499,51 @@ function train(back = 'hub') {
   flashView(back, t('trainDone'));
 }
 
-function tableHTML() {
-  const rows = CLUBS.map(c => ({ c, s: S.table[c.id] }))
+// клубы дивизиона d по местам в таблице
+function divRows(d) {
+  return CLUBS.filter(c => S.divs[c.id] === d).map(c => ({ c, s: S.table[c.id] }))
     .sort((x, y) => y.s.pts - x.s.pts || (y.s.gf - y.s.ga) - (x.s.gf - x.s.ga) || y.s.gf - x.s.gf);
-  return `<table class="tbl"><tr><th>#</th><th>${t('club')}</th><th>${t('played')}</th><th>${t('w')}</th>
-    <th>${t('d')}</th><th>${t('l')}</th><th>${t('gf')}</th><th>${t('ga')}</th><th>${t('pts')}</th><th>${t('ovr')}</th></tr>` +
-    rows.map((r, i) => `<tr class="${r.c.id === S.me ? 'me' : ''}"><td>${i + 1}</td>
+}
+function tableHTML() {
+  const head = `<tr><th>#</th><th>${t('club')}</th><th>${t('played')}</th><th>${t('w')}</th>
+    <th>${t('d')}</th><th>${t('l')}</th><th>${t('gf')}</th><th>${t('ga')}</th><th>${t('pts')}</th><th>${t('ovr')}</th></tr>`;
+  const mine = S.divs[S.me];
+  return [1, 2, 3].map(d => {
+    const rows = divRows(d);
+    if (!rows.length) return '';
+    return `<h3 class="divh${d === mine ? ' mine' : ''}">${t('div' + d)}</h3><table class="tbl">${head}` +
+      rows.map((r, i) => {
+        const cls = [r.c.id === S.me ? 'me' : '', d > 1 && i === 0 ? 'up' : '', d < 3 && i === rows.length - 1 ? 'dn' : ''].join(' ').trim();
+        return `<tr class="${cls}"><td>${i + 1}</td>
       <td style="color:${readable(r.c.color)}">${nm(r.c)}</td><td>${r.s.p}</td><td>${r.s.w}</td><td>${r.s.d}</td>
-      <td>${r.s.l}</td><td>${r.s.gf}</td><td>${r.s.ga}</td><td>${r.s.pts}</td><td>${squadOvr(r.c.id)}</td></tr>`).join('') +
-    `</table>`;
+      <td>${r.s.l}</td><td>${r.s.gf}</td><td>${r.s.ga}</td><td>${r.s.pts}</td><td>${squadOvr(r.c.id)}</td></tr>`;
+      }).join('') + `</table>`;
+  }).join('') + `<p class="hint">${t('promoNote')}</p>`;
+}
+
+// конец сезона: первый клуб нижней лиги поднимается, последний клуб верхней вылетает; таблицы обнуляются
+function nextSeason() {
+  const was = S.divs[S.me], moves = {};
+  [1, 2].forEach(d => {
+    const top = divRows(d), low = divRows(d + 1);
+    if (!top.length || !low.length) return;
+    moves[low[0].c.id] = d;                       // повышение
+    moves[top[top.length - 1].c.id] = d + 1;      // вылет
+  });
+  Object.keys(moves).forEach(id => { S.divs[id] = moves[id]; });
+  CLUBS.forEach(c => { S.table[c.id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
+  S.season = (S.season || 1) + 1;
+  S.round = 0;
+  const now = S.divs[S.me], n1 = T.ru['div' + now], n2 = T.kz['div' + now];
+  const kind = now < was ? 'up' : now > was ? 'down' : 'stay';
+  const txt = {
+    up: bi(`Вы поднялись в дивизион «${n1}». Поздравляем!`, `Сіз «${n2}» дивизионына көтерілдіңіз. Құттықтаймыз!`),
+    down: bi(`Клуб вылетел в дивизион «${n1}». Нужно вернуться.`, `Клуб «${n2}» дивизионына түсіп кетті. Қайтып оралу керек.`),
+    stay: bi(`Клуб остаётся в дивизионе «${n1}».`, `Клуб «${n2}» дивизионында қалады.`)
+  }[kind];
+  mail(bi('Совет директоров', 'Директорлар кеңесі'), bi(`Сезон ${S.season - 1} завершён`, `${S.season - 1}-маусым аяқталды`), txt);
+  save();
+  go('hub');
 }
 
 // ===== Трансферы =====
@@ -1594,10 +1697,21 @@ function migrate() {
     addBrother(S.squads.stolichny, CLUBS.find(c => c.id === 'stolichny'));
     S.brotherAdded = true;
   }
+  // дивизионы: в старых сохранениях их не было, начинаем новый сезон с лигами (составы и касса сохраняются)
+  const cc = CLUBS.find(c => c.id === 'custom');
+  if (cc && !cc.div) cc.div = 3;
+  if (!S.divs) {
+    S.divs = {};
+    CLUBS.forEach(c => { S.divs[c.id] = c.div || 3; });
+    S.season = 1; S.round = 0; S.tourFmt = 2;
+    Object.keys(S.table || {}).forEach(k => { S.table[k] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
+  }
+  CLUBS.forEach(c => { if (S.divs[c.id] === undefined) S.divs[c.id] = c.div || 3; });
+  if (!S.season) S.season = 1;
   // старое расписание считало матчи (8 клубов), новое — туры: переводим по числу сыгранных матчей
   if (S.tourFmt !== 2) {
     const played = Object.values(S.table || {}).reduce((s, r) => s + r.p, 0) / 2;
-    S.round = Math.min(TOURS.length, Math.floor(played / 4));
+    S.round = Math.min(tours().length, Math.floor(played / 4));
     S.tourFmt = 2;
   }
   // состав ФК Школьники обновлён: в старых сохранениях пересобираем его
@@ -1960,7 +2074,7 @@ const VIEWS = {
     el.innerHTML = `<h2>${t('chooseClub')}</h2><button class="big" onclick="go('custom')">✏️ ${t('createClub')}</button>` + CLUBS.map((c, i) => {
       const sq = makeSquad(c, i);
       const ovr = Math.round(sq.reduce((a, p) => a + p.ovr, 0) / sq.length);
-      return `<button class="card" style="--c:${c.color}" onclick="newGame(${i})"><b>${nm(c)}</b><small>${c.city[L()]} · ${t('ovr')} ${ovr}</small></button>`;
+      return `<button class="card" style="--c:${c.color}" onclick="newGame(${i})"><b>${nm(c)}</b><small>${c.city[L()]} · ${t('div' + (c.div || 3))} · ${t('ovr')} ${ovr}</small></button>`;
     }).join('') + `<button class="ghost big" onclick="go('start')">${t('back')}</button>`;
   },
 
@@ -1977,12 +2091,12 @@ const VIEWS = {
   hub(el) {
     const me = CLUBS[myIdx()];
     const msg = NOTICE; NOTICE = '';
-    if (S.round >= TOURS.length) {
+    if (S.round >= tours().length) {
       el.innerHTML = `<h2>${t('seasonOver')}</h2>${tableHTML()}
-        <button class="big" onclick="S.round=0;newGame(myIdx())">${t('newSeason')}</button>`;
+        <button class="big" onclick="nextSeason()">${t('newSeason')}</button>`;
       return;
     }
-    const mine = TOURS[S.round].find(([h, a]) => CLUBS[h].id === S.me || CLUBS[a].id === S.me);
+    const mine = tours()[S.round].find(([h, a]) => CLUBS[h].id === S.me || CLUBS[a].id === S.me);
     const involved = !!mine;
     const byeTxt = L() === 'kz' ? 'Демалыс' : 'Выходной';
     const un = unreadCount();
@@ -1990,12 +2104,12 @@ const VIEWS = {
       ${msg ? `<p class="hint">${msg}</p>` : ''}
       <section class="card club-banner" style="--c:${me.color}">
         <h2 style="margin:0">${nm(me)}</h2>
-        <small>${me.city[L()]} · ${t('day')} ${S.day}</small>
+        <small>${me.city[L()]} · ${t('div' + S.divs[me.id])} · ${t('season')} ${S.season || 1} · ${t('day')} ${S.day}</small>
         <p>${t('budget')}: <b>${money(S.budget)}</b> · ${t('rating')}: <b>${squadOvr(me.id)}</b> · PR: <b>${Math.round(S.pr)}</b></p>
         <small>${t('staffCost')}: ${money(staffSalary())} ${t('perWeek')}</small>
       </section>
       <section class="card">
-        <p>${t('round')} ${S.round + 1}/${TOURS.length}</p>
+        <p>${t('round')} ${S.round + 1}/${tours().length}</p>
         <p class="fx">${involved ? `${nm(CLUBS[mine[0]])} — ${nm(CLUBS[mine[1]])}` : byeTxt}</p>
         ${involved
           ? `<button class="big" onclick="startMatch()">${t('playMatch')}</button>`
@@ -2123,7 +2237,7 @@ function createCustomClub() {
   CLUBS[CLUBS.length - 1] = {
     id: 'custom', name: { ru: name, kz: name }, city: { ru: city, kz: city },
     color: document.getElementById('cShirt').value, shorts: document.getElementById('cShorts').value,
-    ovr: lvl, pr: 50
+    ovr: lvl, pr: 50, div: 3
   };
   newGame(CLUBS.length - 1);
 }
