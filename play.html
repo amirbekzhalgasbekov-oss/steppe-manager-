@@ -56,6 +56,7 @@ small{display:block;opacity:.8}
 .joy-knob{width:60px;height:60px;background:rgba(255,255,255,.45)}
 .round{width:84px;height:84px;border-radius:50%;font-size:20px;margin:0;background:rgba(46,139,62,.85)}
 .round.big{width:108px;height:108px;font-size:32px}
+.m-btns .round{touch-action:none}
 .rotate{display:none}
 .m-sub-btn{left:8px;right:auto}
 .m-auto-btn{left:96px;right:auto}
@@ -2655,16 +2656,17 @@ function drawStadium(c) {
 }
 
 // ===== Быстрый матч: тот же движок, управление и ИИ, что в карьере; матч короче, без карьеры =====
-const QUICK_DUR = 45;   // секунд на матч
+const QUICK_DUR = 45;   // секунд на матч (5 на 5)
+const QUICK_DUR_CLASSIC = 90;   // секунд на матч в классике 11 на 11
 const QUICK_FORM5 = [[.03, .5], [.14, .3], [.14, .7], [.3, .5], [.42, .5]];   // расстановка 5 на 5: вратарь, 2 защитника, полузащитник, нападающий
 let QUICK = { mode: 'classic', home: 0, away: 1, err: false };
 let QUICK_RESULT = null, QM_CFG = null;
 const QUICK_SQUADS = {};
 const quickL = () => L() === 'kz'
-  ? { title: 'Жылдам матч', hint: `Матч ${QUICK_DUR} секунд · карьерадағыдай басқару`, home: 'Үй иесі', away: 'Қонақ',
+  ? { title: 'Жылдам матч', hint: `Матч ${QUICK.mode === 'five' ? QUICK_DUR : QUICK_DUR_CLASSIC} секунд · карьерадағыдай басқару`, home: 'Үй иесі', away: 'Қонақ',
       classic: 'Классика · 11 на 11', five: '5 на 5 · мини-поле', play: 'Ойнау', again: 'Тағы матч', menu: 'Мәзірге',
       sameClub: 'Екі түрлі клуб таңдаңыз' }
-  : { title: 'Быстрый матч', hint: `Матч ${QUICK_DUR} секунд · управление и ИИ как в карьере`, home: 'Хозяева', away: 'Гости',
+  : { title: 'Быстрый матч', hint: `Матч ${QUICK.mode === 'five' ? QUICK_DUR : QUICK_DUR_CLASSIC} секунд · управление и ИИ как в карьере`, home: 'Хозяева', away: 'Гости',
       classic: 'Классика · 11 на 11', five: '5 на 5 · мини-поле', play: 'Играть', again: 'Ещё матч', menu: 'В меню',
       sameClub: 'Выберите два разных клуба' };
 
@@ -2700,7 +2702,7 @@ function quickStart() {
     mySquad = quickSquad(QUICK.home); oppSquad = quickSquad(QUICK.away);
   }
   QM_CFG = {
-    lang: L(), quick: true, duration: QUICK_DUR, n: five ? 5 : 11, form: five ? QUICK_FORM5 : undefined,
+    lang: L(), quick: true, duration: five ? QUICK_DUR : QUICK_DUR_CLASSIC, n: five ? 5 : 11, form: five ? QUICK_FORM5 : undefined,
     myClub: nm(h), oppClub: nm(a), myColor: h.color, oppColor: a.color, myShorts: h.shorts, oppShorts: a.shorts,
     mySquad, oppSquad,
     tactic: 'balanced', coach: 0, friendly: true,
@@ -2720,6 +2722,8 @@ const Match = (() => {
   const DUR = 90;
   let GT, GB;
   let BOX_W = 120, BOX_H = 220, SPOT = 80;     // штрафная площадь и точка пенальти
+  const STREET_W = 400, STREET_H = 300;        // размер площадки 5 на 5 (глина, кольца над воротами)
+  let STREET = false;
   const SPRINT = 1.5;                           // множитель скорости при спринте
   const IDLE_MS = 10000, AUTO_SPEED = 2;        // без касаний 10 с — авто-игра; авто-игра идёт в 2 раза быстрее
   const CAM = { zoom: 1, lerp: 4 };             // zoom < 1 — камера отдаляется, > 1 — приближается
@@ -2741,6 +2745,7 @@ const Match = (() => {
   let switchCd = 0;     // пауза между автоматическими сменами игрока
   let camX = W / 2, camY = H / 2;
   let passPulse = false, slidePulse = false, switchPulse = false;
+  let grabLock = 0, shootBuf = null, passDir = null, aim = null;   // aim — прицел кнопок удара и паса (перетаскивание, как в Brawl Stars)
   let auto = false, lastInput = 0, autoCd = 0;
   let phase = 'play', photoT = 0, photoHold = 0, finishing = false;   // play → photo (построение перед фотографами) → результат
   let fans = [], stewards = [], photogs = [], nextFan = Infinity, nextPhotog = 6;
@@ -2768,12 +2773,17 @@ const Match = (() => {
 
   // поле режима: 11 на 11 — полное, 5 на 5 — мини-поле (2/3 от большого)
   function setField(n) {
-    const k = n === 5 ? 2 / 3 : 1;
-    W = Math.round(960 * k); H = Math.round(540 * k); GH = Math.round(38 * k);
+    STREET = n === 5;
+    if (STREET) {
+      W = STREET_W; H = STREET_H; GH = 24;      // уличная площадка: размер меняется двумя константами выше
+      BOX_W = 64; BOX_H = 140; SPOT = 46;
+    } else {
+      W = 960; H = 540; GH = 38;
+      BOX_W = 120; BOX_H = 220; SPOT = 80;
+    }
     GT = H / 2 - GH; GB = H / 2 + GH;
-    BOX_W = Math.round(120 * k); BOX_H = Math.round(220 * k); SPOT = Math.round(80 * k);
     LINE_Y = H - 46;
-    CAM.zoom = n === 5 ? .75 : 1;               // мини-поле целиком в кадре
+    CAM.zoom = STREET ? Math.max(.75, Math.min(1.4, VW * .92 / (W * 1.15), VH * .8 / (H * TILT * 1.15))) : 1;   // площадка целиком в кадре
   }
 
   const alive = team => team.filter(p => p.down <= 0);
@@ -2808,6 +2818,7 @@ const Match = (() => {
   function kick(dx, dy, power, team) {
     const l = Math.hypot(dx, dy) || 1;
     ball.vx = dx / l * power; ball.vy = dy / l * power;
+    ball.owner = null; grabLock = .25;           // после удара мяч свободен
     if (team !== undefined) lastTeam = team;
   }
 
@@ -2827,21 +2838,24 @@ const Match = (() => {
   }
 
   // пас от игрока p своим: выбирает лучшего партнёра впереди, иначе бьёт по направлению взгляда
-  function passFrom(p, team) {
+  function passFrom(p, team, dir) {
     p.kickT = .3;
+    const ax = dir ? dir.x : p.ax, ay = dir ? dir.y : p.ay;
     let best = null, bs = -Infinity;
     alive(team).forEach(q => {
       if (q === p) return;
       const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
-      if (d < 20 || d > 180) return;
-      const s = (dx * p.ax + dy * p.ay) / d - d / 400;
-      if (s > bs) { bs = s; best = q; }
+      if (d < 20 || d > (dir ? 240 : 180)) return;
+      const cs = (dx * ax + dy * ay) / d;
+      if (dir && cs < .85) return;                 // при прицеле — только партнёр в выбранную сторону
+      const sc = cs - d / 400;
+      if (sc > bs) { bs = sc; best = q; }
     });
     if (best) {
       const dx = best.x - p.x, dy = best.y - p.y, d = Math.hypot(dx, dy);
       kick(dx / d, dy / d, 90 + d * .3, p.side);
     } else {
-      kick(p.ax, p.ay, 90, p.side);
+      kick(ax, ay, dir ? 120 : 90, p.side);
     }
   }
 
@@ -2873,6 +2887,44 @@ const Match = (() => {
     return null;
   }
 
+  // ----- владение: мяч «прилипает» к ногам, отбирают подкатом или встав перед игроком; вратарь ловит руками -----
+  function updatePossession(dt) {
+    grabLock -= dt;
+    const o = ball.owner;
+    if (o && (o.down > 0 || o.slide > 0)) {                 // упал или в подкате — мяч отпущен
+      ball.vx = o.ax * 50; ball.vy = o.ay * 50; ball.owner = null; grabLock = .2; o.noGrab = .5;
+      return;
+    }
+    if (o) {
+      ball.x = o.x + o.ax * 6; ball.y = o.y + o.ay * 6; ball.vx = 0; ball.vy = 0; lastTeam = o.side;
+      if (o === teams[o.side][0]) return;                   // вратарь держит мяч в руках
+      for (const q of alive(teams[1 - o.side])) {
+        const d = dist(q, o);
+        if (d > 11 || q.slide > 0 || (q.noGrab || 0) > 0) continue;
+        if (((q.x - o.x) * o.ax + (q.y - o.y) * o.ay) / (d || 1) < .3) continue;   // отбирает тот, кто встал перед игроком
+        if (Math.random() < (.7 + (q.def - o.pace * .5) / 200) * dt) {
+          o.noGrab = .7; ball.owner = q; lastTeam = q.side;
+          if (q.side === 0 && teams[0][0] !== q && !(cfg && cfg.lockPid)) { ctrl = q; switchCd = .4; }
+          break;
+        }
+      }
+      return;
+    }
+    if (grabLock > 0) return;
+    const sp = Math.hypot(ball.vx, ball.vy);
+    let best = null, bd = Infinity;
+    teams.forEach(team => team.forEach((p, i) => {
+      if (p.down > 0 || p.slide > 0 || (p.noGrab || 0) > 0) return;
+      const d = dist(p, ball);
+      if (d > (i === 0 ? 13 : 10) || d >= bd) return;
+      if (i === 0 ? sp < 260 : (sp < 110 || p.side === lastTeam)) { best = p; bd = d; }
+    }));
+    if (best) {
+      ball.owner = best; lastTeam = best.side; best.holdT = 0;
+      if (best.side === 0 && teams[0][0] !== best && !(cfg && cfg.lockPid)) { ctrl = best; switchCd = .4; }
+    }
+  }
+
   // ----- аут: мяч за боковой линией, вбрасывает команда, которая не касалась мяча последней -----
   function startThrow() {
     const t = 1 - lastTeam;
@@ -2901,7 +2953,8 @@ const Match = (() => {
     passPulse = false;
     thr = null;
     if (human) ctrl = taker;
-    passFrom(taker, teams[t]);
+    passFrom(taker, teams[t], human ? passDir : null);
+    passDir = null;
   }
 
   // ----- фолы и штрафные -----
@@ -2934,7 +2987,7 @@ const Match = (() => {
   function resolveTackle(tk, v) {
     const clean = Math.random() < .4 + (tk.def - v.pace * .5) / 150;
     if (clean) {
-      if (dist(v, ball) < 14) kick(tk.ax, tk.ay, 70, tk.side);   // отобрал мяч
+      if (ball.owner === v || dist(v, ball) < 14) { v.noGrab = .6; kick(tk.ax, tk.ay, 70, tk.side); }   // отобрал мяч
       return;
     }
     foul(tk, v);
@@ -2962,7 +3015,7 @@ const Match = (() => {
   }
 
   function shootPen() {
-    const t = pen.t, gk = teams[1 - t][0], taker = teams[t][8];
+    const t = pen.t, gk = teams[1 - t][0], taker = teams[t][Math.min(8, teams[t].length - 1)];   // в 5 на 5 игроков меньше девяти
     // направление: у человека — стиком (вверх/вниз), у ИИ — случайно
     const dirY = t === 0
       ? (joy.y < -.25 ? -1 : joy.y > .25 ? 1 : (Math.random() < .5 ? -1 : 1))
@@ -3055,8 +3108,9 @@ const Match = (() => {
     let ty = ctrl ? ball.y * .6 + ctrl.y * .4 : ball.y;
     if (phase === 'photo') { tx = W / 2; ty = H + 20; }                  // камера уходит к построению
     const k = Math.min(1, dt * CAM.lerp);
-    camX = cl(camX + (tx - camX) * k, hw, W - hw);
-    camY = cl(camY + (ty - camY) * k, hh - 28, H - hh + (phase === 'photo' ? 78 : 40));              // чуть выше и ниже поля — видны фотографы
+    const cl2 = (v, a, b) => (a > b ? (a + b) / 2 : cl(v, a, b));         // поле меньше экрана — камера по центру
+    camX = cl2(camX + (tx - camX) * k, hw, W - hw);
+    camY = cl2(camY + (ty - camY) * k, hh - 28, H - hh + (phase === 'photo' ? 78 : 40));              // чуть выше и ниже поля — видны фотографы
   }
 
   // ----- замены: игрок с скамейки выходит вместо игрока на поле -----
@@ -3112,7 +3166,7 @@ const Match = (() => {
     if (subOpen) return;   // пока открыта панель замен, клавиши не действуют
     const k = MAP[e.code] || e.code;
     if (KEYS.includes(k)) { keys[k] = true; e.preventDefault(); }
-    if (e.code === 'KeyJ') passPulse = true;
+    if (e.code === 'KeyJ') { passPulse = true; passDir = null; }
     if (e.code === 'KeyK') slidePulse = true;
     if (e.code === 'KeyQ') switchPulse = true;
   }
@@ -3252,10 +3306,10 @@ const Match = (() => {
 
   function update(dt) {
     timeLeft -= dt;
-    if (timeLeft <= 0) { timeLeft = 0; startPhoto(); return; }
+    if (timeLeft <= 0) { timeLeft = 0; if (STREET) finish(); else startPhoto(); return; }
     flash = Math.max(0, flash - dt);
     kickCd -= dt; cpuCd[0] -= dt; cpuCd[1] -= dt; tackleCd[0] -= dt; tackleCd[1] -= dt;
-    teams.forEach(team => team.forEach(p => { p.down = Math.max(0, p.down - dt); }));
+    teams.forEach(team => team.forEach(p => { p.down = Math.max(0, p.down - dt); p.noGrab = Math.max(0, (p.noGrab || 0) - dt); }));
     teams.forEach((team, t) => team.forEach(p => { if (p.pendingSub && p.down <= 0) injurySub(t, p); }));
 
     if (pen) { updatePen(dt); return; }
@@ -3267,7 +3321,7 @@ const Match = (() => {
     const kx = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0);
     const ky = (keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0);
     if (kx || ky) { const l = Math.hypot(kx, ky); dx = kx / l; dy = ky / l; }
-    if (auto) { const ai = autoInput(dt); dx = ai.dx; dy = ai.dy; keys.Space = ai.shoot; if (ai.pass) passPulse = true; }
+    if (auto) { const ai = autoInput(dt); dx = ai.dx; dy = ai.dy; keys.Space = ai.shoot; if (ai.pass) { passPulse = true; passDir = null; } }
     const mag = Math.min(1, Math.hypot(dx, dy));
 
     selectCtrl(mag, dt);
@@ -3295,14 +3349,18 @@ const Match = (() => {
     if (!ctrl || pen || fk) return;   // подкат мог назначить пенальти или фол
     ctrl.x = cl(ctrl.x, 4, W - 4); ctrl.y = cl(ctrl.y, 4, H - 4);
 
-    // удар и пас
-    if (keys.Space && kickCd <= 0 && ctrl.slide <= 0 && dist(ctrl, ball) < 16) {
-      if (mag > .15) kick(ctrl.ax, ctrl.ay, 120 + ctrl.shot * .5, 0);
-      else kick(W - ball.x, H / 2 - ball.y, 120 + ctrl.shot * .5, 0);
-      kickCd = .4; ctrl.kickT = .3;
+    // удар и пас: кнопка (тап — как раньше, перетаскивание — выбор направления) или клавиши
+    const canHit = ctrl.slide <= 0 && (ball.owner === ctrl || (!ball.owner && dist(ctrl, ball) < 16));
+    if (shootBuf) { shootBuf.t -= dt; if (shootBuf.t <= 0) shootBuf = null; }
+    if ((keys.Space || shootBuf) && kickCd <= 0 && canHit) {
+      const dr = shootBuf && shootBuf.dir, pw = ctrl === teams[0][0] ? 190 : 120 + ctrl.shot * .5;   // вратарь бьёт ногой далеко
+      if (dr) kick(dr.x, dr.y, pw, 0);
+      else if (mag > .15) kick(ctrl.ax, ctrl.ay, pw, 0);
+      else kick(W - ball.x, H / 2 - ball.y, pw, 0);
+      kickCd = .4; ctrl.kickT = .3; shootBuf = null;
     }
-    if (passPulse && dist(ctrl, ball) < 18) passFrom(ctrl, teams[0]);
-    passPulse = false;
+    if (passPulse && (ball.owner === ctrl || (!ball.owner && dist(ctrl, ball) < 18))) passFrom(ctrl, teams[0], passDir);   // вратарь бросает рукой
+    passPulse = false; passDir = null;
 
     // остальные игроки
     teams.forEach((team, t) => {
@@ -3312,12 +3370,24 @@ const Match = (() => {
         const d = dist(p, ball);
         if (d < cd) { cd = d; chaser = p; }
       });
+      if (ball.owner && ball.owner.side === t) chaser = null;   // мяч у своих — остальные держат строй
       team.forEach((p, i) => {
         if (p === ctrl || p.down > 0) return;
         if (i === 0) {  // вратарь у ворот, выбегает на мяч рядом с штрафной
+          if (ball.owner === p) {                               // поймал мяч: через секунду бросает рукой или бьёт ногой
+            p.holdT = (p.holdT || 0) + dt;
+            if (p.holdT > 1) {
+              p.holdT = 0;
+              if (Math.random() < .35) { kick(t === 0 ? 1 : -1, (Math.random() - .5) * .8, 190, t); p.kickT = .3; }
+              else passFrom(p, team);
+            }
+            return;
+          }
           const gx = t === 0 ? 8 : W - 8;
           if (dist(p, ball) < 45) stepTo(p, ball.x, ball.y, 45, dt);
           else stepTo(p, gx, cl(ball.y, GT, GB), 40, dt);
+        } else if (ball.owner === p) {                          // ИИ ведёт мяч к воротам соперника
+          stepTo(p, t === 0 ? W : 0, H / 2, 28 + p.pace * .3, dt);
         } else if (p === chaser) {
           stepTo(p, ball.x, ball.y, 30 + p.pace * .3, dt);
         } else if (p.slide <= 0) {
@@ -3329,26 +3399,26 @@ const Match = (() => {
       // ИИ иногда делает подкат, если рядом соперник с мячом
       if (chaser && tackleCd[t] <= 0 && dist(chaser, ball) < 12 && Math.random() < .08) {
         const v = nearestOpp(chaser, 11);
-        if (v) {
+        if (v && v === ball.owner) {
           tackleCd[t] = 2;
           resolveTackle(chaser, v);
         }
       }
 
       // удар ИИ у мяча
-      const kicker = alive(team).find((p, i) => i > 0 && p !== ctrl && dist(p, ball) < 12);
+      const ow = ball.owner, kicker = ow && ow.side === t && ow !== ctrl && ow !== team[0] && ow.down <= 0 ? ow : null;
       if (kicker && cpuCd[t] <= 0 && !fk && !pen && !thr) {
         const goalX = t === 0 ? W : 0;
         const inZone = t === 0 ? ball.x > W * .55 : ball.x < W * .45;
-        if (inZone) aimAt(goalX, 120 + kicker.shot * .5, 50, t);
-        else aimAt(goalX, 80 + kicker.shot * .4, 90, t);
-        cpuCd[t] = 1.2; kicker.kickT = .3;
+        if (inZone) { aimAt(goalX, 120 + kicker.shot * .5, 50, t); cpuCd[t] = 1.2; kicker.kickT = .3; }
+        else if (nearestOpp(kicker, 22)) { passFrom(kicker, team); cpuCd[t] = .9; }   // прижали — отдаёт пас
       }
     });
     if (pen || fk || thr) return;
 
     // касания мяча и движение мяча
-    teams.forEach(team => team.forEach(touch));
+    updatePossession(dt);
+    if (!ball.owner) teams.forEach(team => team.forEach(touch));   // быстрый мяч отскакивает, медленный подбирают
     if (ballPhysics(dt) === 'out') startThrow();
   }
 
@@ -3390,9 +3460,68 @@ const Match = (() => {
     if (fill) { c.fillStyle = fill; c.fill(); }
     if (stroke) { c.strokeStyle = stroke; c.lineWidth = 1.4; c.lineJoin = 'round'; c.stroke(); }
   }
+  // уличная площадка: асфальтовая кромка и сетка-рабица вдоль дальней стороны
+  function drawStreetSurround() {
+    const M = 30;
+    poly([proj(-M, -M), proj(W + M, -M), proj(W + M, H + M), proj(-M, H + M)], '#575b63', null);
+    const FH = 34, a = proj(-M, -M), b = proj(W + M, -M);
+    poly([a, b, { x: b.x, y: b.y - FH * b.s }, { x: a.x, y: a.y - FH * a.s }], 'rgba(20,22,26,.35)', null);
+    c.strokeStyle = 'rgba(190,200,210,.45)'; c.lineWidth = .8;
+    c.beginPath();
+    for (let x = -M; x <= W + M; x += 12) {            // ромбы сетки
+      const q = proj(x, -M), s = q.s;
+      c.moveTo(q.x, q.y); c.lineTo(q.x + 12 * s, q.y - FH * s);
+      c.moveTo(q.x + 12 * s, q.y); c.lineTo(q.x, q.y - FH * s);
+    }
+    c.stroke();
+    c.strokeStyle = '#2b2e34'; c.lineWidth = 2;
+    c.beginPath();
+    for (let x = -M; x <= W + M; x += 96) { const q = proj(x, -M); c.moveTo(q.x, q.y); c.lineTo(q.x, q.y - FH * q.s); }
+    c.moveTo(a.x, a.y - FH * a.s); c.lineTo(b.x, b.y - FH * b.s);
+    c.stroke();
+  }
+  // кольцо на щите за воротами: щит, обод и сетка над перекладиной
+  function drawHoop(x0, dir) {
+    const hx = x0 + dir * 20, cy = H / 2, at = (x, y, h) => { const q = proj(x, y); return { x: q.x, y: q.y - h * q.s, s: q.s }; };
+    const g = proj(hx + dir * 5, cy), top = at(hx + dir * 5, cy, 62);
+    c.strokeStyle = '#2b2e34'; c.lineWidth = 3 * g.s; c.lineCap = 'round';           // стойка
+    c.beginPath(); c.moveTo(g.x, g.y); c.lineTo(top.x, top.y); c.stroke();
+    const bb = [at(hx, cy - 20, 36), at(hx, cy + 20, 36), at(hx, cy + 20, 62), at(hx, cy - 20, 62)];
+    poly(bb, 'rgba(235,240,245,.92)', '#9aa3ad');                                       // щит
+    const sq = [at(hx, cy - 7, 40), at(hx, cy + 7, 40), at(hx, cy + 7, 52), at(hx, cy - 7, 52)];
+    poly(sq, null, '#d8452b');                                                          // красный квадрат
+    const rx = hx - dir * 8, rim = [], low = [];
+    for (let i = 0; i < 20; i++) {
+      const t = i / 20 * Math.PI * 2, px = rx - dir * 0 + Math.cos(t) * 7, py = cy + Math.sin(t) * 7;
+      rim.push(at(px, py, 42)); low.push(at(rx + Math.cos(t) * 4, cy + Math.sin(t) * 4, 32));
+    }
+    c.strokeStyle = 'rgba(255,255,255,.75)'; c.lineWidth = .7;                          // сетка кольца
+    c.beginPath();
+    for (let i = 0; i < 20; i += 2) { c.moveTo(rim[i].x, rim[i].y); c.lineTo(low[i].x, low[i].y); }
+    c.stroke();
+    poly(rim, null, '#ff7a1a'); c.lineWidth = 1;
+    const arm = at(hx, cy, 42), r0 = at(rx + dir * 7, cy, 42);
+    c.strokeStyle = '#ff7a1a'; c.lineWidth = 1.6 * arm.s; c.beginPath(); c.moveTo(arm.x, arm.y); c.lineTo(r0.x, r0.y); c.stroke();
+    c.lineWidth = 1; c.strokeStyle = '#ffffff';
+  }
   function drawField() {
-    for (let x = 0, i = 0; x < W; x += 8, i++) {
-      poly([proj(x, 0), proj(x + 8, 0), proj(x + 8, H), proj(x, H)], i % 2 ? '#6fb85a' : '#7cc46a');
+    if (STREET) {                                                                     // глиняное покрытие
+      for (let x = 0, i = 0; x < W; x += 8, i++) {
+        poly([proj(x, 0), proj(x + 8, 0), proj(x + 8, H), proj(x, H)], i % 2 ? '#b8683c' : '#be6e42');
+      }
+      poly([proj(W * .38, H * .3), proj(W * .62, H * .3), proj(W * .62, H * .7), proj(W * .38, H * .7)], 'rgba(120,60,30,.18)', null);   // вытоптанный центр
+      let r = 7;
+      for (let i = 0; i < 260; i++) {                                                 // крапины глины, одинаковые в каждом кадре
+        r = (r * 16807) % 2147483647; const u = r / 2147483647;
+        r = (r * 16807) % 2147483647; const v = r / 2147483647;
+        const q = proj(u * W, v * H);
+        c.fillStyle = i % 3 ? 'rgba(90,40,20,.22)' : 'rgba(235,170,120,.22)';
+        c.fillRect(q.x, q.y, 1.6 * q.s, 1.2 * q.s);
+      }
+    } else {
+      for (let x = 0, i = 0; x < W; x += 8, i++) {
+        poly([proj(x, 0), proj(x + 8, 0), proj(x + 8, H), proj(x, H)], i % 2 ? '#6fb85a' : '#7cc46a');
+      }
     }
     const rect = (x0, y0, x1, y1) => [proj(x0, y0), proj(x1, y0), proj(x1, y1), proj(x0, y1)];
     const ln = '#ffffff';
@@ -3442,6 +3571,21 @@ const Match = (() => {
     c.beginPath(); c.moveTo(q1.x, q1.y); c.lineTo(t1.x, t1.y); c.moveTo(q2.x, q2.y); c.lineTo(t2.x, t2.y); c.stroke();
     c.beginPath(); c.moveTo(t1.x, t1.y); c.lineTo(t2.x, t2.y); c.stroke();
     c.lineWidth = 1; c.strokeStyle = '#ffffff';
+  }
+  function groundArrow(x, y, dx, dy, len, w, col) {          // стрелка на земле
+    const nx = -dy, ny = dx, bx = x + dx * 8, by = y + dy * 8;
+    poly([proj(bx + dx * len, by + dy * len), proj(bx + nx * w, by + ny * w), proj(bx - nx * w, by - ny * w)], col, 'rgba(0,0,0,.5)');
+  }
+  function ctrlOverlay() {
+    groundArrow(ctrl.x, ctrl.y, ctrl.ax, ctrl.ay, 13, 5, ball.owner === ctrl ? 'rgba(255,210,0,.9)' : 'rgba(255,255,255,.7)');
+    if (aim && aim.dir) {                                    // прицел при перетаскивании кнопки
+      const len = aim.kind === 'shoot' ? 120 : 90, col = aim.kind === 'shoot' ? '#ffd200' : '#33c0ff';
+      const a = proj(ctrl.x, ctrl.y), b = proj(ctrl.x + aim.dir.x * len, ctrl.y + aim.dir.y * len);
+      c.setLineDash([5, 4]); c.strokeStyle = col; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); c.setLineDash([]);
+      groundArrow(ctrl.x + aim.dir.x * (len - 14), ctrl.y + aim.dir.y * (len - 14), aim.dir.x, aim.dir.y, 12, 6, col);
+    }
+    c.lineWidth = 1;
   }
   function drawBall() {
     const q = proj(ball.x, ball.y);
@@ -3498,6 +3642,7 @@ const Match = (() => {
   let ops = [];
   function initOps() {
     ops = [];
+    if (STREET) return;
     CREW_X.forEach(cx => {
       const look = { skin: pickOf(SKINS), hair: pickOf(HAIRS), color: '#2b2b2b', shorts: '#1a1a1a' };
       [{ y: H + 16, back: true }, { y: -8, back: false }].forEach(v => ops.push({
@@ -3585,12 +3730,14 @@ const Match = (() => {
 
   function draw() {
     c.setTransform(RES, 0, 0, RES, 0, 0);
-    c.fillStyle = '#2a2e35'; c.fillRect(0, 0, VW, VH);       // трибуны и асфальт за полем
+    c.fillStyle = STREET ? '#3d4047' : '#2a2e35'; c.fillRect(0, 0, VW, VH);       // трибуны и асфальт за полем
+    if (STREET) drawStreetSurround();
     drawField();
     drawGoal(0, -1); drawGoal(W, 1);
+    if (STREET) { drawHoop(0, -1); drawHoop(W, 1); }
     // игроки, мяч, судья и камеры — от дальних к ближним, чтобы ближние перекрывали дальних
     const items = [{ y: ball.y, fn: drawBall }];
-    [150, 480, 810].forEach(x => {                            // операторы за обеими боковыми линиями
+    if (!STREET) [150, 480, 810].forEach(x => {               // операторы за обеими боковыми линиями
       items.push({ y: -12, fn: () => drawCrew(x, -12) });
       items.push({ y: H + 12, fn: () => drawCrew(x, H + 12) });
     });
@@ -3603,7 +3750,7 @@ const Match = (() => {
       if (p === ctrl) return;
       items.push({ y: p.y, fn: () => player(p, i === 0 ? GK_COLOR : (t === 0 ? cfg.myColor : cfg.oppColor), i === 0 ? '#111111' : (t === 0 ? cfg.myShorts : cfg.oppShorts)) });
     }));
-    if (ctrl) items.push({ y: ctrl.y, fn: () => { player(ctrl, ctrl === teams[0][0] ? GK_COLOR : cfg.myColor, ctrl === teams[0][0] ? '#111111' : cfg.myShorts); marker(ctrl); } });
+    if (ctrl) items.push({ y: ctrl.y, fn: () => { ctrlOverlay(); player(ctrl, ctrl === teams[0][0] ? GK_COLOR : cfg.myColor, ctrl === teams[0][0] ? '#111111' : cfg.myShorts); marker(ctrl); } });
     items.sort((a, b) => a.y - b.y).forEach(it => it.fn());
 
     // надписи на экране (без камеры)
@@ -3646,6 +3793,7 @@ const Match = (() => {
     stop();
     cfg = config; running = true; keys = {}; joy = { x: 0, y: 0 }; joyId = null;
     auto = false; autoCd = 0; lastInput = performance.now();
+    grabLock = 0; shootBuf = null; passDir = null; aim = null;
     passPulse = false; slidePulse = false; switchPulse = false;
     setField(cfg.n || 11);
     const a = makeTeam(cfg.mySquad, 0, tacticMods(cfg.tactic, cfg.coach)), b = makeTeam(cfg.oppSquad, 1, null);
@@ -3655,7 +3803,7 @@ const Match = (() => {
     injuries = [];
     subsLeft = (cfg.n || 11) === 11 ? 3 : 0; subOpen = false; subPick = null;
     score = { me: 0, cpu: 0 };
-    phase = 'play'; photoT = 0; photoHold = 0; finishing = false; fans = []; stewards = []; photogs = []; initOps(); fanHalt = false; nextFan = Math.random() < .3 ? rnd(12, 70) : Infinity; nextPhotog = rnd(3, 8);
+    phase = 'play'; photoT = 0; photoHold = 0; finishing = false; fans = []; stewards = []; photogs = []; initOps(); fanHalt = false; nextFan = !STREET && Math.random() < .3 ? rnd(12, 70) : Infinity; nextPhotog = STREET ? Infinity : rnd(3, 8);
     timeLeft = cfg.duration || DUR; kickCd = 0; cpuCd = [0, 0]; tackleCd = [0, 0]; flash = 0; pen = null;
     fk = null; thr = null; lastTeam = 0; switchCd = 0;
     kickoff();
@@ -3732,9 +3880,22 @@ const Match = (() => {
       b.addEventListener('pointerdown', e => { inputNow(); keys[key] = true; e.preventDefault(); });
       ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, () => { keys[key] = false; }));
     };
-    hold('#btnShoot', 'Space');
+    // удар и пас как атака в Brawl Stars: тап — авто-направление, потянул и отпустил — бьёшь/пасуешь туда, пока идёшь стиком
+    const aimBtn = (sel, kind) => {
+      const b = el.querySelector(sel); let id = null, ox = 0, oy = 0;
+      const vec = e => { const dx = e.clientX - ox, dy = e.clientY - oy, d = Math.hypot(dx, dy); return d > 14 ? { x: dx / d, y: dy / d } : null; };
+      b.addEventListener('pointerdown', e => { inputNow(); id = e.pointerId; ox = e.clientX; oy = e.clientY; aim = { kind, dir: null }; b.setPointerCapture(id); e.preventDefault(); });
+      b.addEventListener('pointermove', e => { if (e.pointerId === id && aim) aim.dir = vec(e); });
+      ['pointerup', 'pointercancel'].forEach(ev => b.addEventListener(ev, e => {
+        if (e.pointerId !== id) return;
+        id = null; const dir = e.type === 'pointerup' ? vec(e) : null; aim = null;
+        if (e.type === 'pointercancel') return;
+        if (kind === 'shoot') shootBuf = { dir, t: .25 }; else { passPulse = true; passDir = dir; }
+      }));
+    };
+    aimBtn('#btnShoot', 'shoot');
+    aimBtn('#btnPass', 'pass');
     hold('#btnSprint', 'Sprint');
-    el.querySelector('#btnPass').addEventListener('pointerdown', e => { inputNow(); passPulse = true; e.preventDefault(); });
     el.querySelector('#btnSlide').addEventListener('pointerdown', e => { inputNow(); slidePulse = true; e.preventDefault(); });
     el.querySelector('#btnSwitch').addEventListener('pointerdown', e => { inputNow(); switchPulse = true; e.preventDefault(); });
 
