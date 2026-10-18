@@ -547,7 +547,19 @@ function makeGeneratedSquad(club) {
 }
 // имена игроков случайные: номера, позиции и показатели сохраняются
 const randName = () => pick(FIRST) + ' ' + pick(LAST);
+// игрок по пожеланию семьи: Нурасыл Алтынбеков, ФК «Столичный», №7, ФРВ
+function addBrother(sq, club) {
+  const p = { id: 'altynbekov-7', num: 7, name: 'Нурасыл Алтынбеков', pos: 'FW',
+              pace: 82, shot: 73, pass: 62, def: 43, ovr: 74, mor: 70, hp: 100, inj: 0,
+              look: { skin: '#d8a878', hair: '#111111', color: club.color, shorts: club.shorts, afro: true } };
+  sq.splice(11, 0, p);   // первый запасной
+  return sq;
+}
 function makeSquad(club, idx) {
+  const sq = makeSquadBase(club, idx);
+  return club.id === 'stolichny' ? addBrother(sq, club) : sq;
+}
+function makeSquadBase(club, idx) {
   if (club.id === 'custom') return makeGeneratedSquad(club);
   if (STATS_SQUADS[club.id]) {
     return STATS_SQUADS[club.id].map(([num, , pos, pace, shot, pass, def, ovr, mor, hp]) =>
@@ -1402,7 +1414,7 @@ const finNote = s => flashView('finance', s);
 // фигурка игрока для карточек и списков: цвет формы передаётся явно (клуба или свободного агента)
 function figHTML(p, color, shorts) {
   const l = lookOf(p);
-  return `<canvas class="fig" width="16" height="24" data-c="${color}" data-s="${shorts}" data-n="${p.num}" data-skin="${l.skin}" data-hair="${l.hair}"></canvas>`;
+  return `<canvas class="fig" width="16" height="24" data-c="${color}" data-s="${shorts}" data-n="${p.num}" data-skin="${l.skin}" data-hair="${l.hair}" data-afro="${l.afro ? 1 : ''}"></canvas>`;
 }
 
 // заготовки головы по амплуа: цвета волос и причёска (стили сохраняются у игрока)
@@ -1535,6 +1547,10 @@ function afterRound() {
 function migrate() {
   if (!S) return;
   if (!CLUBS.some(c => c.id === S.me)) { S = null; return; }   // неизвестный клуб: сохранение не подходит
+  if (!S.brotherAdded && S.squads.stolichny && !S.squads.stolichny.some(p => p.id === 'altynbekov-7')) {
+    addBrother(S.squads.stolichny, CLUBS.find(c => c.id === 'stolichny'));
+    S.brotherAdded = true;
+  }
   CLUBS.forEach((c, k) => {
     if (!S.squads[c.id]) S.squads[c.id] = makeSquad(c, k);
     if (!S.table[c.id]) S.table[c.id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 };
@@ -1632,6 +1648,7 @@ function drawPortraits(root) {
     const r = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
     g.clearRect(0, 0, 16, 16);
     g.imageSmoothingEnabled = false;
+    if (L.afro) { r(3, 0, 10, 2, L.hair); r(2, 2, 12, 7, L.hair); }   // афро за головой
     const f = L.gender === 'f';
     if (f) r(3, 3, 10, 9, L.hair);                              // длинные волосы сзади
     r(5, 3, 6, 7, L.skin); r(4, 4, 8, 5, L.skin);               // лицо (без черт)
@@ -2189,10 +2206,10 @@ function buildSprite(frame) {
   return out;
 }
 
-function getSprite(color, num, lying, skin, frame, shorts, hair) {
+function getSprite(color, num, lying, skin, frame, shorts, hair, afro) {
   const f = lying ? 'stand' : (frame || 'stand');
   const hr = hair || HAIRS[0];
-  const key = [color, num, lying ? 'L' : 'S', skin, f, shorts, hr].join('|');
+  const key = [color, num, lying ? 'L' : 'S', skin, f, shorts, hr, afro ? 'A' : ''].join('|');
   if (spriteCache[key]) return spriteCache[key];
   const grid = buildSprite(f);
   const sh = shorts || '#f2f2f2';
@@ -2202,6 +2219,7 @@ function getSprite(color, num, lying, skin, frame, shorts, hair) {
   const cv = document.createElement('canvas');
   cv.width = SPR_W; cv.height = SPR_H;
   const g = cv.getContext('2d');
+  if (afro) { g.fillStyle = hr; g.fillRect(3, 0, 10, 2); g.fillRect(2, 2, 12, 7); }   // афро: объём за головой
   grid.forEach((row, y) => [...row].forEach((ch, x) => {
     if (ch === ' ') return;
     g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1);
@@ -2299,7 +2317,7 @@ function getCrowdSprite(look, frame, o, flip) {
 function drawFigs(root) {
   root.querySelectorAll('canvas.fig').forEach(cv => {
     const n = +cv.dataset.n, skin = cv.dataset.skin || SKINS[n % SKINS.length], hair = cv.dataset.hair || HAIRS[0];
-    const spr = getSprite(cv.dataset.c, n, false, skin, 'stand', cv.dataset.s, hair);
+    const spr = getSprite(cv.dataset.c, n, false, skin, 'stand', cv.dataset.s, hair, cv.dataset.afro === '1');
     const g = cv.getContext('2d');
     g.clearRect(0, 0, cv.width, cv.height);
     g.imageSmoothingEnabled = false;
@@ -2382,7 +2400,7 @@ const Match = (() => {
                pace: st('pace'), shot: st('shot'), def: st('def'), side, bx, by, x: bx, y: by,
                ax: side === 0 ? 1 : -1, ay: 0, down: 0, slide: 0, hit: false, diveY: by,
                kickT: 0, px: bx, py: by, spd: 0,
-               skin: lookOf(p).skin, hair: lookOf(p).hair };
+               skin: lookOf(p).skin, hair: lookOf(p).hair, afro: !!lookOf(p).afro };
     });
   }
 
@@ -3172,7 +3190,7 @@ const Match = (() => {
       else if (p.spd > 35) frame = (performance.now() / 110 | 0) % 2 ? 'run2' : 'run1';
       else if (p.spd > 8) frame = (performance.now() / 220 | 0) % 2 ? 'walk2' : 'walk';
     }
-    const spr = getSprite(color, p.num, lying, p.skin, frame, shorts, p.hair, p.ax < 0);
+    const spr = getSprite(color, p.num, lying, p.skin, frame, shorts, p.hair, !!p.afro);
     let topY;
     c.imageSmoothingEnabled = false;                      // игроки остаются пиксельными
     if (lying) {
@@ -3374,7 +3392,7 @@ header.top{padding-right:104px !important}
 #gm-panel small{display:block;font:400 12px system-ui,sans-serif;color:#56655b;margin-top:2px}
 #gm-panel .cur small{color:#1d2a22}
 </style>
-<div id="gm-wrap"><button id="gm-btn" type="button" aria-expanded="false" aria-controls="gm-panel">Меню</button><div id="gm-panel" hidden><div class="t">ИГРЫ</div><a href="./">Главная<small>сайт игры</small></a><span class="cur">Steppe Manager<small>футбольный менеджер</small></span><a href="zona.html">Зона<small>экшен по уровням</small></a></div></div>
+<div id="gm-wrap"><button id="gm-btn" type="button" aria-expanded="false" aria-controls="gm-panel">Меню</button><div id="gm-panel" hidden><div class="t">ИГРЫ</div><a href="./">Главная<small>о игре</small></a><span class="cur">Steppe Manager<small>играете сейчас</small></span><a href="zona.html">Зона<small>о игре</small></a></div></div>
 <script>
 (function () {
   var b = document.getElementById('gm-btn'), p = document.getElementById('gm-panel');
