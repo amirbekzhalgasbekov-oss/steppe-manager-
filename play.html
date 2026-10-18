@@ -3376,31 +3376,5 @@ const Match = (() => {
 })();
 
 </script>
-<style id="gm-style">
-#gm-wrap{position:fixed;top:8px;right:8px;z-index:2000;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
-body:has(.m-screen) #gm-wrap{display:none}
-header.top{padding-right:104px !important}
-#gm-btn{position:relative;background:#fffdf6;color:#1d2a22;border:2px solid #1d2a22;border-radius:12px;padding:7px 14px;
-  font:700 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 3px 0 #1d2a22;margin:0}
-#gm-btn:hover,#gm-btn[aria-expanded="true"]{background:#f4efe2}
-#gm-panel{position:absolute;right:0;top:calc(100% + 8px);min-width:250px;background:#fffdf6;border:2px solid #1d2a22;border-radius:16px;padding:10px;box-shadow:0 4px 0 #1d2a22}
-#gm-panel[hidden]{display:none}
-#gm-panel .t{font:800 13px system-ui,sans-serif;letter-spacing:2px;color:#1d2a22;padding:2px 6px 8px;border-bottom:2px dashed rgba(29,42,34,.25);margin-bottom:6px}
-#gm-panel a,#gm-panel .cur{display:block;padding:10px 12px;border-radius:10px;color:#1d2a22;text-decoration:none;font:700 16px system-ui,sans-serif;background:transparent}
-#gm-panel a:hover{background:#f4efe2}
-#gm-panel .cur{background:#e3a73c;border:2px solid #1d2a22}
-#gm-panel small{display:block;font:400 12px system-ui,sans-serif;color:#56655b;margin-top:2px}
-#gm-panel .cur small{color:#1d2a22}
-</style>
-<div id="gm-wrap"><button id="gm-btn" type="button" aria-expanded="false" aria-controls="gm-panel">Меню</button><div id="gm-panel" hidden><div class="t">ИГРЫ</div><a href="./">Главная<small>о игре</small></a><span class="cur">Steppe Manager<small>играете сейчас</small></span><a href="zona.html">Зона<small>о игре</small></a></div></div>
-<script>
-(function () {
-  var b = document.getElementById('gm-btn'), p = document.getElementById('gm-panel');
-  function setOpen(o) { p.hidden = !o; b.setAttribute('aria-expanded', o ? 'true' : 'false'); }
-  b.addEventListener('click', function (e) { e.stopPropagation(); setOpen(p.hidden); });
-  document.addEventListener('click', function (e) { if (!p.contains(e.target) && e.target !== b) setOpen(false); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
-})();
-</script>
 </body>
 </html>
