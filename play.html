@@ -1300,9 +1300,9 @@ const L = () => localStorage.getItem('steppe-lang') || 'ru';
 const t = k => T[L()][k];
 Object.assign(T.ru, { playerName: 'Игрок', posShort: 'Поз.' });
 Object.assign(T.ru, { div1: 'Высшая лига', div2: 'Первая лига', div3: 'Вторая лига', season: 'Сезон', newSeason: 'Следующий сезон',
-  promoNote: 'Зелёная метка — повышение, красная — вылет. В конце сезона лидер нижней лиги и аутсайдер верхней меняются местами.' });
+  champions: 'Чемпионы сезона', moves: 'Переходы', promoNote: 'Зелёная метка — повышение, красная — вылет. В конце сезона лидер нижней лиги и аутсайдер верхней меняются местами.' });
 Object.assign(T.kz, { div1: 'Жоғарғы лига', div2: 'Бірінші лига', div3: 'Екінші лига', season: 'Маусым', newSeason: 'Келесі маусым',
-  promoNote: 'Жасыл белгі — көтерілу, қызыл — түсіп қалу. Маусым соңында төменгі лиганың көшбасшысы мен жоғарғы лиганың соңғы клубы орын ауыстырады.' });
+  champions: 'Маусым чемпиондары', moves: 'Ауысулар', promoNote: 'Жасыл белгі — көтерілу, қызыл — түсіп қалу. Маусым соңында төменгі лиганың көшбасшысы мен жоғарғы лиганың соңғы клубы орын ауыстырады.' });
 Object.assign(T.kz, { playerName: 'Ойыншы', posShort: 'Ойын' });
 Object.assign(T.ru, { renameClub: 'Название клуба', renameBtn: 'Сохранить название', nameEmpty: 'Название не может быть пустым.', nameSaved: 'Название клуба изменено.', formation: 'Схема' });
 Object.assign(T.kz, { renameClub: 'Клуб атауы', renameBtn: 'Атауды сақтау', nameEmpty: 'Атау бос болмауы керек.', nameSaved: 'Клуб атауы өзгертілді.', formation: 'Схема' });
@@ -1371,7 +1371,7 @@ function newGame(i) {
   S = { me: CLUBS[i].id, round: 0, tourFmt: 2, day: 1, budget: CLUBS[i].budget || 2e9, squads, table, cash: {}, pool: [],
         mail: [], staff: {}, sponsors: [], pr: CLUBS[i].pr, tactic: 'balanced', autoStaff: false, cands: [], neg: [], plan: 'none',
         customClub: CLUBS[CLUBS.length - 1].id === 'custom' ? CLUBS[CLUBS.length - 1] : null,
-        divs: Object.fromEntries(CLUBS.map(c => [c.id, c.div || 3])), season: 1 };
+        divs: Object.fromEntries(CLUBS.map(c => [c.id, c.div || 3])), season: 1, trophies: [] };
   CLUBS.forEach(c => { if (c.id !== S.me) S.cash[c.id] = c.budget || 2e9; });
   ensureIds(); refreshPool();
   S.cands = genCands();
@@ -1425,6 +1425,7 @@ function matchCfg(oppId, friendly, onDone) {
     myColor: mine.color, oppColor: opp.color, myShorts: mine.shorts, oppShorts: opp.shorts,
     mySquad: S.squads[S.me], oppSquad: S.squads[oppId],
     tactic: S.tactic, coach: staffLvl('coach'), friendly, form: formCoords(S.formation),
+    lockPid: (S.mode === 'player' && S.hero && S.hero.club) ? 'hero' : null,
     onEnd: (gm, gop, injuries) => onDone(gm, gop, injuries)
   };
 }
@@ -1460,6 +1461,7 @@ function startMatch() {
     simOtherMatches();
     closeTour();
     RESULT = { gm, gop, out, reward, opp: nm(opp), injured, friendly: false };
+    if (S.mode === 'player' && S.hero) heroAfterMatch(out);
     save();
     go('result');
   });
@@ -1488,7 +1490,7 @@ function startFriendly(oppId) {
 
 // тренировка: при тренере бесплатно, без него 50 млн; занимает весь состав
 function train(back = 'hub') {
-  const cost = staffLvl('coach') ? 0 : 5e7;
+  const cost = (staffLvl('coach') || S.mode === 'coach') ? 0 : 5e7;
   if (S.budget < cost) return flashView(back, t('noMoney'));
   S.budget -= cost;
   S.squads[S.me].forEach(p => {
@@ -1521,19 +1523,50 @@ function tableHTML() {
   }).join('') + `<p class="hint">${t('promoNote')}</p>`;
 }
 
-// конец сезона: первый клуб нижней лиги поднимается, последний клуб верхней вылетает; таблицы обнуляются
-function nextSeason() {
-  const was = S.divs[S.me], moves = {};
+// переходы по итогам сезона: победитель дивизиона поднимается, последний опускается;
+// победитель Высшей лиги остаётся и получает кубок, последний клуб Второй лиги остаётся во Второй
+function seasonMoves() {
+  const moves = {};
   [1, 2].forEach(d => {
     const top = divRows(d), low = divRows(d + 1);
     if (!top.length || !low.length) return;
     moves[low[0].c.id] = d;                       // повышение
     moves[top[top.length - 1].c.id] = d + 1;      // вылет
   });
+  return moves;
+}
+// итоги сезона: чемпионы с кубками и переходы
+function champsHTML() {
+  const moves = seasonMoves();
+  const champs = [1, 2, 3].map(d => { const r = divRows(d)[0]; return r ? `<p>🏆 ${t('div' + d)}: <b style="color:${readable(r.c.color)}">${nm(r.c)}</b></p>` : ''; }).join('');
+  const mv = Object.keys(moves).map(id => {
+    const c = CLUBS.find(x => x.id === id), up = moves[id] < S.divs[id];
+    return `<p class="${up ? 'ok' : 'bad'}">${up ? '▲' : '▼'} ${nm(c)} → ${t('div' + moves[id])}</p>`;
+  }).join('');
+  return `<section class="card"><b>${t('champions')}</b>${champs}</section><section class="card"><b>${t('moves')}</b>${mv}</section>`;
+}
+
+function nextSeason() {
+  const was = S.divs[S.me], moves = seasonMoves();
+  S.trophies = S.trophies || [];
+  let myCup = 0;
+  [1, 2, 3].forEach(d => {
+    const r = divRows(d)[0];
+    if (!r) return;
+    S.trophies.push({ season: S.season || 1, div: d, id: r.c.id });
+    if (r.c.id === S.me) myCup = d;
+  });
+  let fired = false;
+  if (S.mode === 'coach' && S.coach) {
+    const place = divRows(S.divs[S.me]).findIndex(r => r.c.id === S.me) + 1;
+    if (place <= (S.coach.goal || 3)) { S.coach.rep = Math.min(100, S.coach.rep + (place === 1 ? 15 : 8)); S.coach.salary = Math.round(S.coach.salary * 1.1 / 1e5) * 1e5; }
+    else { S.coach.rep = Math.max(0, S.coach.rep - 6); fired = true; }
+  }
   Object.keys(moves).forEach(id => { S.divs[id] = moves[id]; });
   CLUBS.forEach(c => { S.table[c.id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
   S.season = (S.season || 1) + 1;
   S.round = 0;
+  const done = S.season - 1;
   const now = S.divs[S.me], n1 = T.ru['div' + now], n2 = T.kz['div' + now];
   const kind = now < was ? 'up' : now > was ? 'down' : 'stay';
   const txt = {
@@ -1541,9 +1574,25 @@ function nextSeason() {
     down: bi(`Клуб вылетел в дивизион «${n1}». Нужно вернуться.`, `Клуб «${n2}» дивизионына түсіп кетті. Қайтып оралу керек.`),
     stay: bi(`Клуб остаётся в дивизионе «${n1}».`, `Клуб «${n2}» дивизионында қалады.`)
   }[kind];
-  mail(bi('Совет директоров', 'Директорлар кеңесі'), bi(`Сезон ${S.season - 1} завершён`, `${S.season - 1}-маусым аяқталды`), txt);
+  mail(bi('Совет директоров', 'Директорлар кеңесі'), bi(`Сезон ${done} завершён`, `${done}-маусым аяқталды`), txt);
+  if (myCup) {
+    const c1 = T.ru['div' + myCup], c2 = T.kz['div' + myCup];
+    mail(bi('Футбольная федерация', 'Футбол федерациясы'), bi('🏆 Кубок чемпиона!', '🏆 Чемпион кубогы!'),
+      bi(`Ваш клуб выиграл турнир «${c1}» и получает кубок. Всего кубков: ${S.trophies.filter(x => x.id === S.me).length}.`,
+         `Клубыңыз «${c2}» турнирінде жеңіп, кубок алды. Барлығы: ${S.trophies.filter(x => x.id === S.me).length}.`));
+  }
+  if (S.mode === 'player' && S.hero) { const nv = heroSeasonEnd(); save(); return playScene(seasonSteps(done, myCup, kind, nv ? [contractSteps()] : []), () => go(nv || 'hub')); }
+  if (S.mode === 'coach' && S.coach) {
+    if (fired) {
+      S.coach.fired = true; S.coach.offers = null;
+      mail(bi('Совет директоров', 'Директорлар кеңесі'), bi('Контракт расторгнут', 'Келісімшарт бұзылды'),
+        bi('Цель сезона не выполнена, вас уволили. Ищите новый клуб.', 'Маусым мақсаты орындалмады, сізді жұмыстан шығарды. Жаңа клуб іздеңіз.'));
+      save(); return playScene(seasonSteps(done, myCup, kind, [firedSteps()]), () => go('coachOffers'));
+    }
+    S.coach.goal = coachGoal();
+  }
   save();
-  go('hub');
+  playScene(seasonSteps(done, myCup, kind, []), () => go('hub'));
 }
 
 // ===== Трансферы =====
@@ -1682,6 +1731,8 @@ function aiBuyFree() {
 
 // после каждого тура: деньги и трансферы ИИ, затем неделя календаря (дни, зарплаты, спонсоры, почта)
 function afterRound() {
+  if (S.mode === 'player' && S.hero && S.hero.club) S.hero.cash += S.hero.salary;   // зарплата игрока за тур
+  if (S.mode === 'coach' && S.coach) S.coach.cash += S.coach.salary;   // зарплата тренера за тур
   CLUBS.forEach(c => { if (c.id !== S.me) S.cash[c.id] = (S.cash[c.id] || 0) + 1e8; });   // доход клубов за тур
   aiBuyFree();
   aiTrade();
@@ -1708,6 +1759,7 @@ function migrate() {
   }
   CLUBS.forEach(c => { if (S.divs[c.id] === undefined) S.divs[c.id] = c.div || 3; });
   if (!S.season) S.season = 1;
+  if (!S.trophies) S.trophies = [];
   // старое расписание считало матчи (8 клубов), новое — туры: переводим по числу сыгранных матчей
   if (S.tourFmt !== 2) {
     const played = Object.values(S.table || {}).reduce((s, r) => s + r.p, 0) / 2;
@@ -1992,6 +2044,8 @@ const VIEWS = {
           <div class="menu">
             ${S ? `<button class="primary" onclick="go('hub')"><span class="ic">▶</span>${t('continueGame')}</button>` : ''}
             <button class="${S ? '' : 'primary'}" onclick="go('pick')"><span class="ic">🏟️</span>${t('newGame')}</button>
+            <button onclick="go('coachNew')"><span class="ic">🧢</span>${tc('Карьера тренера', 'Бапкер мансабы')}</button>
+            <button onclick="go('heroNew')"><span class="ic">🏃</span>${tc('Карьера игрока', 'Ойыншы мансабы')}</button>
             <button onclick="go('quick')"><span class="ic">⚡</span>${quickL().title}</button>
             <button onclick="go('load')"><span class="ic">💾</span>${t('load')}</button>
             <button onclick="go('settings')"><span class="ic">⚙️</span>${t('settings')}</button>
@@ -2092,7 +2146,7 @@ const VIEWS = {
     const me = CLUBS[myIdx()];
     const msg = NOTICE; NOTICE = '';
     if (S.round >= tours().length) {
-      el.innerHTML = `<h2>${t('seasonOver')}</h2>${tableHTML()}
+      el.innerHTML = `<h2>${t('seasonOver')}</h2>${champsHTML()}${tableHTML()}
         <button class="big" onclick="nextSeason()">${t('newSeason')}</button>`;
       return;
     }
@@ -2104,7 +2158,7 @@ const VIEWS = {
       ${msg ? `<p class="hint">${msg}</p>` : ''}
       <section class="card club-banner" style="--c:${me.color}">
         <h2 style="margin:0">${nm(me)}</h2>
-        <small>${me.city[L()]} · ${t('div' + S.divs[me.id])} · ${t('season')} ${S.season || 1} · ${t('day')} ${S.day}</small>
+        <small>${me.city[L()]} · ${t('div' + S.divs[me.id])} · ${t('season')} ${S.season || 1} · ${t('day')} ${S.day}${(S.trophies || []).some(x => x.id === me.id) ? ' · 🏆 ' + S.trophies.filter(x => x.id === me.id).length : ''}</small>
         <p>${t('budget')}: <b>${money(S.budget)}</b> · ${t('rating')}: <b>${squadOvr(me.id)}</b> · PR: <b>${Math.round(S.pr)}</b></p>
         <small>${t('staffCost')}: ${money(staffSalary())} ${t('perWeek')}</small>
       </section>
@@ -2119,11 +2173,11 @@ const VIEWS = {
         <button onclick="go('squad')"><span class="ic">👥</span>${t('squad')}</button>
         <button onclick="go('table')"><span class="ic">🏆</span>${t('table')}</button>
         <button onclick="go('stadium')"><span class="ic">🏟️</span>${t('stadium')}</button>
-        <button onclick="go('finance')"><span class="ic">💰</span>${t('finance')}</button>
+        ${S.mode === 'coach' ? `<button onclick="go('coach')"><span class="ic">🧢</span>${tc('Тренер', 'Бапкер')}</button>` : `<button onclick="go('finance')"><span class="ic">💰</span>${t('finance')}</button>`}
         <button onclick="go('save')"><span class="ic">💾</span>${t('save')}</button>
-        <button onclick="train()"><span class="ic">🏋️</span>${staffLvl('coach') ? t('trainFree') : t('train')}</button>
+        <button onclick="train()"><span class="ic">🏋️</span>${(staffLvl('coach') || S.mode === 'coach') ? t('trainFree') : t('train')}</button>
         <button onclick="go('friendly')"><span class="ic">🤝</span>${t('friendly')}</button>
-        <i></i>
+        ${S.mode === 'coach' ? `<button onclick="FIN_TAB='transfers';go('finance')"><span class="ic">🔄</span>${t('transfers')}</button>` : '<i></i>'}
         <button onclick="go('mail')"><span class="ic">✉️</span>${t('mail')}${un ? ` (${un})` : ''}</button>
       </nav>
       <div class="opts" style="grid-template-columns:1fr 1fr;margin-top:14px">
@@ -2135,7 +2189,7 @@ const VIEWS = {
   squad(el) {
     const club = CLUBS[myIdx()];
     const msg = NOTICE; NOTICE = '';
-    const tabs = [['players', t('tabPlayers')], ['staff', t('tabStaff')], ['actions', t('tabActions')]];
+    const tabs = [['players', t('tabPlayers')], ['staff', t('tabStaff')], ['actions', t('tabActions')]].filter(x => S.mode !== 'coach' || x[0] !== 'staff');
     let html = `<h2>${t('squad')}: ${nm(club)}</h2>
       <nav class="tabs">${tabs.map(([k, l]) => `<button class="${SQ_TAB === k ? 'on' : ''}" onclick="setTab('${k}')">${l}</button>`).join('')}</nav>
       ${msg ? `<p class="hint">${msg}</p>` : ''}`;
@@ -2149,7 +2203,8 @@ const VIEWS = {
 
   finance(el) {
     const msg = NOTICE; NOTICE = '';
-    const tabs = [['sponsors', t('sponsors')], ['transfers', t('transfers')], ['staff', t('hiring')]];
+    if (S.mode === 'coach') FIN_TAB = 'transfers';   // штат, найм и спонсоры — у директора клуба
+    const tabs = [['sponsors', t('sponsors')], ['transfers', t('transfers')], ['staff', t('hiring')]].filter(x => S.mode !== 'coach' || x[0] === 'transfers');
     const body = FIN_TAB === 'sponsors' ? sponsorsHTML() : FIN_TAB === 'staff' ? staffHTML() : transfersHTML();
     el.innerHTML = `<h2>${t('finance')}</h2><p class="fx">${t('budget')}: <b>${money(S.budget)}</b></p>
       <nav class="tabs">${tabs.map(([k, l]) => `<button class="${FIN_TAB === k ? 'on' : ''}" onclick="setFinTab('${k}')">${l}</button>`).join('')}</nav>
@@ -2202,7 +2257,7 @@ function go(view) {
   const inGame = view === 'match' || view === 'quickmatch';
   const langBtn = inGame ? '' :
     `<button class="ghost" onclick="toggleLang('${view}')">${t('langBtn')}</button>`;
-  const saveBtn = (inGame || !S || view.startsWith('quick')) ? '' : `<button class="save-btn" onclick="go('save')">${t('saveGame')}</button>`;
+  const saveBtn = (inGame || !S || view.startsWith('quick') || view === 'scene') ? '' : `<button class="save-btn" onclick="go('save')">${t('saveGame')}</button>`;
   $('#app').className = 'v-' + view;
   $('#app').innerHTML = `<header class="top"><b>${t('appTitle')}</b><span>${saveBtn}${langBtn}</span></header><main id="view"></main>`;
   VIEWS[view]($('#view'));
@@ -2906,6 +2961,7 @@ const Match = (() => {
   // ----- выбор управляемого игрока -----
   // вратарь участвует в выборе только когда мяч в его штрафной
   function pickCtrl(exclude) {
+    if (cfg && cfg.lockPid) { const me = teams[0].find(p => p.pid === cfg.lockPid); if (me && me.down <= 0) return me; }   // карьера игрока: только свой игрок
     let best = null, bd = Infinity, gk = null;
     teams[0].forEach((p, i) => {
       if (p.down > 0 || p === exclude) return;
@@ -3573,6 +3629,7 @@ const Match = (() => {
     c.imageSmoothingEnabled = true;
 
     el.querySelector('#skipBtn').onclick = () => finish();
+    if (cfg.lockPid) { el.querySelector('#subBtn').style.display = 'none'; el.querySelector('#autoBtn').style.display = 'none'; }
     el.querySelector('#exitBtn').onclick = () => { stop(); go(cfg.quick ? 'quick' : 'hub'); };
     el.querySelector('#subBtn').onclick = () => { if (!pen) openSub(); };
     el.querySelector('#autoBtn').onclick = () => setAuto(!auto);
@@ -3639,6 +3696,310 @@ const Match = (() => {
 
 </script>
 <script>
+// ===== Карьера тренера: создаёшь тренера, клубы присылают предложения или ты договариваешься сам =====
+const tc = (ru, kz) => L() === 'kz' ? kz : ru;
+let COACH_DRAFT = null, COACH_MSG = '';
+const minRep = c => Math.max(0, (c.ovr - 60) * 3);                       // репутация, нужная для клуба
+const coachSalary = c => Math.round((c.ovr - 55) * 1.5e6 / 1e5) * 1e5;  // зарплата тренера за тур
+const coachOfferIds = (rep, excl) => CLUBS.filter(c => c.id !== excl && minRep(c) <= rep + 10)
+  .sort(() => Math.random() - .5).slice(0, 3).map(c => c.id);
+function coachGoal() {   // цель сезона: место не ниже рейтингового (но не хуже 3-го)
+  const ids = CLUBS.filter(c => S.divs[c.id] === S.divs[S.me]).map(c => c.id).sort((a, b) => squadOvr(b) - squadOvr(a));
+  return Math.min(3, ids.indexOf(S.me) + 1);
+}
+const coachState = () => (S && S.mode === 'coach') ? S.coach : COACH_DRAFT;
+
+VIEWS.coachNew = el => {
+  el.innerHTML = `<h2>🧢 ${tc('Карьера тренера', 'Бапкер мансабы')}</h2>
+    <section class="card"><label class="field"><span>${tc('Имя тренера', 'Бапкер аты')}</span>
+      <input type="text" id="coachName" maxlength="24" value="${tc('Тренер', 'Бапкер')}"></label>
+      <p class="hint">${tc('Начинаешь с малой репутацией: клубы предложат контракт, зарплата растёт с успехом. Не выполнишь цель сезона — уволят.', 'Беделің аз болып бастайсың: клубтар келісімшарт ұсынады. Маусым мақсатын орындамасаң — жұмыстан шығарады.')}</p></section>
+    <button class="big" onclick="coachCreate()">${tc('Создать тренера', 'Бапкер жасау')}</button>
+    <button class="ghost big" onclick="go('start')">${t('back')}</button>`;
+};
+function coachCreate() {
+  const name = (document.getElementById('coachName').value || '').trim().slice(0, 24) || tc('Тренер', 'Бапкер');
+  COACH_DRAFT = { name, rep: 30, offers: coachOfferIds(30, null) };
+  playScene(coachIntroSteps(), () => go('coachOffers'));
+}
+VIEWS.coachOffers = el => {
+  const co = coachState();
+  if (!co) return go('start');
+  if (!co.offers) co.offers = coachOfferIds(co.rep, S ? S.me : null);
+  const msg = COACH_MSG; COACH_MSG = '';
+  const card = id => {
+    const c = CLUBS.find(x => x.id === id);
+    return `<button class="card" style="--c:${c.color}" onclick="coachJoin('${id}')"><b>${nm(c)}</b>
+      <small>${c.city[L()]} · ${t('div' + ((S && S.divs) ? S.divs[id] : (c.div || 3)))} · ${t('ovr')} ${c.ovr}</small>
+      <small>${tc('Зарплата', 'Жалақы')}: ${money(coachSalary(c))} ${t('perWeek')}</small></button>`;
+  };
+  const opts = CLUBS.filter(c => !S || c.id !== S.me).map(c => `<option value="${c.id}">${nm(c)} (${tc('нужна репутация', 'бедел')} ${minRep(c)})</option>`).join('');
+  el.innerHTML = `<h2>${tc('Предложения клубов', 'Клубтар ұсыныстары')}</h2>
+    <p class="fx">${co.name} · ${tc('репутация', 'бедел')}: <b>${Math.round(co.rep)}</b></p>
+    ${msg ? `<p class="hint bad">${msg}</p>` : ''}
+    ${co.offers.map(card).join('') || `<p class="hint">${tc('Пока нет предложений', 'Әзірге ұсыныс жоқ')}</p>`}
+    <section class="card"><b>${tc('Переговоры с клубом', 'Клубпен келіссөз')}</b>
+      <select id="negClub" style="width:100%">${opts}</select>
+      <button class="big" onclick="coachNegotiate()">${tc('Договориться', 'Келісу')}</button></section>
+    ${S && S.mode === 'coach' && !S.coach.fired ? `<button class="ghost big" onclick="go('coach')">${t('back')}</button>` : `<button class="ghost big" onclick="go('${S ? 'hub' : 'coachNew'}')">${t('back')}</button>`}`;
+};
+function coachNegotiate() {
+  const c = CLUBS.find(x => x.id === document.getElementById('negClub').value), co = coachState();
+  if (minRep(c) > co.rep) {
+    COACH_MSG = tc(`${nm(c)} отказал: мало опыта (нужна репутация ${minRep(c)}).`, `${nm(c)} бас тартты: тәжірибе аз (бедел ${minRep(c)} керек).`);
+    return go('coachOffers');
+  }
+  coachJoin(c.id);
+}
+function coachJoin(id) {
+  const i = CLUBS.findIndex(c => c.id === id), c = CLUBS[i];
+  if (!S || S.mode !== 'coach') {
+    const d = COACH_DRAFT; COACH_DRAFT = null;
+    newGame(i);
+    S.mode = 'coach'; S.coach = { name: d.name, rep: d.rep, cash: 0, salary: 0, goal: 3, fired: false };
+    S.mail = [];
+  } else {
+    const old = S.me;
+    S.cash[old] = S.budget; S.budget = S.cash[id] || 2e9; delete S.cash[id];
+    S.me = id; S.staff = {}; S.sponsors = []; S.neg = []; S.pr = c.pr || 40;
+  }
+  S.coach.salary = coachSalary(c); S.coach.fired = false; S.coach.offers = null; S.coach.goal = coachGoal();
+  mail(bi('Совет директоров', 'Директорлар кеңесі'), bi('Вы назначены тренером', 'Сіз бапкер болып тағайындалдыңыз'),
+    bi(`Клуб ${c.name.ru} подписал с вами контракт: ${money(S.coach.salary)} за тур. Цель сезона — место не ниже ${S.coach.goal}-го.`,
+       `${c.name.kz} клубы сізбен келісімшарт жасады: турына ${money(S.coach.salary)}. Маусым мақсаты — ${S.coach.goal}-орыннан төмен емес.`));
+  save(); playScene(coachArriveSteps(c), () => go('hub'));
+}
+VIEWS.coach = el => {
+  const co = S.coach, c = CLUBS[myIdx()];
+  const place = divRows(S.divs[S.me]).findIndex(r => r.c.id === S.me) + 1;
+  el.innerHTML = `<h2>🧢 ${co.name}</h2>
+    <section class="card"><p>${tc('Клуб', 'Клуб')}: <b>${nm(c)}</b> · ${t('div' + S.divs[S.me])}</p>
+      <p>${tc('Репутация', 'Бедел')}: <b>${Math.round(co.rep)}</b></p><div class="bar"><i style="width:${co.rep}%"></i></div>
+      <p>${tc('Зарплата', 'Жалақы')}: <b>${money(co.salary)}</b> ${t('perWeek')}</p>
+      <p>${tc('Накоплено', 'Жиналған')}: <b>${money(co.cash)}</b></p>
+      <p>${tc('Цель сезона', 'Маусым мақсаты')}: ${tc('место не ниже', 'орын кемінде')} <b>${co.goal}</b> · ${tc('сейчас', 'қазір')} <b>${place}</b></p></section>
+    <button class="ghost big" onclick="coachQuit()">${tc('Расторгнуть контракт', 'Келісімшартты бұзу')}</button>
+    <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+};
+function coachQuit() {
+  if (!confirm(tc('Расторгнуть контракт и искать новый клуб?', 'Келісімшартты бұзып, жаңа клуб іздейміз бе?'))) return;
+  S.coach.rep = Math.max(0, S.coach.rep - 3); S.coach.offers = null; save(); go('coachOffers');
+}
+</script>
+<script>
+// ===== Карьера игрока: один футболист, свободный агент, контракты, тренировки-мини-игра; штатом и составом управляет клуб =====
+const HSTAT = k => ({ pace: tc('Скорость', 'Жылдамдық'), shot: tc('Удар', 'Соққы'), pass: tc('Пас', 'Пас'), def: tc('Защита', 'Қорғаныс') })[k];
+let HERO_PICK = null, HERO_SCENE = null, HT = null;
+const heroObj = () => S.squads[S.me].find(p => p.id === 'hero');
+function heroSync() {
+  const h = S.hero, p = S.squads[S.me].find(x => x.id === 'hero');
+  if (p) { ['pace', 'shot', 'pass', 'def', 'ovr'].forEach(k => { p[k] = h[k]; }); }
+}
+// тренер решает, ставить ли игрока в старт; возвращает true, если он в основе и здоров
+function heroLineup() {
+  const h = S.hero, sq = S.squads[S.me];
+  const hi = sq.findIndex(p => p.id === 'hero');
+  if (hi < 0) return false;
+  const hp = sq[hi], fit = hp.inj <= 0;
+  const same = sq.map((p, i) => i).filter(i => i < 11 && i !== hi && sq[i].pos === h.pos);
+  const weakest = same.length ? Math.min(...same.map(i => sq[i].ovr)) : 0;
+  const wants = fit && h.ovr + h.pop / 20 >= weakest;
+  if (wants && hi >= 11) {
+    const j = same.length ? same.reduce((a, b) => sq[a].ovr <= sq[b].ovr ? a : b) : sq.findIndex((p, i) => i > 0 && i < 11);
+    if (j >= 0) [sq[hi], sq[j]] = [sq[j], sq[hi]];
+  } else if (!wants && hi < 11) {
+    let j = -1;
+    sq.forEach((p, i) => { if (i >= 11 && p.inj <= 0 && p.pos === h.pos && (j < 0 || p.ovr > sq[j].ovr)) j = i; });
+    if (j < 0) sq.forEach((p, i) => { if (i >= 11 && p.inj <= 0 && (h.pos === 'GK' || p.pos !== 'GK') && (j < 0 || p.ovr > sq[j].ovr)) j = i; });
+    if (j >= 0) [sq[hi], sq[j]] = [sq[j], sq[hi]];
+  }
+  return sq.findIndex(p => p.id === 'hero') < 11 && fit;
+}
+const heroFit = c => S.hero.ovr + S.hero.pop / 5 >= c.ovr - 12;               // клуб берёт по рейтингу и популярности
+const heroSalary = c => Math.round(((S.hero.ovr - 40) * 6e5 + S.hero.pop * 2e5 + (c.ovr - 60) * 2e5) / 1e5) * 1e5;
+function heroOfferIds() {
+  let ok = CLUBS.filter(heroFit);
+  if (!ok.length) ok = [CLUBS.slice().sort((a, b) => a.ovr - b.ovr)[0]];
+  return ok.sort(() => Math.random() - .5).slice(0, 3).map(c => c.id);
+}
+function heroAfterMatch(out) {
+  const h = S.hero;
+  h.apps++; h.pop = Math.min(100, h.pop + (out === 'win' ? 3 : out === 'draw' ? 1 : 0) + 1);
+  if (Math.random() < .18) { const k = pick(['pace', 'shot', 'pass', 'def']); h[k] = clamp(h[k] + 1); h.ovr = ovrOf(h); }
+  heroSync();
+}
+function heroSeasonEnd() {
+  const h = S.hero; h.trained = -1;
+  if (!h.club) return null;
+  h.left--;
+  if (h.left > 0) return null;
+  S.squads[S.me] = S.squads[S.me].filter(p => p.id !== 'hero');
+  h.lastClub = h.club; h.club = null; h.offers = null;
+  mail(bi('Клуб', 'Клуб'), bi('Контракт закончился', 'Келісімшарт аяқталды'),
+    bi('Срок контракта истёк. Ты свободный агент: выбери новое предложение.', 'Келісімшарт мерзімі аяқталды. Сен еркін агентсің: жаңа ұсыныс таңда.'));
+  return 'heroOffers';
+}
+
+VIEWS.heroNew = el => {
+  el.innerHTML = `<h2>🏃 ${tc('Карьера игрока', 'Ойыншы мансабы')}</h2>
+    <section class="card"><label class="field"><span>${tc('Имя игрока', 'Ойыншы аты')}</span><input type="text" id="heroName" maxlength="24" value="${tc('Новичок', 'Жаңадан')}"></label>
+      <label class="field"><span>${tc('Позиция', 'Орны')}</span><select id="heroPos">
+        <option value="GK">${tc('Вратарь', 'Қақпашы')}</option><option value="DF">${tc('Защитник', 'Қорғаушы')}</option>
+        <option value="MF" selected>${tc('Полузащитник', 'Жартылай қорғаушы')}</option><option value="FW">${tc('Нападающий', 'Шабуылшы')}</option></select></label>
+      <p class="hint">${tc('Начинаешь свободным агентом. Играешь только за себя, остальными управляет ИИ, составом — тренер. Тренируйся, расти в рейтинге и популярности — и тебя позовут клубы получше.', 'Еркін агент болып бастайсың. Тек өзің үшін ойнайсың, қалғандарын ИИ басқарады, құрамды бапкер таңдайды. Жаттық, рейтинг пен танымалдылығың өссін — жақсырақ клубтар шақырады.')}</p></section>
+    <section class="card">${lookFormHTML(heroLookOf())}</section>
+    <button class="big" onclick="heroCreate()">${tc('Начать карьеру', 'Мансапты бастау')}</button>
+    <button class="ghost big" onclick="go('start')">${t('back')}</button>`;
+};
+function heroCreate() {
+  const name = (document.getElementById('heroName').value || '').trim().slice(0, 24) || tc('Новичок', 'Жаңадан');
+  const pos = document.getElementById('heroPos').value;
+  const st = k => clamp(Math.round(56 + BIAS[pos][k]));
+  const h = { name, pos, pace: st('pace'), shot: st('shot'), pass: st('pass'), def: st('def'), pop: 8, cash: 0, club: null, salary: 0, left: 0, apps: 0, trained: -1 };
+  h.ovr = ovrOf(h);
+  h.look = lookRead();
+  newGame(CLUBS.length - 1);          // мир лиги; клуб-заглушка, пока ты свободный агент
+  S.mode = 'player'; S.hero = h; S.mail = [];
+  mail(bi('Агент', 'Агент'), bi('Ты свободный агент', 'Сен еркін агентсің'),
+    bi('Тренируйся и жди предложений. Чем выше рейтинг и популярность, тем сильнее клубы, которые тебя возьмут.', 'Жаттығып, ұсыныстарды күт. Рейтинг пен танымалдылық неғұрлым жоғары болса, соғұрлым күшті клубтар алады.'));
+  save(); playScene(heroIntroSteps(), () => go('hub'));
+}
+
+const _hubView = VIEWS.hub;
+VIEWS.hub = el => (S && S.mode === 'player' && S.hero) ? heroHub(el) : _hubView(el);
+function heroHub(el) {
+  const h = S.hero, c = h.club ? CLUBS.find(x => x.id === h.club) : null, msg = NOTICE; NOTICE = '';
+  if (S.round >= tours().length) {
+    el.innerHTML = `<h2>${t('seasonOver')}</h2>${champsHTML()}${tableHTML()}<button class="big" onclick="nextSeason()">${t('newSeason')}</button>`;
+    return;
+  }
+  const starts = c ? heroLineup() : false, hp = c ? heroObj() : null;
+  const mine = tours()[S.round].find(([a, b]) => CLUBS[a].id === S.me || CLUBS[b].id === S.me);
+  const status = !c ? tc('Свободный агент', 'Еркін агент') : (hp && hp.inj > 0) ? tc('Травма', 'Жарақат') : starts ? tc('В основе', 'Негізгі құрамда') : tc('На скамейке', 'Қорықта');
+  const bar = k => `<p>${HSTAT(k)}: <b>${h[k]}</b></p><div class="bar"><i style="width:${h[k]}%"></i></div>`;
+  const play = c && starts && mine
+    ? `<button class="big" onclick="startMatch()">${t('playMatch')}</button>`
+    : `<button class="big" onclick="heroSkip()">${!c ? tc('Ждать тур', 'Турды күту') : mine ? tc('Сыграть тур (матч без тебя)', 'Турды ойнау (сенсіз)') : tc('Выходной', 'Демалыс')}</button>`;
+  el.innerHTML = `${msg ? `<p class="hint">${msg}</p>` : ''}
+    <section class="card club-banner" style="--c:${c ? c.color : '#2a3a30'}"><h2 style="margin:0">${h.name}</h2>
+      <small>${HSTAT === 0 ? '' : ''}${h.pos} · ${t('ovr')} <b>${h.ovr}</b> · ${status}</small>
+      <p>${c ? `${nm(c)} · ${t('div' + S.divs[c.id])}` : tc('Клуба нет', 'Клуб жоқ')} · ${t('season')} ${S.season || 1}</p>
+      <p>${tc('Популярность', 'Танымалдылық')}: <b>${Math.round(h.pop)}</b></p><div class="bar"><i style="width:${h.pop}%"></i></div>
+      <p>${tc('Деньги', 'Ақша')}: <b>${money(h.cash)}</b>${c ? ` · ${tc('зарплата', 'жалақы')} ${money(h.salary)} ${t('perWeek')} · ${tc('сезонов в контракте', 'келісімшарт маусымы')}: ${h.left}` : ''} · ${tc('матчей', 'матч')}: ${h.apps}</p></section>
+    <section class="card"><p>${t('round')} ${S.round + 1}/${tours().length}</p>
+      <p class="fx">${c && mine ? `${nm(CLUBS[mine[0]])} — ${nm(CLUBS[mine[1]])}` : tc('Выходной', 'Демалыс')}</p>${play}</section>
+    <section class="card">${['pace', 'shot', 'pass', 'def'].map(bar).join('')}</section>
+    <nav class="grid3">
+      <button onclick="go('heroLook')"><span class="ic">🎨</span>${tc('Внешность', 'Сыртқы түрі')}</button>
+      <button onclick="go('heroTrain')"><span class="ic">🏋️</span>${tc('Тренировка', 'Жаттығу')}${h.trained === S.round ? ' ✓' : ''}</button>
+      ${c ? '<i></i>' : `<button onclick="go('heroOffers')"><span class="ic">📨</span>${tc('Предложения', 'Ұсыныстар')}</button>`}
+      <button onclick="go('table')"><span class="ic">🏆</span>${t('table')}</button>
+      <button onclick="go('mail')"><span class="ic">✉️</span>${t('mail')}${unreadCount() ? ` (${unreadCount()})` : ''}</button>
+      <button onclick="go('save')"><span class="ic">💾</span>${t('save')}</button>
+      <button onclick="go('settings')"><span class="ic">⚙️</span>${t('settings')}</button>
+    </nav>
+    <button class="ghost big" onclick="go('start')">${t('exit')}</button>`;
+}
+function heroSkip() {
+  const h = S.hero, m = tours()[S.round].find(([a, b]) => CLUBS[a].id === S.me || CLUBS[b].id === S.me);
+  if (m) simMatch(m[0], m[1]);
+  simOtherMatches(); closeTour();
+  NOTICE = h.club ? tc('Тренер оставил тебя вне игры: тур сыгран без тебя.', 'Бапкер сені ойынға қоспады: тур сенсіз өтті.') : tc('Неделя прошла в ожидании предложений.', 'Апта ұсыныстарды күтумен өтті.');
+  save(); go('hub');
+}
+
+// тренировка: мини-игра на точность, 5 попыток; чем лучше попадание, тем больше прирост
+VIEWS.heroTrain = el => {
+  const h = S.hero, done = h.trained === S.round;
+  el.innerHTML = `<h2>🏋️ ${tc('Тренировка', 'Жаттығу')}</h2>
+    <p class="hint">${done ? tc('На этой неделе ты уже тренировался.', 'Бұл аптада жаттықтың.') : tc('Выбери показатель. Жми «Стоп», когда бегунок в зелёной зоне: 5 попыток.', 'Көрсеткішті таңда. Жүгіртпе жасыл аймақта болғанда «Тоқта» бас: 5 талпыныс.')}</p>
+    <div id="htArea"><div class="grid2">${['pace', 'shot', 'pass', 'def'].map(k => `<button ${done ? 'disabled' : ''} onclick="heroTrainStart('${k}')">${HSTAT(k)}: <b>${h[k]}</b></button>`).join('')}</div></div>
+    <button class="ghost big" onclick="if (HT) cancelAnimationFrame(HT.raf); go('hub')">${t('back')}</button>`;
+};
+function heroTrainInfo() { document.getElementById('htInfo').textContent = `${tc('Попытка', 'Талпыныс')} ${HT.tries + 1}/5 · ${tc('очки', 'ұпай')}: ${HT.pts}`; }
+function heroTrainStart(stat) {
+  const h = S.hero, zone = Math.max(.08, .26 - (h[stat] - 50) * .004);
+  HT = { stat, zone, x: 0, dir: 1, tries: 0, pts: 0, raf: 0, speed: .9 + h[stat] * .006 };
+  document.getElementById('htArea').innerHTML = `<div style="position:relative;height:36px;background:#2a3a30;border-radius:8px;overflow:hidden;margin:14px 0">
+      <div style="position:absolute;top:0;bottom:0;left:${(.5 - zone / 2) * 100}%;width:${zone * 100}%;background:#2e8b3e"></div>
+      <div style="position:absolute;top:0;bottom:0;left:${(.5 - zone / 6) * 100}%;width:${zone / 3 * 100}%;background:#8fe39d"></div>
+      <div id="htMark" style="position:absolute;top:0;bottom:0;width:6px;background:#e0b000"></div></div>
+    <p class="fx" id="htInfo"></p><button class="big" onclick="heroTrainTap()">${tc('Стоп', 'Тоқта')}</button>`;
+  heroTrainInfo();
+  let last = performance.now();
+  const step = now => {
+    const m = document.getElementById('htMark'); if (!m || !HT) return;
+    HT.x += HT.dir * HT.speed * (now - last) / 1000; last = now;
+    if (HT.x >= 1) { HT.x = 1; HT.dir = -1; } else if (HT.x <= 0) { HT.x = 0; HT.dir = 1; }
+    m.style.left = `calc(${HT.x * 100}% - 3px)`;
+    HT.raf = requestAnimationFrame(step);
+  };
+  HT.raf = requestAnimationFrame(step);
+}
+function heroTrainTap() {
+  if (!HT) return;
+  const d = Math.abs(HT.x - .5);
+  HT.pts += d <= HT.zone / 6 ? 2 : d <= HT.zone / 2 ? 1 : 0;
+  HT.tries++;
+  if (HT.tries < 5) { HT.speed *= 1.08; return heroTrainInfo(); }
+  cancelAnimationFrame(HT.raf);
+  const h = S.hero, hard = h[HT.stat] >= 85 ? 2 : 0;
+  const gain = HT.pts >= 9 - hard ? 2 : HT.pts >= 6 - hard ? 1 : 0;
+  h[HT.stat] = clamp(h[HT.stat] + gain); h.ovr = ovrOf(h); h.trained = S.round; heroSync(); save();
+  const st = HT.stat; HT = null;
+  document.getElementById('htArea').innerHTML = `<p class="score ${gain ? 'ok' : ''}">+${gain}</p><p class="fx">${HSTAT(st)}: <b>${h[st]}</b> · ${t('ovr')} <b>${h.ovr}</b></p>`;
+}
+
+// предложения клубов зависят от рейтинга и популярности
+VIEWS.heroOffers = el => {
+  const h = S.hero;
+  if (!h.offers) h.offers = heroOfferIds();
+  el.innerHTML = `<h2>${tc('Предложения клубов', 'Клубтар ұсыныстары')}</h2>
+    <p class="fx">${tc('Рейтинг', 'Рейтинг')} <b>${h.ovr}</b> · ${tc('популярность', 'танымалдылық')} <b>${Math.round(h.pop)}</b></p>
+    ${h.offers.map(id => { const c = CLUBS.find(x => x.id === id);
+      return `<button class="card" style="--c:${c.color}" onclick="heroPick('${id}')"><b>${nm(c)}</b>
+        <small>${c.city[L()]} · ${t('div' + S.divs[id])} · ${t('ovr')} ${c.ovr}</small>
+        <small>${tc('Зарплата', 'Жалақы')}: ${money(heroSalary(c))} ${t('perWeek')} · ${tc('2 сезона', '2 маусым')}</small></button>`; }).join('')}
+    <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+};
+function heroPick(id) { HERO_PICK = id; HERO_SCENE = { coach: randName(), ceo: randName() }; playScene(heroArriveSteps(CLUBS.find(x => x.id === id)), () => go('heroSign')); }
+// подписание: болельщики, встреча с тренером и директором, подпись — любой текст
+VIEWS.heroSign = el => {
+  const c = CLUBS.find(x => x.id === HERO_PICK), h = S.hero, fans = Math.min(10, 2 + Math.floor(h.pop / 10));
+  el.innerHTML = `<h2>${nm(c)}</h2>
+    <section class="card" style="--c:${c.color}"><p class="fx" style="font-size:28px">${'👏'.repeat(fans)}</p>
+      <p class="fx">${h.pop >= 40 ? tc('У входа тебя встречает толпа болельщиков!', 'Кіреберісте жанкүйерлер тобы қарсы алады!') : h.pop >= 20 ? tc('Тебя встречают болельщики у входа.', 'Кіреберісте жанкүйерлер қарсы алады.') : tc('У входа тебя ждут пара болельщиков.', 'Кіреберісте бірнеше жанкүйер күтіп тұр.')}</p></section>
+    <section class="card"><p>🧢 ${tc('Тренер', 'Бапкер')} <b>${HERO_SCENE.coach}</b>: «${tc('Рады тебя видеть. Будем смотреть на тренировках.', 'Сені көргенімізге қуаныштымыз. Жаттығуда көреміз.')}»</p>
+      <p>💼 ${tc('Директор', 'Директор')} <b>${HERO_SCENE.ceo}</b>: «${tc('Добро пожаловать в клуб!', 'Клубқа қош келдің!')}»</p>
+      <p>${tc('Контракт', 'Келісімшарт')}: <b>${money(heroSalary(c))}</b> ${t('perWeek')} · ${tc('2 сезона', '2 маусым')}</p></section>
+    <label class="field"><span>${tc('Подпись (впиши что угодно)', 'Қолтаңба (кез келген мәтін)')}</span>
+      <input type="text" id="sig" maxlength="24" autocomplete="off" onkeydown="if (event.key === 'Enter') heroJoin()"></label>
+    <button class="big" onclick="heroJoin()">${tc('Подписать контракт', 'Келісімшартқа қол қою')}</button>
+    <button class="ghost big" onclick="go('heroOffers')">${t('back')}</button>`;
+};
+function heroJoin() {
+  const sigEl = document.getElementById('sig');
+  if (!(sigEl.value || '').trim()) { sigEl.focus(); return; }
+  const id = HERO_PICK, c = CLUBS.find(x => x.id === id), h = S.hero;
+  Object.keys(S.squads).forEach(k => { S.squads[k] = S.squads[k].filter(p => p.id !== 'hero'); });
+  if (id !== S.me) {
+    S.cash[S.me] = S.budget; S.budget = S.cash[id] || 2e9; delete S.cash[id];
+    S.me = id; S.staff = {}; S.sponsors = []; S.neg = []; S.pr = c.pr || 40;
+  }
+  const sq = S.squads[id];
+  if (sq.length >= 20) sq.pop();
+  const nums = new Set(sq.map(p => p.num)); let num = 7; while (nums.has(num)) num++;
+  sq.push({ id: 'hero', num, name: h.name, pos: h.pos, pace: h.pace, shot: h.shot, pass: h.pass, def: h.def, ovr: h.ovr, mor: 80, hp: 100, inj: 0 });
+  Object.assign(h, { club: id, salary: heroSalary(c), left: 2, offers: null });
+  heroSyncLook();
+  const st = heroLineup();
+  mail(bi('Администрация клуба', 'Клуб әкімшілігі'), bi('Контракт подписан', 'Келісімшартқа қол қойылды'),
+    bi(`${c.name.ru}: ${money(h.salary)} за тур, 2 сезона. ${st ? 'Тренер ставит тебя в основу.' : 'Пока ты на скамейке: тренируйся, чтобы выйти в старт.'}`,
+       `${c.name.kz}: турына ${money(h.salary)}, 2 маусым. ${st ? 'Бапкер сені негізгі құрамға қояды.' : 'Әзірге қорықтасың: жаттығып, негізгі құрамға шық.'}`));
+  save(); playScene(heroSignedSteps(c, st), () => go('hub'));
+}
+</script>
+<script>
 // ===== Старт (после всех модулей, чтобы экраны и быстрый матч уже были объявлены) =====
 S = load();
 // свой клуб из сохранения возвращаем на его место в лиге
@@ -3648,6 +4009,183 @@ migrate();
 if (!S) { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
 applyControls();
 go(S ? 'hub' : 'start');
+</script>
+
+<script>
+// ===== Сцены карьеры: короткие истории между экранами (игрок и тренер) =====
+// ----- сцены: визуальная новелла — пиксельные персонажи в большом окне и реплики под ними -----
+let SCENE = null;
+const CS_BG = {
+  stadium: 'linear-gradient(#0b1f14,#1d5a34)', office: 'linear-gradient(#2b2118,#5a4330)',
+  night: 'linear-gradient(#0a0f1f,#24325e)', field: 'linear-gradient(#174d27,#2e8b3e)',
+  sun: 'linear-gradient(#ffd08a,#f29a4a)', dark: 'linear-gradient(#1a1a1a,#3a1212)'
+};
+// внешность героя: полная фигура (тот же спрайт, что на поле)
+function heroLookOf() { return (S && S.hero && S.hero.look) || { skin: SKINS[1], hair: HAIRS[0], afro: false }; }
+function cfigHTML(look, num, scale) {
+  const spr = getSprite(look.color, num, false, look.skin, 'stand', look.shorts, look.hair, !!look.afro);
+  return `<img class="vn-fig" alt="" src="${spr.toDataURL()}">`;
+}
+function lookFormHTML(look) {
+  const cur = { skin: look.skin, hair: look.hair, afro: !!look.afro };
+  return `<label class="field"><span>${tc('Цвет кожи', 'Тері түсі')}</span><select id="lkSkin" onchange="lookPreview()">${SKINS.map((c, i) =>
+      `<option value="${c}" ${c === cur.skin ? 'selected' : ''}>${tc('Оттенок', 'Реңк')} ${i + 1}</option>`).join('')}</select></label>
+    <label class="field"><span>${tc('Цвет волос', 'Шаш түсі')}</span><select id="lkHair" onchange="lookPreview()">${HAIRS.map((c, i) =>
+      `<option value="${c}" ${c === cur.hair ? 'selected' : ''}>${tc('Цвет', 'Түс')} ${i + 1}</option>`).join('')}</select></label>
+    <label class="field"><span>${tc('Причёска', 'Шаш пішімі')}</span><select id="lkStyle" onchange="lookPreview()">
+      <option value="short" ${cur.afro ? '' : 'selected'}>${tc('Короткая', 'Қысқа')}</option>
+      <option value="afro" ${cur.afro ? 'selected' : ''}>${tc('Афро', 'Афро')}</option></select></label>
+    <div id="lkPrev" style="text-align:center">${lookPreviewHTML(cur)}</div>`;
+}
+function lookRead() {
+  const v = id => document.getElementById(id)?.value;
+  return { skin: v('lkSkin') || SKINS[1], hair: v('lkHair') || HAIRS[0], afro: v('lkStyle') === 'afro' };
+}
+function lookPreviewHTML(l) {
+  const c = S && S.me ? CLUBS.find(x => x.id === S.me) : null;
+  return cfigHTML({ ...l, color: c ? c.color : '#2e8b3e', shorts: c ? c.shorts : '#111111' }, 10, 5);
+}
+function lookPreview() { const el = document.getElementById('lkPrev'); if (el) el.innerHTML = lookPreviewHTML(lookRead()); }
+function heroSyncLook() {
+  const h = S.hero, c = CLUBS.find(x => x.id === S.me);
+  if (!h || !h.look || !c || !S.squads[S.me]) return;
+  const p = S.squads[S.me].find(q => q.id === 'hero');
+  if (p) p.look = { ...h.look, color: c.color, shorts: c.shorts };
+}
+VIEWS.heroLook = el => {
+  el.innerHTML = `<h2>🎨 ${tc('Внешность', 'Сыртқы түрі')}</h2><section class="card">${lookFormHTML(heroLookOf())}</section>
+    <button class="big" onclick="heroLookSave()">${tc('Сохранить', 'Сақтау')}</button>
+    <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+};
+function heroLookSave() { S.hero.look = lookRead(); heroSyncLook(); save(); go('hub'); }
+
+// --- управление сценами
+function playScene(steps, next) {
+  // внешность статистов — одна на всю сцену, чтобы не менялась от шага к шагу
+  const looks = { coach: staffLook('coach'), ceo: { ...staffLook('manager'), top: '#2b2b2b', style: 'coat' },
+    agent: staffLook('pr'), fan1: { ...staffLook('pr'), top: '#f2c500' }, fan2: { ...staffLook('pr'), top: '#d62828' }, fan3: { ...staffLook('pr'), top: '#14316b' } };
+  SCENE = { steps, i: 0, next, looks };
+  go('scene');
+}
+function sceneEnd() { const n = SCENE && SCENE.next; SCENE = null; return n ? n() : go('hub'); }
+function sceneNext() {
+  if (!SCENE) return go('hub');
+  SCENE.i++;
+  if (SCENE.i >= SCENE.steps.length) return sceneEnd();
+  go('scene');
+}
+// герой — полный спрайт; остальные — портреты (как у штата)
+function castLook(who) {
+  const c = S && S.me ? CLUBS.find(x => x.id === S.me) : null;
+  return { ...heroLookOf(), color: c ? c.color : '#2e8b3e', shorts: c ? c.shorts : '#111111' };
+}
+VIEWS.scene = el => {
+  if (!SCENE) return go('hub');
+  const s = SCENE.steps[SCENE.i], last = SCENE.i + 1 >= SCENE.steps.length;
+  const chars = (s.cast || []).map(k => {
+    const on = !s.sp || s.sp === k;
+    const body = k === 'hero' ? cfigHTML(castLook('hero'), 10, 0) : portraitHTML(SCENE.looks[k]);
+    return `<div class="vn-char ${on ? 'on' : 'off'}">${body}</div>`;
+  }).join('');
+  el.innerHTML = `<style>
+      .vn-stage{position:relative;height:min(300px,46vh);border:3px solid #000;border-radius:6px;box-shadow:5px 5px 0 #000;overflow:hidden;
+        background:radial-gradient(rgba(0,0,0,.22) 1.2px,transparent 1.6px) 0 0/6px 6px, ${CS_BG[s.bg] || CS_BG.stadium}}
+      .vn-cast{position:absolute;left:0;right:0;bottom:0;height:100%;display:flex;justify-content:center;align-items:flex-end;gap:14px;padding-bottom:6px}
+      .vn-char{transition:opacity .2s,filter .2s}
+      .vn-char.off{opacity:.45;filter:brightness(.6)}
+      .vn-cast canvas.portrait{width:132px;height:132px;image-rendering:pixelated}
+      img.vn-fig{width:84px;height:126px;image-rendering:pixelated}
+      .vn-cap{position:absolute;top:10px;left:10px;right:10px;z-index:2;background:#fffdf6;color:#1d2a22;border:3px solid #000;padding:6px 10px;font:700 13px 'Courier New',monospace;text-transform:uppercase}
+      .vn-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:72px}
+      .vn-box{position:relative;margin-top:14px;background:#fffdf6;color:#1d2a22;border:3px solid #000;border-radius:6px;box-shadow:4px 4px 0 #000;padding:12px 14px;font:16px/1.45 'Courier New',monospace;min-height:96px}
+      .vn-name{position:absolute;top:-15px;left:12px;background:#b03a2e;color:#fff;border:2px solid #000;padding:2px 10px;font:700 13px 'Courier New',monospace;text-transform:uppercase}
+      .vn-nav{position:sticky;bottom:0;z-index:5;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px 0;background:#0f1a14}
+      .vn-nav button{min-width:96px}
+      @media (max-height:520px){.vn-stage{height:40vh}canvas.portrait{width:96px;height:96px}img.vn-fig{width:52px;height:78px}.vn-box{font-size:14px;min-height:70px;padding:8px 10px}.vn-icon{font-size:44px}}
+    </style>
+    <section>
+      <div class="vn-stage">
+        ${s.cap ? `<div class="vn-cap">${s.cap}</div>` : ''}
+        ${s.icon && !s.cast ? `<div class="vn-icon">${s.icon}</div>` : ''}
+        <div class="vn-cast">${chars}</div>
+      </div>
+      ${s.text ? `<div class="vn-box">${s.who ? `<span class="vn-name">${s.who}</span>` : ''}<p style="margin:0">${s.text}</p></div>` : ''}
+      <div class="vn-nav">
+        ${last ? '' : `<button class="ghost" onclick="sceneEnd()">${tc('Пропустить', 'Өткізу')}</button>`}
+        <button class="ghost" onclick="go('start')">${tc('Выход', 'Шығу')}</button>
+        <button class="primary" onclick="sceneNext()">${last ? tc('Продолжить', 'Жалғастыру') : tc('Далее', 'Әрі қарай')}</button>
+      </div>
+    </section>`;
+  drawPortraits(el);
+};
+
+// --- игрок (визуальная новелла)
+function heroIntroSteps() {
+  const name = S.hero.name;
+  return [
+    { bg: 'night', cap: tc('Ночь. Новый город.', 'Түн. Жаңа қала.'), cast: ['hero'], sp: 'hero', who: name,
+      text: tc('Контракта нет. Зато есть рейтинг и желание играть.', 'Келісімшарт жоқ. Бірақ рейтинг бар және ойнағың келеді.') },
+    { bg: 'office', cap: tc('Офис агента', 'Агент кеңсесі'), cast: ['agent', 'hero'], sp: 'agent', who: tc('Агент', 'Агент'),
+      text: tc('Тренируйся и поднимай популярность. Клубы начнут писать.', 'Жаттығып, танымалдылығыңды арттыр. Клубтар жаза бастайды.') },
+    { bg: 'stadium', cap: tc('Утро. Газета', 'Таң. Газет'), icon: '📰', cast: ['hero'], sp: 'hero', who: name,
+      text: tc('«Новичок из Степи: кто он?» — первая статья о тебе.', '«Дала жаңалығы: ол кім?» — сен туралы алғашқы мақала.') }
+  ];
+}
+function heroArriveSteps(c) {
+  const h = S.hero, sc = HERO_SCENE;
+  const crowd = h.pop >= 40 ? ['fan1', 'fan2', 'fan3'] : h.pop >= 20 ? ['fan1'] : [];
+  return [
+    { bg: 'stadium', cap: `${nm(c)}`, cast: [...crowd, 'hero'], who: crowd.length ? tc('Болельщики', 'Жанкүйерлер') : tc('Охранник', 'Күзетші'),
+      text: h.pop >= 40 ? tc('Тебя узнали! Кто-то снимает на телефон.', 'Сені таныды! Біреу телефонға түсіріп жатыр.')
+        : h.pop >= 20 ? tc('Несколько болельщиков машут шарфами.', 'Бірнеше жанкүйер шарфтарын желпіп тұр.')
+        : tc('Охранник показывает дорогу внутрь.', 'Күзетші ішке жолды көрсетеді.') },
+    { bg: 'office', cap: tc('Раздевалка', 'Киімшең'), cast: ['coach', 'hero'], sp: 'coach', who: `${tc('Тренер', 'Бапкер')} ${sc.coach}`,
+      text: tc('Рады тебя видеть. Будем смотреть на тренировках.', 'Сені көргенімізге қуаныштымыз. Жаттығуларда қараймыз.') },
+    { bg: 'office', cap: tc('Кабинет директора', 'Директор кабинеті'), cast: ['ceo', 'hero'], sp: 'ceo', who: `${tc('Директор', 'Директор')} ${sc.ceo}`,
+      text: tc(`Добро пожаловать в ${c.name.ru}! Контракт на столе, подписывай, когда будешь готов.`, `${c.name.kz} клубына қош келдің! Келісімшарт үстелде, дайын болғанда қол қой.`) }
+  ];
+}
+function heroSignedSteps(c, starter) {
+  const coach = `${tc('Тренер', 'Бапкер')} ${HERO_SCENE.coach}`;
+  return [
+    { bg: 'field', cap: tc('Подпись', 'Қолтаңба'), cast: ['hero'], sp: 'hero', who: S.hero.name,
+      text: tc(`Контракт с ${c.name.ru} подписан. Первая тренировка уже завтра.`, `${c.name.kz} клубымен келісімшарт қол қойылды. Бірінші жаттығу ертең.`) },
+    starter
+      ? { bg: 'field', cast: ['coach', 'hero'], sp: 'coach', who: coach, text: tc('Ты в основном составе. Не подведи.', 'Сен негізгі құрамдасың. Жолдан таю.') }
+      : { bg: 'dark', cast: ['coach', 'hero'], sp: 'coach', who: coach, text: tc('Пока ты на скамейке. Заработай место тренировками.', 'Әзірге скамейкадасың. Жаттығып, орныңды ал.') }
+  ];
+}
+function contractSteps() {
+  return { bg: 'office', cap: tc('Контракт', 'Келісімшарт'), cast: ['agent', 'hero'], sp: 'agent', who: tc('Агент', 'Агент'),
+    text: tc('Контракт закончился. Ты свободный агент, звонки уже идут.', 'Келісімшарт аяқталды. Сен еркін агентсің, қоңыраулар басталды.') };
+}
+
+// --- тренер
+function coachIntroSteps() {
+  return [
+    { bg: 'night', icon: '🧢', text: tc('Ты тренер без клуба. Репутация низкая, но клубы уже интересуются.', 'Сен клубсыз бапкерсің. Бедел төмен, бірақ клубтар қызығушылық танытып жатыр.') },
+    { bg: 'office', icon: '📞', who: tc('Агент', 'Агент'), text: tc('Есть предложения. Выбирай клуб или договаривайся сам.', 'Ұсыныстар бар. Клуб таңда немесе өзің келіс.') }
+  ];
+}
+function coachArriveSteps(c) {
+  return [
+    { bg: 'stadium', icon: '🏟️', text: tc(`Ты приехал в ${c.name.ru}. Поле, трибуны и новая команда.`, `${c.name.kz} клубына келдің. Алаң, трибуналар және жаңа команда.`) },
+    { bg: 'office', icon: '💼', who: tc('Директор', 'Директор'), text: tc('Штатом и наймом занимается директор. Твоя задача — команда на поле.', 'Штатпен және жалдаумен директор айналысады. Сенің міндетің — команда алаңда.') },
+    { bg: 'field', icon: '📋', text: tc('Тактику, покупки и продажи решаешь сам.', 'Тактиканы, сатып алу мен сатуды өзің шешесің.') }
+  ];
+}
+function firedSteps() {
+  return { bg: 'dark', icon: '📄', who: tc('Директор', 'Директор'), text: tc('Цель сезона не выполнена. Контракт расторгнут.', 'Маусым мақсаты орындалмады. Келісімшарт бұзылды.') };
+}
+
+// --- конец сезона (общая часть для игрока и тренера)
+function seasonSteps(done, myCup, kind, extra) {
+  const steps = [{ bg: 'sun', icon: '🏁', text: tc(`Сезон ${done} завершён.`, `${done}-маусым аяқталды.`) }];
+  if (myCup) steps.push({ bg: 'sun', icon: '🏆', text: tc('Кубок чемпиона у вашего клуба! Команда празднует на поле.', 'Чемпион кубогы сіздің клубта! Команда алаңда мереке жасайды.') });
+  if (kind === 'up') steps.push({ bg: 'field', icon: '⬆️', text: tc('Клуб поднялся в дивизион выше. Новые соперники ждут.', 'Клуб жоғары дивизионға көтерілді. Жаңа қарсыластар күтеді.') });
+  if (kind === 'down') steps.push({ bg: 'dark', icon: '⬇️', text: tc('Клуб вылетел. Теперь задача — вернуться.', 'Клуб түсіп кетті. Енді міндет — қайту.') });
+  return steps.concat(extra || []);
+}
 </script>
 </body>
 </html>
