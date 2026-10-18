@@ -353,27 +353,39 @@ const CLUBS = [
   { id: 'stolichny', name: { ru: 'ФК Столичный', kz: 'ФК Столичный' }, city: { ru: 'Астана', kz: 'Астана' }, color: '#8fd3ff', shorts: '#f2c500', ovr: 76, pr: 65 },
   { id: 'kostanay',  name: { ru: 'ФК Костанай', kz: 'ФК Қостанай' }, city: { ru: 'Костанай', kz: 'Қостанай' }, color: '#1d7a3a', shorts: '#f2f2f2', ovr: 72, pr: 40 },
   { id: 'ugolshchiki', name: { ru: 'ФК Угольщики', kz: 'ФК Көміршілер' }, city: { ru: 'Караганда', kz: 'Қарағанды' }, color: '#f28c28', shorts: '#111111', ovr: 72, pr: 45 },
-  { id: 'kyzylorda', name: { ru: 'ФК Кызылорда', kz: 'ФК Кызылорда' }, city: { ru: 'Кызылорда', kz: 'Қызылорда' }, color: '#1a1a1a', shorts: '#d62828', ovr: 72, pr: 35 },
-  { id: 'aktobinsk', name: { ru: 'ФК Актөбинск', kz: 'ФК Актөбинск' }, city: { ru: 'Актобе', kz: 'Ақтөбе' }, color: '#d62828', shorts: '#f2f2f2', ovr: 72, pr: 45 },
+  { id: 'kyzylorda', name: { ru: 'ФК Красные Волки', kz: 'ФК Қызыл Бөрілер' }, city: { ru: 'Кызылорда', kz: 'Қызылорда' }, color: '#1a1a1a', shorts: '#d62828', ovr: 72, pr: 35 },
+  { id: 'aktobinsk', name: { ru: 'ФК Красный Мяч Запад', kz: 'ФК Қызыл Доп Батыс' }, city: { ru: 'Актобе', kz: 'Ақтөбе' }, color: '#d62828', shorts: '#f2f2f2', ovr: 72, pr: 45 },
   { id: 'yamyshev', name: { ru: 'ФК Ямышев', kz: 'ФК Ямышев' }, city: { ru: 'Ямышев', kz: 'Ямышев' }, color: '#14316b', shorts: '#f2f2f2', ovr: 68, pr: 50 },
+  { id: 'shkolniki', name: { ru: 'ФК Школьники', kz: 'ФК Мектепшілер' }, city: { ru: 'Байконур', kz: 'Байқоңыр' }, color: '#ffffff', shorts: '#d62828', ovr: 62, pr: 30, budget: 1.8e9 },
+  // последний слот занимает свой клуб (если игрок его создаёт), поэтому Актауцы стоит последним
   { id: 'aktauzy', name: { ru: 'ФК Актауцы', kz: 'ФК Ақтаулықтар' }, city: { ru: 'Актау', kz: 'Ақтау' }, color: '#ffd21f', shorts: '#0a2a8a', ovr: 71, pr: 42 }
 ];
 
-// Расписание: [домашний, гостевой] — индексы в CLUBS. Двухкруговой турнир 8 клубов: 56 матчей,
-// по 14 у каждого клуба (7 домашних и 7 выездных). Каждый элемент — один матч; матч, где не играет человек, моделируется кнопкой «Сыграть тур».
-const FIXTURES = (() => {
-  const n = CLUBS.length, rounds = [], ids = CLUBS.map((_, i) => i);
+// Расписание: TOURS[тур] — список матчей тура [домашний, гостевой] (индексы в CLUBS).
+// 9 клубов, 30 туров: в каждом туре играют 4 матча, один клуб отдыхает. Основа — круговой метод
+// на 10 позиций (десятая — «выходной»), 9 туров на круг; круги чередуются дома/в гостях, пары повторяются.
+const TOURS = (() => {
+  const TOTAL = 30;
+  const n = CLUBS.length % 2 ? CLUBS.length + 1 : CLUBS.length, BYE = -1;
+  const ids = CLUBS.map((_, i) => i);
+  if (n > CLUBS.length) ids.push(BYE);
+  const base = [];
   for (let r = 0; r < n - 1; r++) {
-    const round = [];
+    const tour = [];
     for (let i = 0; i < n / 2; i++) {
       const x = ids[i], y = ids[n - 1 - i];
-      round.push((r + i) % 2 ? [x, y] : [y, x]);
+      if (x === BYE || y === BYE) continue;
+      tour.push((r + i) % 2 ? [x, y] : [y, x]);
     }
-    rounds.push(round);
-    ids.splice(1, 0, ids.pop());           // вращение: первый клуб стоит на месте
+    base.push(tour);
+    ids.splice(1, 0, ids.pop());           // вращение: первый элемент стоит на месте
   }
-  const back = rounds.map(rd => rd.map(([h, a]) => [a, h]));
-  return rounds.concat(back).flat();
+  const out = [];
+  for (let k = 0; k < TOTAL; k++) {
+    const cycle = Math.floor(k / base.length), t = base[k % base.length];
+    out.push(cycle % 2 ? t.map(([h, a]) => [a, h]) : t);
+  }
+  return out;
 })();
 
 // ===== Вымышленные игроки (без реальных имён и лиц) =====
@@ -555,12 +567,29 @@ function addBrother(sq, club) {
   sq.splice(11, 0, p);   // первый запасной
   return sq;
 }
+// ФК Школьники: слабый состав, в основе Дамир Абдикодиров (брат, НП), на скамье два запасных
+function makeSchoolSquad(club) {
+  const sq = makeGeneratedSquad(club).slice(0, 13);          // 11 основных + 2 запасных
+  // все, кроме двух нападающих с карточками, — показатели 40–50
+  const r = () => 40 + Math.floor(Math.random() * 11);
+  sq.forEach(p => { p.pace = r(); p.shot = r(); p.pass = r(); p.def = r(); p.ovr = ovrOf(p); });
+  sq.slice(0, 8).forEach((p, i) => { p.num = i + 1; });   // номера основы: 1–8, 10, 11 (Темирбек), 9 (Дамир)
+  sq[8].num = 10;
+  sq[9] = { id: 'toimbetov-11', num: 11, name: 'Темирбек Тоймбетов', pos: 'FW',
+            pace: 95, shot: 74, pass: 92, def: 28, ovr: 85, mor: 70, hp: 100, inj: 0,
+            look: { ...lookOf({ pos: 'FW' }), color: club.color, shorts: club.shorts } };
+  sq[10] = { id: 'abdikodirov-9', num: 9, name: 'Дамир Абдикодиров', pos: 'FW',
+             pace: 85, shot: 80, pass: 62, def: 42, ovr: 73, mor: 60, hp: 100, inj: 0,
+             look: { skin: '#fbe3cf', hair: '#1a1a1a', color: club.color, shorts: club.shorts, afro: false } };
+  return sq;
+}
 function makeSquad(club, idx) {
   const sq = makeSquadBase(club, idx);
   return club.id === 'stolichny' ? addBrother(sq, club) : sq;
 }
 function makeSquadBase(club, idx) {
   if (club.id === 'custom') return makeGeneratedSquad(club);
+  if (club.id === 'shkolniki') return makeSchoolSquad(club);
   if (STATS_SQUADS[club.id]) {
     return STATS_SQUADS[club.id].map(([num, , pos, pace, shot, pass, def, ovr, mor, hp]) =>
       ({ num, name: randName(), pos, pace, shot, pass, def, ovr, ...(mor !== undefined ? { mor, hp } : {}) }));
@@ -619,7 +648,7 @@ const PUBLICITY = {
 
 const bi = (ru, kz) => ({ ru, kz });                                   // текст сразу на двух языках (для почты)
 const loc = o => (o && typeof o === 'object' ? (o[L()] || o.ru) : (o || ''));
-const staffLvl = role => (S.staff && S.staff[role] ? S.staff[role].lvl : 0);
+const staffLvl = role => (S && S.staff && S.staff[role] ? S.staff[role].lvl : 0);
 const staffSalary = () => ROLE_KEYS.reduce((a, r) => a + (S.staff[r] ? S.staff[r].salary : 0), 0);
 const sponsorIncome = () => S.sponsors.reduce((a, id) => a + ((SPONSORS.find(s => s.id === id) || { inc: 0 }).inc), 0) * (1 + 0.03 * staffLvl('manager'));
 const discount = () => 1 - 0.02 * staffLvl('manager');                 // скидка менеджера на трансферы
@@ -1273,10 +1302,10 @@ function newGame(i) {
   const squads = {}, table = {};
   CLUBS.forEach((c, k) => { squads[c.id] = makeSquad(c, k); });
   CLUBS.forEach(c => { table[c.id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
-  S = { me: CLUBS[i].id, round: 0, day: 1, budget: 2e9, squads, table, cash: {}, pool: [],
+  S = { me: CLUBS[i].id, round: 0, tourFmt: 2, day: 1, budget: CLUBS[i].budget || 2e9, squads, table, cash: {}, pool: [],
         mail: [], staff: {}, sponsors: [], pr: CLUBS[i].pr, tactic: 'balanced', autoStaff: false, cands: [], neg: [], plan: 'none',
         customClub: CLUBS[CLUBS.length - 1].id === 'custom' ? CLUBS[CLUBS.length - 1] : null };
-  CLUBS.forEach(c => { if (c.id !== S.me) S.cash[c.id] = 2e9; });
+  CLUBS.forEach(c => { if (c.id !== S.me) S.cash[c.id] = c.budget || 2e9; });
   ensureIds(); refreshPool();
   S.cands = genCands();
   welcomeMail();
@@ -1292,14 +1321,28 @@ function applyResult(h, a, gh, ga) {
   else { H.d++; A.d++; H.pts++; A.pts++; }
 }
 
-function simRound() {
-  const [h, a] = FIXTURES[S.round];
+// модель матча без участия игрока: голы по рейтингам составов
+function simMatch(h, a) {
   const g = o => Math.max(0, Math.round(Math.random() * 2.5 + (o - 65) / 15 - 0.5));
   const gh = g(squadOvr(CLUBS[h].id)), ga = g(squadOvr(CLUBS[a].id));
   applyResult(h, a, gh, ga);
   moraleAfter(CLUBS[h].id, gh, CLUBS[a].id, ga);
+}
+// матчи текущего тура, в которых не играет клуб игрока (клуб игрока — только через startMatch)
+function simOtherMatches() {
+  TOURS[S.round].forEach(([h, a]) => {
+    if (CLUBS[h].id === S.me || CLUBS[a].id === S.me) return;
+    simMatch(h, a);
+  });
+}
+// тур закрыт: сыграны все матчи, наступает неделя календаря
+function closeTour() {
   S.round++;
   afterRound();
+}
+function simRound() {
+  simOtherMatches();
+  closeTour();
   save();
   go('hub');
 }
@@ -1326,13 +1369,13 @@ function techLoss(h, a, meHome, oppId, friendly) {
   mail(bi('Администрация клуба', 'Клуб әкімшілігі'), bi(`Техническое поражение: ${nm(opp)}`, `Техникалық жеңіліс: ${nm(opp)}`),
     bi('В основе не хватает здоровых игроков: матч засчитан 0:3.', 'Негізгі құрамда сау ойыншылар жетіспейді: матч 0:3 есебімен есептелді.'));
   if (friendly) passDays(1);
-  else { applyResult(h, a, meHome ? 0 : 3, meHome ? 3 : 0); S.round++; afterRound(); }
+  else { applyResult(h, a, meHome ? 0 : 3, meHome ? 3 : 0); simOtherMatches(); closeTour(); }
   RESULT = { gm: 0, gop: 3, out: 'loss', reward: 0, opp: nm(opp), injured: [], friendly };
   save(); go('result');
 }
 
 function startMatch() {
-  const [h, a] = FIXTURES[S.round];
+  const [h, a] = TOURS[S.round].find(([x, y]) => CLUBS[x].id === S.me || CLUBS[y].id === S.me);
   const meHome = CLUBS[h].id === S.me;
   const oppId = meHome ? CLUBS[a].id : CLUBS[h].id;
   const opp = CLUBS.find(c => c.id === oppId);
@@ -1347,8 +1390,8 @@ function startMatch() {
     const injured = applyInjuries(injuries, oppId);
     mail(bi('Администрация клуба', 'Клуб әкімшілігі'), bi(`Матч ${gm}:${gop} (${nm(opp)})`, `Матч ${gm}:${gop} (${nm(opp)})`),
       bi(`Призовые: ${money(reward)}.`, `Сыйақы: ${money(reward)}.`));
-    S.round++;
-    afterRound();
+    simOtherMatches();
+    closeTour();
     RESULT = { gm, gop, out, reward, opp: nm(opp), injured, friendly: false };
     save();
     go('result');
@@ -1551,11 +1594,22 @@ function migrate() {
     addBrother(S.squads.stolichny, CLUBS.find(c => c.id === 'stolichny'));
     S.brotherAdded = true;
   }
+  // старое расписание считало матчи (8 клубов), новое — туры: переводим по числу сыгранных матчей
+  if (S.tourFmt !== 2) {
+    const played = Object.values(S.table || {}).reduce((s, r) => s + r.p, 0) / 2;
+    S.round = Math.min(TOURS.length, Math.floor(played / 4));
+    S.tourFmt = 2;
+  }
+  // состав ФК Школьники обновлён: в старых сохранениях пересобираем его
+  if (S.squads.shkolniki && !S.squads.shkolniki.some(p => p.id === 'toimbetov-11')) {
+    S.squads.shkolniki = makeSchoolSquad(CLUBS.find(c => c.id === 'shkolniki'));
+  }
   CLUBS.forEach((c, k) => {
     if (!S.squads[c.id]) S.squads[c.id] = makeSquad(c, k);
     if (!S.table[c.id]) S.table[c.id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 };
   });
   S.cash = S.cash || {};
+  CLUBS.forEach(c => { if (c.id !== S.me && S.cash[c.id] === undefined) S.cash[c.id] = c.budget || 2e9; });
   S.pool = S.pool || [];
   S.mail = S.mail || [];
   S.staff = S.staff || {};
@@ -1824,12 +1878,42 @@ const VIEWS = {
           <div class="menu">
             ${S ? `<button class="primary" onclick="go('hub')"><span class="ic">▶</span>${t('continueGame')}</button>` : ''}
             <button class="${S ? '' : 'primary'}" onclick="go('pick')"><span class="ic">🏟️</span>${t('newGame')}</button>
+            <button onclick="go('quick')"><span class="ic">⚡</span>${quickL().title}</button>
             <button onclick="go('load')"><span class="ic">💾</span>${t('load')}</button>
             <button onclick="go('settings')"><span class="ic">⚙️</span>${t('settings')}</button>
             <button onclick="go('help')"><span class="ic">❓</span>${t('help')}</button>
           </div>
         </div>
       </section>`;
+  },
+
+  quick(el) {
+    const q = quickL();
+    const opts = sel => CLUBS.map((c, i) => `<option value="${i}" ${i === sel ? 'selected' : ''}>${nm(c)}</option>`).join('');
+    const sel = 'width:100%;padding:10px;font:inherit;margin:6px 0;border-radius:6px';
+    el.innerHTML = `<h2>${q.title}</h2>
+      <p class="hint">${q.hint}</p>
+      <button class="${QUICK.mode === 'classic' ? 'primary' : 'ghost'} big" onclick="QUICK.mode='classic';go('quick')">${q.classic}</button>
+      <button class="${QUICK.mode === 'five' ? 'primary' : 'ghost'} big" onclick="QUICK.mode='five';go('quick')">${q.five}</button>
+      <p class="hint">${q.home}</p>
+      <select style="${sel}" onchange="QUICK.home=+this.value">${opts(QUICK.home)}</select>
+      <p class="hint">${q.away}</p>
+      <select style="${sel}" onchange="QUICK.away=+this.value">${opts(QUICK.away)}</select>
+      ${QUICK.err ? `<p class="hint">${q.sameClub}</p>` : ''}
+      <button class="primary big" onclick="quickStart()">${q.play}</button>
+      <button class="ghost big" onclick="go('start')">${t('back')}</button>`;
+  },
+
+  quickmatch(el) {
+    Match.start(el, QM_CFG);
+  },
+
+  quickresult(el) {
+    const r = QUICK_RESULT, q = quickL();
+    el.innerHTML = `<h2>${t('result')}</h2>
+      <p class="score">${r.home} ${r.gm} : ${r.gop} ${r.away}</p>
+      <button class="big" onclick="quickStart()">${q.again}</button>
+      <button class="ghost big" onclick="go('quick')">${q.menu}</button>`;
   },
 
   custom(el) {
@@ -1893,13 +1977,14 @@ const VIEWS = {
   hub(el) {
     const me = CLUBS[myIdx()];
     const msg = NOTICE; NOTICE = '';
-    if (S.round >= FIXTURES.length) {
+    if (S.round >= TOURS.length) {
       el.innerHTML = `<h2>${t('seasonOver')}</h2>${tableHTML()}
         <button class="big" onclick="S.round=0;newGame(myIdx())">${t('newSeason')}</button>`;
       return;
     }
-    const [h, a] = FIXTURES[S.round];
-    const involved = CLUBS[h].id === S.me || CLUBS[a].id === S.me;
+    const mine = TOURS[S.round].find(([h, a]) => CLUBS[h].id === S.me || CLUBS[a].id === S.me);
+    const involved = !!mine;
+    const byeTxt = L() === 'kz' ? 'Демалыс' : 'Выходной';
     const un = unreadCount();
     el.innerHTML = `
       ${msg ? `<p class="hint">${msg}</p>` : ''}
@@ -1910,8 +1995,8 @@ const VIEWS = {
         <small>${t('staffCost')}: ${money(staffSalary())} ${t('perWeek')}</small>
       </section>
       <section class="card">
-        <p>${t('round')} ${S.round + 1}/${FIXTURES.length}</p>
-        <p class="fx">${nm(CLUBS[h])} — ${nm(CLUBS[a])}</p>
+        <p>${t('round')} ${S.round + 1}/${TOURS.length}</p>
+        <p class="fx">${involved ? `${nm(CLUBS[mine[0]])} — ${nm(CLUBS[mine[1]])}` : byeTxt}</p>
         ${involved
           ? `<button class="big" onclick="startMatch()">${t('playMatch')}</button>`
           : `<button class="big" onclick="simRound()">${t('simRound')}</button>`}
@@ -2000,9 +2085,10 @@ const VIEWS = {
 };
 
 function go(view) {
-  const langBtn = view === 'match' ? '' :
+  const inGame = view === 'match' || view === 'quickmatch';
+  const langBtn = inGame ? '' :
     `<button class="ghost" onclick="toggleLang('${view}')">${t('langBtn')}</button>`;
-  const saveBtn = (view === 'match' || !S) ? '' : `<button class="save-btn" onclick="go('save')">${t('saveGame')}</button>`;
+  const saveBtn = (inGame || !S || view.startsWith('quick')) ? '' : `<button class="save-btn" onclick="go('save')">${t('saveGame')}</button>`;
   $('#app').className = 'v-' + view;
   $('#app').innerHTML = `<header class="top"><b>${t('appTitle')}</b><span>${saveBtn}${langBtn}</span></header><main id="view"></main>`;
   VIEWS[view]($('#view'));
@@ -2111,15 +2197,6 @@ document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.shiftKey && e.code === 'KeyD') { e.preventDefault(); dbgToggle(); }
 });
 
-// ===== Старт =====
-S = load();
-// свой клуб из сохранения возвращаем на его место в лиге
-if (S && S.customClub) CLUBS[CLUBS.length - 1] = S.customClub;
-// старые сохранения без нового клуба и новых полей: добавляем недостающее
-migrate();
-if (!S) { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
-applyControls();
-go(S ? 'hub' : 'start');
 
 </script>
   <script>
@@ -2351,13 +2428,72 @@ function drawStadium(c) {
   drawPitch(c, 14, 14, W - 28, H - 28);
 }
 
+// ===== Быстрый матч: тот же движок, управление и ИИ, что в карьере; матч короче, без карьеры =====
+const QUICK_DUR = 45;   // секунд на матч
+const QUICK_FORM5 = [[.03, .5], [.14, .3], [.14, .7], [.3, .5], [.42, .5]];   // расстановка 5 на 5: вратарь, 2 защитника, полузащитник, нападающий
+let QUICK = { mode: 'classic', home: 0, away: 1, err: false };
+let QUICK_RESULT = null, QM_CFG = null;
+const QUICK_SQUADS = {};
+const quickL = () => L() === 'kz'
+  ? { title: 'Жылдам матч', hint: `Матч ${QUICK_DUR} секунд · карьерадағыдай басқару`, home: 'Үй иесі', away: 'Қонақ',
+      classic: 'Классика · 11 на 11', five: '5 на 5 · мини-поле', play: 'Ойнау', again: 'Тағы матч', menu: 'Мәзірге',
+      sameClub: 'Екі түрлі клуб таңдаңыз' }
+  : { title: 'Быстрый матч', hint: `Матч ${QUICK_DUR} секунд · управление и ИИ как в карьере`, home: 'Хозяева', away: 'Гости',
+      classic: 'Классика · 11 на 11', five: '5 на 5 · мини-поле', play: 'Играть', again: 'Ещё матч', menu: 'В меню',
+      sameClub: 'Выберите два разных клуба' };
+
+// состав клуба для быстрого матча: из лиги, сохраняется между матчами
+function quickSquad(i) {
+  if (!QUICK_SQUADS[i]) {
+    QUICK_SQUADS[i] = makeSquad(CLUBS[i], i);
+    QUICK_SQUADS[i].forEach(p => { p.inj = p.inj || 0; p.hp = p.hp ?? 100; p.mor = p.mor ?? 70; });   // как в карьере: состояние игрока задано
+  }
+  return QUICK_SQUADS[i];
+}
+// 5 на 5: вратарь, два защитника, полузащитник, нападающий — из здоровых игроков клуба
+function quickFive(i) {
+  const sq = quickSquad(i), fit = p => p.inj <= 0;
+  const by = pos => sq.filter(p => p.pos === pos && fit(p)).sort((x, y) => y.ovr - x.ovr);
+  const out = [], used = new Set();
+  const take = list => { const p = list.find(q => !used.has(q)); if (p) { used.add(p); out.push(p); } };
+  take(by('GK')); take(by('DF')); take(by('DF')); take(by('MF')); take(by('FW'));
+  sq.filter(fit).forEach(p => { if (out.length < 5 && !used.has(p)) { used.add(p); out.push(p); } });
+  return out;
+}
+
+function quickStart() {
+  if (QUICK.home === QUICK.away) { QUICK.err = true; return go('quick'); }
+  QUICK.err = false;
+  const h = CLUBS[QUICK.home], a = CLUBS[QUICK.away];
+  const five = QUICK.mode === 'five';
+  let mySquad, oppSquad;
+  if (five) { mySquad = quickFive(QUICK.home); oppSquad = quickFive(QUICK.away); }
+  else {
+    prepareLineup(quickSquad(QUICK.home), false);
+    prepareLineup(quickSquad(QUICK.away), false);
+    mySquad = quickSquad(QUICK.home); oppSquad = quickSquad(QUICK.away);
+  }
+  QM_CFG = {
+    lang: L(), quick: true, duration: QUICK_DUR, n: five ? 5 : 11, form: five ? QUICK_FORM5 : undefined,
+    myClub: nm(h), oppClub: nm(a), myColor: h.color, oppColor: a.color, myShorts: h.shorts, oppShorts: a.shorts,
+    mySquad, oppSquad,
+    tactic: 'balanced', coach: 0, friendly: true,
+    onEnd: (gm, gop) => {
+      QUICK_RESULT = { gm, gop, home: nm(h), away: nm(a) };
+      go('quickresult');
+    }
+  };
+  go('quickmatch');
+}
+
 // ===== Аркада 11 на 11: большое поле, камера, аут, подкаты, фолы, штрафные =====
 const Match = (() => {
   const VW = 480, VH = 270;                    // видимая часть поля (экран камеры), в логических единицах
   const RES = 2;                               // внутреннее разрешение канваса: вдвое чётче
-  const W = 960, H = 540, DUR = 90, GH = 38;   // размер поля в игровых единицах
-  const GT = H / 2 - GH, GB = H / 2 + GH;
-  const BOX_W = 120, BOX_H = 220, SPOT = 80;   // штрафная площадь и точка пенальти
+  let W = 960, H = 540, GH = 38;               // размер поля в игровых единицах (зависит от режима, см. setField)
+  const DUR = 90;
+  let GT, GB;
+  let BOX_W = 120, BOX_H = 220, SPOT = 80;     // штрафная площадь и точка пенальти
   const SPRINT = 1.5;                           // множитель скорости при спринте
   const IDLE_MS = 10000, AUTO_SPEED = 2;        // без касаний 10 с — авто-игра; авто-игра идёт в 2 раза быстрее
   const CAM = { zoom: 1, lerp: 4 };             // zoom < 1 — камера отдаляется, > 1 — приближается
@@ -2402,6 +2538,16 @@ const Match = (() => {
                kickT: 0, px: bx, py: by, spd: 0,
                skin: lookOf(p).skin, hair: lookOf(p).hair, afro: !!lookOf(p).afro };
     });
+  }
+
+  // поле режима: 11 на 11 — полное, 5 на 5 — мини-поле (2/3 от большого)
+  function setField(n) {
+    const k = n === 5 ? 2 / 3 : 1;
+    W = Math.round(960 * k); H = Math.round(540 * k); GH = Math.round(38 * k);
+    GT = H / 2 - GH; GB = H / 2 + GH;
+    BOX_W = Math.round(120 * k); BOX_H = Math.round(220 * k); SPOT = Math.round(80 * k);
+    LINE_Y = H - 46;
+    CAM.zoom = n === 5 ? .75 : 1;               // мини-поле целиком в кадре
   }
 
   const alive = team => team.filter(p => p.down <= 0);
@@ -2848,7 +2994,7 @@ const Match = (() => {
   }
 
   // ----- после финального свистка: обе команды строятся в ряд перед фотографами -----
-  const LINE_Y = H - 46;
+  let LINE_Y = H - 46;
   function startPhoto() {
     phase = 'photo'; photoT = 0; photoHold = 0;
     pen = null; fk = null; thr = null; ctrl = null;
@@ -3274,14 +3420,16 @@ const Match = (() => {
     cfg = config; running = true; keys = {}; joy = { x: 0, y: 0 }; joyId = null;
     auto = false; autoCd = 0; lastInput = performance.now();
     passPulse = false; slidePulse = false; switchPulse = false;
+    setField(cfg.n || 11);
     const a = makeTeam(cfg.mySquad, 0, tacticMods(cfg.tactic, cfg.coach)), b = makeTeam(cfg.oppSquad, 1, null);
-    teams = [a.slice(0, 11), b.slice(0, 11)];
-    benches = [a.slice(11).filter(p => !p.inj), b.slice(11).filter(p => !p.inj)];
+    const n = cfg.n || 11;
+    teams = [a.slice(0, n), b.slice(0, n)];
+    benches = n === 11 ? [a.slice(11).filter(p => !p.inj), b.slice(11).filter(p => !p.inj)] : [[], []];
     injuries = [];
-    subsLeft = 3; subOpen = false; subPick = null;
+    subsLeft = (cfg.n || 11) === 11 ? 3 : 0; subOpen = false; subPick = null;
     score = { me: 0, cpu: 0 };
     phase = 'play'; photoT = 0; photoHold = 0; finishing = false; fans = []; stewards = []; photogs = []; initOps(); fanHalt = false; nextFan = Math.random() < .3 ? rnd(12, 70) : Infinity; nextPhotog = rnd(3, 8);
-    timeLeft = DUR; kickCd = 0; cpuCd = [0, 0]; tackleCd = [0, 0]; flash = 0; pen = null;
+    timeLeft = cfg.duration || DUR; kickCd = 0; cpuCd = [0, 0]; tackleCd = [0, 0]; flash = 0; pen = null;
     fk = null; thr = null; lastTeam = 0; switchCd = 0;
     kickoff();
 
@@ -3311,7 +3459,7 @@ const Match = (() => {
     c.imageSmoothingEnabled = true;
 
     el.querySelector('#skipBtn').onclick = () => finish();
-    el.querySelector('#exitBtn').onclick = () => { stop(); go('hub'); };
+    el.querySelector('#exitBtn').onclick = () => { stop(); go(cfg.quick ? 'quick' : 'hub'); };
     el.querySelector('#subBtn').onclick = () => { if (!pen) openSub(); };
     el.querySelector('#autoBtn').onclick = () => setAuto(!auto);
     el.querySelector('#fsBtn').onclick = () => {
@@ -3375,6 +3523,17 @@ const Match = (() => {
   } };
 })();
 
+</script>
+<script>
+// ===== Старт (после всех модулей, чтобы экраны и быстрый матч уже были объявлены) =====
+S = load();
+// свой клуб из сохранения возвращаем на его место в лиге
+if (S && S.customClub) CLUBS[CLUBS.length - 1] = S.customClub;
+// старые сохранения без нового клуба и новых полей: добавляем недостающее
+migrate();
+if (!S) { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+applyControls();
+go(S ? 'hub' : 'start');
 </script>
 </body>
 </html>
