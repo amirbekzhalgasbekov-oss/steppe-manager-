@@ -6,7 +6,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Steppe Manager</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700;800&family=Share+Tech+Mono&family=Oswald:wght@700&display=swap">
 <style>
 :root {
   --paper: #f4efe2;
@@ -61,6 +61,50 @@ a { color: inherit; }
 .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
 .btn.ghost { background: var(--card); }
 .btn.big { width: 100%; max-width: 360px; font-size: 18px; padding: 18px 22px; }
+
+/* menu: тёмный терминальный стиль */
+.menu { position: relative; }
+.menu-btn {
+  background: #020804; color: #00ff41; border: 1px solid #00aa2b; border-radius: 0;
+  font-family: 'Share Tech Mono', monospace; font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+  padding: 8px 14px; min-width: 0; margin: 0; box-shadow: none; text-shadow: 0 0 8px rgba(0,255,65,.5);
+}
+.menu-btn:hover, .menu-btn[aria-expanded="true"] { background: #04180c; }
+.menu-panel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 10; min-width: 260px;
+  background: #020804; border: 1px solid #00aa2b; padding: 12px 0 8px; overflow: hidden;
+  font-family: 'Share Tech Mono', monospace; color: #00ff41; box-shadow: 0 0 24px rgba(0,255,65,.18);
+}
+.menu-panel[hidden] { display: none !important; }
+.menu-panel::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,.2) 3px 4px);
+}
+.menu-panel > * { position: relative; z-index: 1; }
+.menu-title {
+  display: block; padding: 0 16px 10px; margin-bottom: 6px; border-bottom: 1px solid #004d18;
+  font-family: 'Oswald', sans-serif; letter-spacing: 4px; font-size: 16px; color: #00ff41;
+  text-shadow: 0 0 12px rgba(0,255,65,.6);
+}
+.menu-panel a {
+  display: block; padding: 10px 16px; color: #00ff41; text-decoration: none;
+  font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+}
+.menu-panel a::before { content: '> '; color: #00aa2b; }
+.menu-panel a:hover, .menu-panel a:focus-visible { background: rgba(0,255,65,.12); outline: none; }
+.menu-panel a.primary { color: #020804; background: #00ff41; margin: 4px 12px 6px; padding: 10px 12px; text-align: center; text-shadow: none; }
+.menu-panel a.primary::before { content: ''; }
+.menu-panel a.primary:hover { background: #7dff9d; }
+.menu-panel a.game { padding: 10px 16px; }
+.menu-panel a.game b { display: block; font-weight: 400; color: #00ff41; letter-spacing: 3px; }
+.menu-panel a.game small { display: block; margin-top: 2px; font-size: 10px; letter-spacing: 2px; color: #00aa2b; text-transform: uppercase; }
+.menu-panel a.game::before { content: ''; }
+.menu-panel a.game:first-of-type { border-left: 2px solid #00ff41; margin-left: 12px; padding-left: 14px; }
+.menu-sep { display: block; height: 1px; background: #004d18; margin: 6px 16px; }
+.menu-foot {
+  display: block; padding: 8px 16px 0; margin-top: 6px; border-top: 1px solid #004d18;
+  font-size: 10px; letter-spacing: 2px; color: #00aa2b;
+}
 
 /* hero */
 .hero { display: grid; gap: 22px; padding-block: 8px 36px; }
@@ -141,7 +185,19 @@ footer {
       </svg>
       <b>STEPPE MANAGER</b>
     </a>
-    <a class="btn ghost" href="play.html" style="box-shadow:0 2px 0 var(--ink);padding:9px 14px;font-size:14px;">Играть</a>
+    <nav class="menu">
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu-panel">Меню</button>
+      <div class="menu-panel" id="menu-panel" hidden>
+        <span class="menu-title">ИГРЫ</span>
+        <a class="game" href="play.html"><b>STEPPE MANAGER</b><small>футбольный менеджер</small></a>
+        <a class="game" href="zona.html"><b>ЗОНА</b><small>экшен по уровням</small></a>
+        <span class="menu-sep"></span>
+        <a href="#features">Что внутри</a>
+        <a href="#how">Как начать</a>
+        <a href="#top">Наверх</a>
+        <span class="menu-foot">ФУТБОЛЬНЫЙ МЕНЕДЖЕР // БРАУЗЕР</span>
+      </div>
+    </nav>
   </header>
 
   <div class="hero">
@@ -241,7 +297,7 @@ footer {
     </div>
   </section>
 
-  <section>
+  <section id="how">
     <h2>Как начать</h2>
     <p class="sub">Первый матч можно сыграть уже через минуту после старта.</p>
     <ol class="steps">
@@ -263,5 +319,15 @@ footer {
   </footer>
 
 </div>
+<script>
+(function () {
+  var btn = document.querySelector('.menu-btn'), panel = document.getElementById('menu-panel');
+  function setOpen(open) { panel.hidden = !open; btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(panel.hidden); });
+  document.addEventListener('click', function (e) { if (!panel.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+  panel.addEventListener('click', function (e) { if (e.target.tagName === 'A') setOpen(false); });
+})();
+</script>
 </body>
 </html>

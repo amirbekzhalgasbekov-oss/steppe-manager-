@@ -161,6 +161,39 @@ table.stats{width:100%;border-collapse:collapse;font-size:12px;white-space:nowra
 table.stats th,table.stats td{padding:4px 6px;border-bottom:1px solid #2a3a30;text-align:center}
 table.stats td.nm{text-align:left}
 table.stats tr.bench td{opacity:.75}
+
+/* ===== главное меню: сцена матча, кнопки справа (как в PC-менеджерах) ===== */
+.hero{display:flex;min-height:min(92vh,720px);padding:0;margin:0;border-radius:18px;background:#0b1510;overflow:hidden;position:relative;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.hero::before,.hero::after{display:none}
+.scene{position:absolute;inset:0;z-index:0;pointer-events:none}
+.scene svg{width:100%;height:100%;display:block}
+.scene::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,21,16,.15) 0%,rgba(11,21,16,.55) 55%,rgba(11,21,16,.95) 100%)}
+@media (min-width:720px){.scene::after{background:linear-gradient(90deg,rgba(11,21,16,.2) 0%,rgba(11,21,16,.55) 45%,rgba(11,21,16,.94) 100%)}}
+.hero-in{position:relative;z-index:1;width:100%;max-width:none;margin:0;display:flex;flex-direction:column;justify-content:space-between;gap:28px;padding:28px 20px 24px}
+.hero .title-block{padding-top:24px}
+.hero .ball{display:block;text-align:left;font-size:36px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+.hero h1{text-align:left;font-size:clamp(44px,12vw,84px);margin:4px 0 0}
+.hero .tagline{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--wheat);margin:10px 0 0;font-weight:700}
+.hero .menu{margin:0 0 0 auto;width:min(340px,100%);gap:10px}
+.lang{top:18px;right:18px}
+.opts{display:grid;gap:12px;margin-top:20px}
+button.danger{background:#7a2a20;border:1px solid #c0503c}
+.help{line-height:1.6;margin-top:18px}
+.club-banner{background:repeating-linear-gradient(90deg,#14301f 0 56px,#123a22 56px 112px);border-left-width:6px;padding:18px}
+/* раскладка управления: джойстик и кнопки слева (для левшей) */
+body.ctl-left .m-joy{left:auto;right:0}
+body.ctl-left .m-btns{right:auto;left:16px}
+body.ctl-left .m-sub-btn{left:auto;right:8px}
+body.ctl-left .m-auto-btn{left:auto;right:96px}
+/* создание своего клуба */
+.field{display:grid;gap:6px;margin-top:14px}
+.field > span{font-size:14px;opacity:.85}
+.field input[type=text],.field select{width:100%;padding:12px;font:inherit;font-size:16px;border-radius:10px;border:1px solid rgba(242,239,230,.3);background:#0b1510;color:var(--chalk)}
+.field input[type=color]{width:64px;height:44px;border:0;padding:0;background:none;cursor:pointer}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.swatches button{width:34px;height:34px;padding:0;margin:0;border-radius:50%;border:2px solid rgba(242,239,230,.5)}
+.club-preview{display:flex;align-items:center;gap:14px;margin-top:18px;padding:14px;border-radius:14px;background:rgba(11,21,16,.7);border:1px solid rgba(242,239,230,.2)}
+.club-preview canvas.portrait{width:96px;height:96px;image-rendering:pixelated;background:#14301f;border-radius:10px}
 </style>
 </head>
 <body>
@@ -171,6 +204,14 @@ table.stats tr.bench td{opacity:.75}
 const T = {
   ru: {
     appTitle: 'Степная лига', newGame: 'Новая игра', continueGame: 'Продолжить',
+    tagline: 'Футбольный менеджер и аркада', settings: 'Настройки', help: 'Справка', helpTitle: 'Как играть',
+    createClub: 'Свой клуб', clubBuilder: 'Свой клуб', clubName: 'Название клуба', clubCity: 'Город',
+    shirtColor: 'Цвет футболки', shortsColor: 'Цвет шорт', clubLevel: 'Уровень состава',
+    levelLow: 'Начальный (сила ~62)', levelMid: 'Средний (сила ~70)', levelHigh: 'Сильный (сила ~78)',
+    clubHint: 'Состав сгенерируется случайно по выбранному уровню. Ваш клуб займёт место последнего клуба в лиге.',
+    clubStart: 'Создать и начать', ctlLabel: 'Раскладка управления', ctlLeft: 'джойстик слева', ctlRight: 'джойстик справа',
+    resetAll: 'Сбросить все данные', resetConfirm: 'Удалить все сохранения и начать заново?',
+    helpText: 'Клуб: покупайте и продавайте игроков на трансферах, нанимайте штаб в разделе «Финансы».<br><br>Матч: джойстиком ведите полевого игрока. Кнопки замен находятся на экране матча.<br><br>Тактика: в разделе «Состав» выберите схему и расстановку игроков. Травмированные игроки отмечаются крестиком.<br><br>Сохранение: кнопка «Сохранить» наверху или в меню клуба. Сохранения хранятся в браузере этого устройства.',
     chooseClub: 'Выберите клуб', budget: 'Тенге', rating: 'Рейтинг клуба',
     squad: 'Состав', table: 'Таблица', stadium: 'Стадион', playMatch: 'Играть матч',
     simRound: 'Сыграть тур', train: 'Тренировка (50млн₸)', round: 'Тур',
@@ -184,7 +225,7 @@ const T = {
     noMoney: 'Недостаточно средств', time: 'Время', goal: 'ГОЛ!',
     controls: 'Стрелки / WASD или касание поля — движение, пробел или ⚽ — удар',
     stadiumDesc: 'Домашний стадион клуба', langBtn: 'Қазақша',
-    squadNote: 'Имена и позиции из открытых источников. Показатели в игре условные, это не оценки реальных игроков.',
+    squadNote: 'Имена игроков случайные. Номера, позиции и показатели условные, это не оценки реальных игроков.',
     pass: 'Пас', rotate: 'Поверните телефон горизонтально',
     foul: 'ФОЛ!', fan: 'ФАНАТ НА ПОЛЕ!', fullTime: 'КОНЕЦ МАТЧА', pen: 'ПЕНАЛЬТИ!', save: 'СЕЙВ!', slide: 'Подкат',
     sub: 'Замена', benchTitle: 'Запасные', subsLeft: 'Осталось замен', noBench: 'Нет запасных',
@@ -234,6 +275,14 @@ const T = {
   },
   kz: {
     appTitle: 'Дала лигасы', newGame: 'Жаңа ойын', continueGame: 'Жалғастыру',
+    tagline: 'Футбол менеджері және аркада', settings: 'Баптаулар', help: 'Анықтама', helpTitle: 'Қалай ойнау керек',
+    createClub: 'Өз клубым', clubBuilder: 'Өз клубым', clubName: 'Клуб атауы', clubCity: 'Қала',
+    shirtColor: 'Футболка түсі', shortsColor: 'Шорт түсі', clubLevel: 'Құрам деңгейі',
+    levelLow: 'Бастапқы (күші ~62)', levelMid: 'Орташа (күші ~70)', levelHigh: 'Күшті (күші ~78)',
+    clubHint: 'Құрам таңдалған деңгей бойынша кездейсоқ жасалады. Сіздің клубыңыз лигадағы соңғы клубтың орнын алады.',
+    clubStart: 'Жасау және бастау', ctlLabel: 'Басқару орналасуы', ctlLeft: 'джойстик солда', ctlRight: 'джойстик оңда',
+    resetAll: 'Барлық деректерді жою', resetConfirm: 'Барлық сақтауларды жойып, қайтадан бастайсыз ба?',
+    helpText: 'Клуб: трансферлерде ойыншыларды сатып алыңыз және сатыңыз, «Қаржы» бөлімінде штабты жалдаңыз.<br><br>Матч: джойстикпен далалық ойыншыны басқарыңыз. Алмастыру түймелері матч экранында.<br><br>Тактика: «Құрам» бөлімінде схема мен ойыншылардың орналасуын таңдаңыз. Жарақаттанған ойыншылар крестикпен белгіленеді.<br><br>Сақтау: жоғарыдағы «Сақтау» түймесі немесе клуб мәзірі. Сақтаулар осы құрылғының браузерінде сақталады.',
     chooseClub: 'Клубты таңдаңыз', budget: 'Теңге', rating: 'Клуб рейтингі',
     squad: 'Құрам', table: 'Кесте', stadium: 'Стадион', playMatch: 'Матч ойнау',
     simRound: 'Турды модельдеу', train: 'Жаттығу (50млн₸)', round: 'Тур',
@@ -247,7 +296,7 @@ const T = {
     noMoney: 'Қаражат жеткіліксіз', time: 'Уақыт', goal: 'ГОЛ!',
     controls: 'Жебелер / WASD немесе өрісті түрту — жүру, бос орын немесе ⚽ — соққы',
     stadiumDesc: 'Клубтың үй стадионы', langBtn: 'Русский',
-    squadNote: 'Аттар мен позициялар ашық дереккөздерден. Ойындағы көрсеткіштер шартты, бұл нақты ойыншылардың бағасы емес.',
+    squadNote: 'Ойыншылардың аттары кездейсоқ. Нөмірлер, позициялар және көрсеткіштер шартты, бұл нақты ойыншылардың бағалары емес.',
     pass: 'Пас', rotate: 'Телефонды көлденең бұрыңыз',
     foul: 'ФОЛ!', fan: 'ЖАЙДАРМАН ДАЛАДА!', fullTime: 'ОЙЫН АЯҚТАЛДЫ', pen: 'ПЕНАЛЬТИ!', save: 'СЕЙВ!', slide: 'Сырғанау',
     sub: 'Ауыстыру', benchTitle: 'Қорықтағылар', subsLeft: 'Қалған ауыстыру', noBench: 'Қорықтағылар жоқ',
@@ -486,17 +535,30 @@ function makeBench(club, starters, r) {
   });
 }
 
+// свой клуб: состав генерируется случайно, игроки получают форму клуба
+function makeGeneratedSquad(club) {
+  const starters = POS.map((pos, i) => {
+    const p = randPlayer(pos, club.ovr + Math.round(Math.random() * 6 - 3));
+    p.num = i + 1;
+    p.look = { ...lookOf(p), color: club.color, shorts: club.shorts };
+    return p;
+  });
+  return starters.concat(makeBench(club, starters, Math.random));
+}
+// имена игроков случайные: номера, позиции и показатели сохраняются
+const randName = () => pick(FIRST) + ' ' + pick(LAST);
 function makeSquad(club, idx) {
+  if (club.id === 'custom') return makeGeneratedSquad(club);
   if (STATS_SQUADS[club.id]) {
-    return STATS_SQUADS[club.id].map(([num, name, pos, pace, shot, pass, def, ovr, mor, hp]) =>
-      ({ num, name, pos, pace, shot, pass, def, ovr, ...(mor !== undefined ? { mor, hp } : {}) }));
+    return STATS_SQUADS[club.id].map(([num, , pos, pace, shot, pass, def, ovr, mor, hp]) =>
+      ({ num, name: randName(), pos, pace, shot, pass, def, ovr, ...(mor !== undefined ? { mor, hp } : {}) }));
   }
   if (!PRESET_SQUADS[club.id]) return makeFictionalSquad(club, idx);
   const r = seeded(idx * 977 + club.ovr * 13 + 7);
-  const starters = PRESET_SQUADS[club.id].map(([num, name, pos]) => {
+  const starters = PRESET_SQUADS[club.id].map(([num, , pos]) => {
     const base = club.ovr + Math.round(r() * 8 - 4);
     const st = k => clamp(Math.round(base + BIAS[pos][k] + r() * 8 - 4));
-    const p = { num, name, pos, pace: st('pace'), shot: st('shot'), pass: st('pass'), def: st('def') };
+    const p = { num, name: randName(), pos, pace: st('pace'), shot: st('shot'), pass: st('pass'), def: st('def') };
     p.ovr = ovrOf(p);
     return p;
   });
@@ -1200,7 +1262,8 @@ function newGame(i) {
   CLUBS.forEach((c, k) => { squads[c.id] = makeSquad(c, k); });
   CLUBS.forEach(c => { table[c.id] = { p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }; });
   S = { me: CLUBS[i].id, round: 0, day: 1, budget: 2e9, squads, table, cash: {}, pool: [],
-        mail: [], staff: {}, sponsors: [], pr: CLUBS[i].pr, tactic: 'balanced', autoStaff: false, cands: [], neg: [], plan: 'none' };
+        mail: [], staff: {}, sponsors: [], pr: CLUBS[i].pr, tactic: 'balanced', autoStaff: false, cands: [], neg: [], plan: 'none',
+        customClub: CLUBS[CLUBS.length - 1].id === 'custom' ? CLUBS[CLUBS.length - 1] : null };
   CLUBS.forEach(c => { if (c.id !== S.me) S.cash[c.id] = 2e9; });
   ensureIds(); refreshPool();
   S.cands = genCands();
@@ -1697,21 +1760,103 @@ function mailControls(m) {
 const VIEWS = {
   start(el) {
     el.innerHTML = `<section class="hero">
+        <div class="scene" aria-hidden="true">
+          <svg viewBox="0 0 800 520" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#08140e"/><stop offset="1" stop-color="#173d28"/></linearGradient>
+              <radialGradient id="gLight" cx="0.5" cy="0" r="0.9"><stop offset="0" stop-color="#fff6c8" stop-opacity=".5"/><stop offset="1" stop-color="#fff6c8" stop-opacity="0"/></radialGradient>
+              <pattern id="gStripe" width="100" height="290" patternUnits="userSpaceOnUse"><rect width="50" height="290" fill="#2a7d3a"/><rect x="50" width="50" height="290" fill="#236c31"/></pattern>
+              <pattern id="gCrowd" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="6" cy="6" r="2.4" fill="#2c4a38"/></pattern>
+            </defs>
+            <rect width="800" height="520" fill="url(#gSky)"/>
+            <path d="M0 0 H800 V170 L0 120 Z" fill="#0a1811"/>
+            <path d="M0 120 L800 170 V205 L0 155 Z" fill="url(#gCrowd)"/>
+            <polygon points="150,0 70,430 230,430 190,0" fill="url(#gLight)"/>
+            <polygon points="650,0 570,430 730,430 690,0" fill="url(#gLight)"/>
+            <rect x="130" y="0" width="40" height="8" fill="#fff6c8"/>
+            <rect x="630" y="0" width="40" height="8" fill="#fff6c8"/>
+            <rect y="230" width="800" height="290" fill="url(#gStripe)"/>
+            <g fill="none" stroke="#f2efe6" stroke-width="4" opacity=".6">
+              <path d="M60 240 H740 L800 520 H0 Z"/>
+              <line x1="400" y1="240" x2="400" y2="520"/>
+              <ellipse cx="400" cy="390" rx="110" ry="40"/>
+            </g>
+            <g fill="#050c08" opacity=".95">
+              <circle cx="455" cy="262" r="15"/>
+              <path d="M440 282 Q455 276 470 282 L478 360 L432 360 Z"/>
+              <path d="M446 356 L432 440 L444 442 L462 360 Z"/>
+              <path d="M466 356 L490 330 L500 340 L470 370 Z"/>
+              <path d="M436 286 L418 330 L424 334 L444 296 Z"/>
+              <path d="M472 286 L500 300 L494 310 L470 300 Z"/>
+            </g>
+            <g stroke="#fff6c8" stroke-width="3" opacity=".5" stroke-linecap="round">
+              <line x1="505" y1="420" x2="560" y2="450"/><line x1="500" y1="436" x2="545" y2="462"/>
+            </g>
+            <circle cx="566" cy="452" r="11" fill="#f2efe6" stroke="#0a140f" stroke-width="2"/>
+            <path d="M566 446 l4 3 -1.5 4.5 h-5 l-1.5 -4.5z" fill="#0a140f"/>
+            <rect x="0" y="470" width="800" height="50" fill="#0b1510" opacity=".7"/>
+          </svg>
+        </div>
         <button class="ghost lang" onclick="toggleLang('start')">${t('langBtn')}</button>
         <div class="hero-in">
-          <span class="ball">⚽</span>
-          <h1>${t('appTitle')}</h1>
+          <div class="title-block">
+            <span class="ball">⚽</span>
+            <h1>${t('appTitle')}</h1>
+            <p class="tagline">${t('tagline')}</p>
+          </div>
           <div class="menu">
             ${S ? `<button class="primary" onclick="go('hub')"><span class="ic">▶</span>${t('continueGame')}</button>` : ''}
             <button class="${S ? '' : 'primary'}" onclick="go('pick')"><span class="ic">🏟️</span>${t('newGame')}</button>
             <button onclick="go('load')"><span class="ic">💾</span>${t('load')}</button>
+            <button onclick="go('settings')"><span class="ic">⚙️</span>${t('settings')}</button>
+            <button onclick="go('help')"><span class="ic">❓</span>${t('help')}</button>
           </div>
         </div>
       </section>`;
   },
 
+  custom(el) {
+    const cols = ['#2e8b3e', '#d62828', '#14316b', '#f2c500', '#111111', '#f2f2f2', '#8fd3ff', '#f28c28'];
+    el.innerHTML = `<h2>${t('clubBuilder')}</h2>
+      <section class="card">
+        <label class="field"><span>${t('clubName')}</span><input type="text" id="cName" maxlength="24" value="ФК Степь" oninput="previewClub()"></label>
+        <label class="field"><span>${t('clubCity')}</span><input type="text" id="cCity" maxlength="20" value="Степь"></label>
+        <label class="field"><span>${t('shirtColor')}</span><input type="color" id="cShirt" value="#2e8b3e" oninput="previewClub()"></label>
+        <div class="swatches">${cols.map(c => `<button style="background:${c}" onclick="setSwatch('cShirt','${c}')" aria-label="${c}"></button>`).join('')}</div>
+        <label class="field"><span>${t('shortsColor')}</span><input type="color" id="cShorts" value="#f2f2f2" oninput="previewClub()"></label>
+        <label class="field"><span>${t('clubLevel')}</span>
+          <select id="cLevel" onchange="previewClub()">
+            <option value="low">${t('levelLow')}</option>
+            <option value="mid" selected>${t('levelMid')}</option>
+            <option value="high">${t('levelHigh')}</option>
+          </select></label>
+        <div id="cPrev"></div>
+        <p class="hint" style="margin-top:14px">${t('clubHint')}</p>
+      </section>
+      <button class="big" onclick="createCustomClub()">${t('clubStart')}</button>
+      <button class="ghost big" onclick="go('pick')">${t('back')}</button>`;
+    previewClub();
+  },
+
+  settings(el) {
+    el.innerHTML = `<h2>${t('settings')}</h2>
+      <div class="opts">
+        <button class="big" onclick="toggleLang('settings')">${t('langBtn')}</button>
+        <button class="big" onclick="toggleControls()">${t('ctlLabel')}: ${ctlSide() === 'left' ? t('ctlLeft') : t('ctlRight')}</button>
+        ${S ? `<button class="big" onclick="go('save')">💾 ${t('saveGame')}</button>` : ''}
+        <button class="big danger" onclick="resetAll()">${t('resetAll')}</button>
+        <button class="ghost big" onclick="go('${S ? 'hub' : 'start'}')">${t('back')}</button>
+      </div>`;
+  },
+
+  help(el) {
+    el.innerHTML = `<h2>${t('helpTitle')}</h2>
+      <section class="card help"><p>${t('helpText')}</p></section>
+      <button class="ghost big" onclick="go('${S ? 'hub' : 'start'}')">${t('back')}</button>`;
+  },
+
   pick(el) {
-    el.innerHTML = `<h2>${t('chooseClub')}</h2>` + CLUBS.map((c, i) => {
+    el.innerHTML = `<h2>${t('chooseClub')}</h2><button class="big" onclick="go('custom')">✏️ ${t('createClub')}</button>` + CLUBS.map((c, i) => {
       const sq = makeSquad(c, i);
       const ovr = Math.round(sq.reduce((a, p) => a + p.ovr, 0) / sq.length);
       return `<button class="card" style="--c:${c.color}" onclick="newGame(${i})"><b>${nm(c)}</b><small>${c.city[L()]} · ${t('ovr')} ${ovr}</small></button>`;
@@ -1741,7 +1886,7 @@ const VIEWS = {
     const un = unreadCount();
     el.innerHTML = `
       ${msg ? `<p class="hint">${msg}</p>` : ''}
-      <section class="card" style="--c:${me.color}">
+      <section class="card club-banner" style="--c:${me.color}">
         <h2 style="margin:0">${nm(me)}</h2>
         <small>${me.city[L()]} · ${t('day')} ${S.day}</small>
         <p>${t('budget')}: <b>${money(S.budget)}</b> · ${t('rating')}: <b>${squadOvr(me.id)}</b> · PR: <b>${Math.round(S.pr)}</b></p>
@@ -1765,7 +1910,10 @@ const VIEWS = {
         <i></i>
         <button onclick="go('mail')"><span class="ic">✉️</span>${t('mail')}${un ? ` (${un})` : ''}</button>
       </nav>
-      <button class="ghost" onclick="go('start')">${t('exit')}</button>`;
+      <div class="opts" style="grid-template-columns:1fr 1fr;margin-top:14px">
+        <button class="ghost" onclick="go('settings')">⚙️ ${t('settings')}</button>
+        <button class="ghost" onclick="go('start')">${t('exit')}</button>
+      </div>`;
   },
 
   squad(el) {
@@ -1843,6 +1991,55 @@ function go(view) {
   VIEWS[view]($('#view'));
 }
 
+// раскладка управления в матче: left / right, хранится на устройстве
+const ctlSide = () => { try { return localStorage.getItem('steppe-ctl') === 'left' ? 'left' : 'right'; } catch (e) { return 'right'; } };
+function applyControls() { document.body.classList.toggle('ctl-left', ctlSide() === 'left'); }
+function toggleControls() {
+  try { localStorage.setItem('steppe-ctl', ctlSide() === 'left' ? 'right' : 'left'); } catch (e) {}
+  applyControls();
+  go('settings');
+}
+
+// свой клуб: превью формы и создание клуба на месте последнего клуба лиги
+const CLUB_LEVELS = { low: 62, mid: 70, high: 78 };
+function clubPreviewHTML(name, shirt, shorts) {
+  return `<div class="club-preview">${portraitHTML({ skin: '#e0b48a', hair: '#2b1d12', top: shirt, shorts })}
+    <div><b>${name}</b><br><small>${shirt} · ${shorts}</small></div></div>`;
+}
+function previewClub() {
+  const name = (document.getElementById('cName').value || '').trim().slice(0, 24) || 'Мой клуб';
+  const shirt = document.getElementById('cShirt').value, shorts = document.getElementById('cShorts').value;
+  const box = document.getElementById('cPrev');
+  box.innerHTML = clubPreviewHTML(name, shirt, shorts);
+  drawPortraits(box);
+}
+function createCustomClub() {
+  const name = (document.getElementById('cName').value || '').trim().slice(0, 24) || 'Мой клуб';
+  const city = (document.getElementById('cCity').value || '').trim().slice(0, 20) || 'Степь';
+  const lvl = CLUB_LEVELS[document.getElementById('cLevel').value] || CLUB_LEVELS.mid;
+  CLUBS[CLUBS.length - 1] = {
+    id: 'custom', name: { ru: name, kz: name }, city: { ru: city, kz: city },
+    color: document.getElementById('cShirt').value, shorts: document.getElementById('cShorts').value,
+    ovr: lvl, pr: 50
+  };
+  newGame(CLUBS.length - 1);
+}
+
+function setSwatch(id, color) {
+  document.getElementById(id).value = color;
+  previewClub();
+}
+
+function resetAll() {
+  if (!confirm(t('resetConfirm'))) return;
+  try {
+    Object.keys(localStorage).filter(k => k.startsWith('steppe-') && k !== 'steppe-lang')
+      .forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
+  S = null;
+  go('start');
+}
+
 function toggleLang(view) {
   localStorage.setItem('steppe-lang', L() === 'ru' ? 'kz' : 'ru');
   go(view);
@@ -1899,9 +2096,12 @@ document.addEventListener('keydown', e => {
 
 // ===== Старт =====
 S = load();
+// свой клуб из сохранения возвращаем на его место в лиге
+if (S && S.customClub) CLUBS[CLUBS.length - 1] = S.customClub;
 // старые сохранения без нового клуба и новых полей: добавляем недостающее
 migrate();
 if (!S) { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+applyControls();
 go(S ? 'hub' : 'start');
 
 </script>
@@ -3157,6 +3357,32 @@ const Match = (() => {
   } };
 })();
 
+</script>
+<style id="gm-style">
+#gm-wrap{position:fixed;top:8px;right:8px;z-index:2000;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+body:has(.m-screen) #gm-wrap{display:none}
+header.top{padding-right:104px !important}
+#gm-btn{position:relative;background:#fffdf6;color:#1d2a22;border:2px solid #1d2a22;border-radius:12px;padding:7px 14px;
+  font:700 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 3px 0 #1d2a22;margin:0}
+#gm-btn:hover,#gm-btn[aria-expanded="true"]{background:#f4efe2}
+#gm-panel{position:absolute;right:0;top:calc(100% + 8px);min-width:250px;background:#fffdf6;border:2px solid #1d2a22;border-radius:16px;padding:10px;box-shadow:0 4px 0 #1d2a22}
+#gm-panel[hidden]{display:none}
+#gm-panel .t{font:800 13px system-ui,sans-serif;letter-spacing:2px;color:#1d2a22;padding:2px 6px 8px;border-bottom:2px dashed rgba(29,42,34,.25);margin-bottom:6px}
+#gm-panel a,#gm-panel .cur{display:block;padding:10px 12px;border-radius:10px;color:#1d2a22;text-decoration:none;font:700 16px system-ui,sans-serif;background:transparent}
+#gm-panel a:hover{background:#f4efe2}
+#gm-panel .cur{background:#e3a73c;border:2px solid #1d2a22}
+#gm-panel small{display:block;font:400 12px system-ui,sans-serif;color:#56655b;margin-top:2px}
+#gm-panel .cur small{color:#1d2a22}
+</style>
+<div id="gm-wrap"><button id="gm-btn" type="button" aria-expanded="false" aria-controls="gm-panel">Меню</button><div id="gm-panel" hidden><div class="t">ИГРЫ</div><a href="./">Главная<small>сайт игры</small></a><span class="cur">Steppe Manager<small>футбольный менеджер</small></span><a href="zona.html">Зона<small>экшен по уровням</small></a></div></div>
+<script>
+(function () {
+  var b = document.getElementById('gm-btn'), p = document.getElementById('gm-panel');
+  function setOpen(o) { p.hidden = !o; b.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+  b.addEventListener('click', function (e) { e.stopPropagation(); setOpen(p.hidden); });
+  document.addEventListener('click', function (e) { if (!p.contains(e.target) && e.target !== b) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+})();
 </script>
 </body>
 </html>
