@@ -209,7 +209,7 @@ const T = {
   ru: {
     appTitle: 'Степная лига', newGame: 'Новая игра', continueGame: 'Продолжить',
     tagline: 'Футбольный менеджер и аркада', settings: 'Настройки', help: 'Справка', helpTitle: 'Как играть',
-    createClub: 'Свой клуб', clubBuilder: 'Свой клуб', clubName: 'Название клуба', clubCity: 'Город',
+    createClub: 'Свой клуб', deleteClub: 'Удалить свой клуб', deleteClubSure: 'Ещё раз: удалить свой клуб и текущую карьеру', clubBuilder: 'Свой клуб', clubName: 'Название клуба', clubCity: 'Город',
     shirtColor: 'Цвет футболки', shortsColor: 'Цвет шорт', clubLevel: 'Уровень состава',
     levelLow: 'Начальный (сила ~62)', levelMid: 'Средний (сила ~70)', levelHigh: 'Сильный (сила ~78)',
     clubHint: 'Состав сгенерируется случайно по выбранному уровню. Ваш клуб займёт место последнего клуба в лиге.',
@@ -280,7 +280,7 @@ const T = {
   kz: {
     appTitle: 'Дала лигасы', newGame: 'Жаңа ойын', continueGame: 'Жалғастыру',
     tagline: 'Футбол менеджері және аркада', settings: 'Баптаулар', help: 'Анықтама', helpTitle: 'Қалай ойнау керек',
-    createClub: 'Өз клубым', clubBuilder: 'Өз клубым', clubName: 'Клуб атауы', clubCity: 'Қала',
+    createClub: 'Өз клубым', deleteClub: 'Өз клубымды жою', deleteClubSure: 'Тағы басыңыз: өз клубты және ағымдағы карьераны жою', clubBuilder: 'Өз клубым', clubName: 'Клуб атауы', clubCity: 'Қала',
     shirtColor: 'Футболка түсі', shortsColor: 'Шорт түсі', clubLevel: 'Құрам деңгейі',
     levelLow: 'Бастапқы (күші ~62)', levelMid: 'Орташа (күші ~70)', levelHigh: 'Күшті (күші ~78)',
     clubHint: 'Құрам таңдалған деңгей бойынша кездейсоқ жасалады. Сіздің клубыңыз лигадағы соңғы клубтың орнын алады.',
@@ -361,12 +361,14 @@ const CLUBS = [
   { id: 'kostanay', div: 1,  name: { ru: 'ФК Костанай', kz: 'ФК Қостанай' }, city: { ru: 'Костанай', kz: 'Қостанай' }, color: '#1d7a3a', shorts: '#f2f2f2', ovr: 72, pr: 40 },
   { id: 'ugolshchiki', div: 1, name: { ru: 'ФК Угольщики', kz: 'ФК Көміршілер' }, city: { ru: 'Караганда', kz: 'Қарағанды' }, color: '#f28c28', shorts: '#111111', ovr: 72, pr: 45 },
   { id: 'aktobinsk', div: 1, name: { ru: 'ФК Красный Мяч Запад', kz: 'ФК Қызыл Доп Батыс' }, city: { ru: 'Актобе', kz: 'Ақтөбе' }, color: '#d62828', shorts: '#f2f2f2', ovr: 72, pr: 45 },
+  { id: 'tumar', div: 2, name: { ru: 'ФК Тумар', kz: 'ФК Тұмар' }, city: { ru: 'Астана', kz: 'Астана' }, color: '#b7e35a', shorts: '#000000', ovr: 72, pr: 48 },
   // ===== Первая лига =====
   { id: 'kyzylorda', div: 2, name: { ru: 'ФК Красные Волки', kz: 'ФК Қызыл Бөрілер' }, city: { ru: 'Кызылорда', kz: 'Қызылорда' }, color: '#1a1a1a', shorts: '#d62828', ovr: 72, pr: 35 },
   { id: 'yuzhny', div: 2, name: { ru: 'ФК Южный Ветер', kz: 'ФК Оңтүстік Жел' }, city: { ru: 'Шымкент', kz: 'Шымкент' }, color: '#7b3fb0', shorts: '#f2f2f2', ovr: 71, pr: 48 },
   { id: 'aktauzy', div: 2, name: { ru: 'ФК Актауцы', kz: 'ФК Ақтаулықтар' }, city: { ru: 'Актау', kz: 'Ақтау' }, color: '#ffd21f', shorts: '#0a2a8a', ovr: 71, pr: 42 },
   { id: 'semeitsy', div: 2, name: { ru: 'ФК Семейцы', kz: 'ФК Семейліктер' }, city: { ru: 'Семей', kz: 'Семей' }, color: '#c2185b', shorts: '#f2f2f2', ovr: 70, pr: 46 },
   { id: 'chaiki', div: 2, name: { ru: 'ФК Каспийские Чайки', kz: 'ФК Каспий Шағалалары' }, city: { ru: 'Атырау', kz: 'Атырау' }, color: '#1e88e5', shorts: '#f2f2f2', ovr: 69, pr: 42 },
+  { id: 'baikonurtsy', div: 3, name: { ru: 'ФК Байконурцы', kz: 'ФК Байқоңырлықтар' }, city: { ru: 'Байконур', kz: 'Байқоңыр' }, color: '#0b2a6f', shorts: '#0b2a6f', ovr: 58, pr: 35 },
   // ===== Вторая лига =====
   { id: 'yamyshev', div: 3, name: { ru: 'ФК Ямышев', kz: 'ФК Ямышев' }, city: { ru: 'Ямышев', kz: 'Ямышев' }, color: '#14316b', shorts: '#f2f2f2', ovr: 68, pr: 50 },
   { id: 'irtysh', div: 3, name: { ru: 'ФК Соколы Иртыша', kz: 'ФК Ертіс Сұңқарлары' }, city: { ru: 'Павлодар', kz: 'Павлодар' }, color: '#19a7a0', shorts: '#0b3d3a', ovr: 67, pr: 44 },
@@ -625,7 +627,7 @@ const randName = () => pick(FIRST) + ' ' + pick(LAST);
 function addBrother(sq, club) {
   const p = { id: 'altynbekov-7', num: 7, name: 'Нурасыл Алтынбеков', pos: 'FW',
               pace: 82, shot: 73, pass: 62, def: 43, ovr: 74, mor: 70, hp: 100, inj: 0,
-              look: { skin: '#d8a878', hair: '#111111', color: club.color, shorts: club.shorts, afro: true } };
+              look: { skin: '#d8a878', hair: '#111111', color: club.color, shorts: club.shorts, hs: 'curly_crop', afro: false } };
   sq.splice(11, 0, p);   // первый запасной
   return sq;
 }
@@ -1609,7 +1611,7 @@ const finNote = s => flashView('finance', s);
 // фигурка игрока для карточек и списков: цвет формы передаётся явно (клуба или свободного агента)
 function figHTML(p, color, shorts) {
   const l = lookOf(p);
-  return `<canvas class="fig" width="16" height="24" data-c="${color}" data-s="${shorts}" data-n="${p.num}" data-skin="${l.skin}" data-hair="${l.hair}" data-afro="${l.afro ? 1 : ''}"></canvas>`;
+  return `<canvas class="fig" width="16" height="24" data-c="${color}" data-s="${shorts}" data-n="${p.num}" data-skin="${l.skin}" data-hair="${l.hair}" data-afro="${l.afro ? 1 : ''}" data-hs="${l.hs || ''}"></canvas>`;
 }
 
 // заготовки головы по амплуа: цвета волос и причёска (стили сохраняются у игрока)
@@ -1868,13 +1870,20 @@ function drawPortraits(root) {
     const r = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
     g.clearRect(0, 0, 16, 16);
     g.imageSmoothingEnabled = false;
-    if (L.afro) { r(3, 0, 10, 2, L.hair); r(2, 2, 12, 7, L.hair); }   // афро за головой
+    const hs = L.hs || (L.afro ? 'afro' : 'short'), HC = hs === 'bald' ? L.skin : L.hair;
+    if (hs === 'afro') { r(3, 0, 10, 2, HC); r(2, 2, 12, 7, HC); }     // афро за головой
+    if (hs === 'long') { r(2, 3, 2, 10, HC); r(12, 3, 2, 10, HC); }    // длинные волосы по бокам
+    if (hs === 'braids') { r(3, 6, 1, 8, HC); r(12, 6, 1, 8, HC); }    // косички
     const f = L.gender === 'f';
-    if (f) r(3, 3, 10, 9, L.hair);                              // длинные волосы сзади
-    r(5, 3, 6, 7, L.skin); r(4, 4, 8, 5, L.skin);               // лицо (без черт)
-    r(4, 2, 8, 2, L.hair);                                      // волосы сверху
-    if (!f) { r(4, 4, 1, 2, L.hair); r(11, 4, 1, 2, L.hair); }  // короткие виски
-    r(6, 10, 4, 1, dkHex(L.skin));                              // шея
+    if (f && hs !== 'bald' && hs !== 'braids') r(3, 3, 10, 9, HC);     // волосы сзади
+    r(5, 3, 6, 7, L.skin); r(4, 4, 8, 5, L.skin);                      // лицо (без черт)
+    r(4, 2, 8, 2, HC);                                                 // волосы сверху
+    if (!f && !['bald', 'buzz', 'mohawk', 'curly_crop'].includes(hs)) { r(4, 4, 1, 2, HC); r(11, 4, 1, 2, HC); } // короткие виски
+    const PO = PORT_HAIR_OV[hs];
+    if (PO) PO.forEach((row, i) => [...row].forEach((ch, x) => { if (ch === '.') return;
+      r(x, i, 1, 1, ch === 'h' ? HC : ch === 'H' ? lighten(HC) : ch === 'd' ? dkHex(HC) : L.skin); }));
+    if (hs === 'dreads') { for (let y = 4; y <= 14; y++) { const c = y % 3 === 0 ? dkHex(HC) : HC; r(2, y, 2, 1, c); r(12, y, 2, 1, c); } }
+    if (L.hijab) { r(3, 1, 10, 2, L.hijab); r(3, 3, 2, 8, L.hijab); r(11, 3, 2, 8, L.hijab); r(5, 9, 6, 2, L.hijab); } // хиджаб
     r(2, 11, 12, 5, L.top); r(1, 12, 1, 3, L.top); r(14, 12, 1, 3, L.top);   // плечи и рукава
     if (L.style === 'coat') { r(7, 11, 2, 5, '#d0d0d0'); r(6, 11, 1, 3, '#bdbdbd'); r(9, 11, 1, 3, '#bdbdbd'); }
     if (L.style === 'tracksuit') { r(8, 11, 1, 5, '#e8e8e8'); r(1, 12, 1, 3, dkHex(L.top)); r(14, 12, 1, 3, dkHex(L.top)); }
@@ -2113,6 +2122,7 @@ const VIEWS = {
         <button class="big" onclick="toggleLang('settings')">${t('langBtn')}</button>
         <button class="big" onclick="toggleControls()">${t('ctlLabel')}: ${ctlSide() === 'left' ? t('ctlLeft') : t('ctlRight')}</button>
         ${S ? `<button class="big" onclick="go('save')">💾 ${t('saveGame')}</button>` : ''}
+        ${CLUBS[CLUBS.length - 1].id === 'custom' ? `<button class="big danger" onclick="deleteCustomClub(this)">🗑️ ${t('deleteClub')}</button>` : ''}
         <button class="big danger" onclick="resetAll()">${t('resetAll')}</button>
         <button class="ghost big" onclick="go('${S ? 'hub' : 'start'}')">${t('back')}</button>
       </div>`;
@@ -2125,7 +2135,7 @@ const VIEWS = {
   },
 
   pick(el) {
-    el.innerHTML = `<h2>${t('chooseClub')}</h2><button class="big" onclick="go('custom')">✏️ ${t('createClub')}</button>` + CLUBS.map((c, i) => {
+    el.innerHTML = `<h2>${t('chooseClub')}</h2><button class="big" onclick="go('custom')">✏️ ${t('createClub')}</button>${CLUBS[CLUBS.length - 1].id === 'custom' ? `<button class="big danger" onclick="deleteCustomClub(this)">🗑️ ${t('deleteClub')}</button>` : ''}` + CLUBS.map((c, i) => {
       const sq = makeSquad(c, i);
       const ovr = Math.round(sq.reduce((a, p) => a + p.ovr, 0) / sq.length);
       return `<button class="card" style="--c:${c.color}" onclick="newGame(${i})"><b>${nm(c)}</b><small>${c.city[L()]} · ${t('div' + (c.div || 3))} · ${t('ovr')} ${ovr}</small></button>`;
@@ -2297,6 +2307,16 @@ function createCustomClub() {
   newGame(CLUBS.length - 1);
 }
 
+// удалить свой клуб: на его место в лиге возвращается оригинальный клуб, текущая карьера сбрасывается
+// без системного окна confirm(): первое нажатие просит подтверждение, второе удаляет
+function deleteCustomClub(btn) {
+  if (btn && btn.dataset.armed !== '1') { btn.dataset.armed = '1'; btn.innerText = '⚠️ ' + t('deleteClubSure'); return; }
+  CLUBS[CLUBS.length - 1] = { ...ORIG_LAST_CLUB };
+  S = null;
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  go('pick');
+}
+
 function setSwatch(id, color) {
   document.getElementById(id).value = color;
   previewClub();
@@ -2373,8 +2393,18 @@ document.addEventListener('keydown', e => {
 // символы: o — контур; h/H/d — волосы (основной, блик, тень); s/S — кожа и тень;
 // k/K/L — футболка (основной, тень, свет); w/W — шорты; e — пояс; b/B — бутсы (основной, блик)
 const SPR_W = 16, SPR_H = 24, FOOT_Y = 23;
-const SKINS = ['#f1c7a5', '#e0ac84', '#c68a5e', '#a86d43', '#7d4e2c', '#5a3720'];
-const HAIRS = ['#2a1d12', '#4a3020', '#111111', '#8b5a2b', '#c9a46a', '#9a9a9a'];
+// внешность: [значение, название ru, название kz]
+const SKIN_OPTS = [['#f6d2b3', 'Светлый', 'Ашық'], ['#e0ac84', 'Загорелый', 'Күнге күйген'], ['#c68a5e', 'Смуглый', 'Бидай'], ['#8d5a36', 'Коричневый', 'Қоңыр'], ['#5a3720', 'Тёмный', 'Қара қоңыр']];
+const HAIR_OPTS = [['#e6c46a', 'Блонд', 'Сары'], ['#b5552b', 'Рыжий', 'Қызыл'], ['#8b5a2b', 'Русый', 'Қоңыр'], ['#4a3020', 'Шатен', 'Шатен'], ['#111111', 'Чёрный', 'Қара'], ['#c9c9c9', 'Седой', 'Ақ']];
+const MALE_STYLES = [['short', 'Короткая', 'Қысқа'], ['buzz', 'Ёжик', 'Кірпі'], ['mohawk', 'Ирокез', 'Ирокез'], ['bun', 'Самурайский пучок', 'Самурай түйіні'],
+  ['curly_crop', 'Кудрявые вверх', 'Жоғары жимырлы'], ['dreads', 'Дреды', 'Дреадтар'], ['afro', 'Афро', 'Афро'], ['bald', 'Лысый', 'Таз']];
+const FEMALE_STYLES = [['short', 'Короткая', 'Қысқа'], ['long', 'Длинная', 'Ұзын'], ['bun', 'Пучок', 'Түйін'], ['braids', 'Косички', 'Өрім'], ['afro', 'Афро', 'Афро'], ['bald', 'Лысый', 'Таз']];
+const HAIR_STYLES = MALE_STYLES;
+const SKINS = SKIN_OPTS.map(x => x[0]);
+const HAIRS = HAIR_OPTS.map(x => x[0]);
+const GENDER_OPTS = [['m', 'Мужчина', 'Ер адам'], ['f', 'Женщина', 'Әйел']];
+const HIJAB_OPTS = [['', 'Без хиджаба', 'Хиджабсыз'], ['#111111', 'Чёрный', 'Қара'], ['#f2f2f2', 'Белый', 'Ақ'], ['#14316b', 'Тёмно-синий', 'Күрең көк'], ['#7a1f1f', 'Бордовый', 'Бордо'], ['#2e7d32', 'Зелёный', 'Жасыл']];
+const TRACK_OPTS = [['#1f4fa3', 'Синяя', 'Көк'], ['#2e7d32', 'Зелёная', 'Жасыл'], ['#37474f', 'Серая', 'Сұр'], ['#7a1f1f', 'Бордовая', 'Бордо'], ['#2b2b2b', 'Чёрная', 'Қара']];
 const KIT_COLORS = ['#c62828', '#1565c0', '#2e7d32', '#f9a825', '#ffffff', '#6a1b9a', '#00838f', '#ef6c00', '#37474f', '#ad1457'];
 const SHORTS_COLORS = ['#ffffff', '#111111', '#1b5e20', '#0d47a1', '#f9a825', '#bdbdbd'];
 const pickOf = a => a[Math.floor(Math.random() * a.length)];
@@ -2452,24 +2482,51 @@ function buildSprite(frame) {
   return out;
 }
 
+// оверлеи причёсок для спрайта игрока (16×6 пикселей, строки — верх головы)
+const SPR_HAIR_OV = {
+  buzz: ['................', '................', '....hdhhhdhh....', '...hhhhhhhhhh...', '...ssssssssss...', '................'],
+  mohawk: ['.......hh.......', '......hhhh......', '......hHHh......', '...sssshhhhsss..', '...ssssssssss...', '................'],
+  bun: ['.......HH.......', '......hhhhh.....', '....hhHhhhhhhh..', '...hhhhhhhhhh...', '...ssssssssss...', '................'],
+  curly_crop: ['.......hHhH......', '......hHhdhH....', '.....hHhdhHhd....', '...hhdhhHhhdhh..', '................', '................'],
+  dreads: ['................', '......hhhh......', '....hhhhhhhh....', '...hhhhhhhhhh...', '................', '................']
+};
+// оверлеи для портрета штата/тренера (16×4)
+const PORT_HAIR_OV = {
+  buzz: ['................', '................', '....hdhhhdhh....', '....hhhhhhhh....'],
+  mohawk: ['.......hh.......', '......hhhh......', '......hHHh......', '....sshhhhss....'],
+  bun: ['.......HH.......', '......hhhhhh....', '....hhhhhhhh....', '................'],
+  curly_crop: ['......hHhH......', '....hHhdhHhd....', '...hhdhhHhhdhh..', '................'],
+  dreads: ['................', '......hhhh......', '....hhhhhhhh....', '....hhhhhhhh....']
+};
 function getSprite(color, num, lying, skin, frame, shorts, hair, afro) {
   const f = lying ? 'stand' : (frame || 'stand');
-  const hr = hair || HAIRS[0];
-  const key = [color, num, lying ? 'L' : 'S', skin, f, shorts, hr, afro ? 'A' : ''].join('|');
+  const hr = hair || HAIRS[2];
+  const hs = typeof afro === 'string' ? afro : (afro ? 'afro' : 'short');
+  const key = [color, num, lying ? 'L' : 'S', skin, f, shorts, hr, hs].join('|');
   if (spriteCache[key]) return spriteCache[key];
   const grid = buildSprite(f);
   const sh = shorts || '#f2f2f2';
-  const pal = { o: '#111111', h: hr, H: lighten(hr), d: shade(hr), s: skin, S: shade(skin),
+  const hrp = hs === 'bald' ? skin : hr;
+  const pal = { o: '#111111', h: hrp, H: lighten(hrp), d: shade(hrp), s: skin, S: shade(skin),
                 k: color, K: shade(color), L: lighten(color), w: sh, W: shade(sh), e: '#4a3626',
                 b: '#1a1a1a', B: '#3a3a3a' };
   const cv = document.createElement('canvas');
   cv.width = SPR_W; cv.height = SPR_H;
   const g = cv.getContext('2d');
-  if (afro) { g.fillStyle = hr; g.fillRect(3, 0, 10, 2); g.fillRect(2, 2, 12, 7); }   // афро: объём за головой
+  g.fillStyle = hr;
+  if (hs === 'afro') { g.fillRect(3, 0, 10, 2); g.fillRect(2, 2, 12, 7); }   // афро: объём за головой
+  if (hs === 'long') { g.fillRect(2, 3, 2, 11); g.fillRect(12, 3, 2, 11); }  // длинные волосы по бокам
+  if (hs === 'braids') { g.fillRect(2, 5, 1, 10); g.fillRect(13, 5, 1, 10); } // косички
+  if (hs === 'bun') g.fillRect(7, 0, 2, 2);                                  // пучок сверху
+  if (hs === 'dreads') for (let y = 3; y <= 18; y++) { g.fillStyle = y % 3 === 0 ? shade(hr) : hr; g.fillRect(2, y, 2, 1); g.fillRect(12, y, 2, 1); } // дреды до спины
   grid.forEach((row, y) => [...row].forEach((ch, x) => {
     if (ch === ' ') return;
     g.fillStyle = pal[ch]; g.fillRect(x, y, 1, 1);
   }));
+  // причёски поверх головы: строки 16 пикселей (h — волосы, H — блик, d — тень, s — кожа, . — как было)
+  const OV = SPR_HAIR_OV[hs];
+  if (OV) OV.forEach((row, i) => [...row].forEach((ch, x) => { if (ch !== '.') { g.fillStyle = pal[ch]; g.fillRect(x, i, 1, 1); } }));
+
   // номер на футболке
   g.fillStyle = lum(color) > .5 ? '#111111' : '#ffffff'; g.font = '5px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText(String(num), 8, 12);
@@ -2563,7 +2620,7 @@ function getCrowdSprite(look, frame, o, flip) {
 function drawFigs(root) {
   root.querySelectorAll('canvas.fig').forEach(cv => {
     const n = +cv.dataset.n, skin = cv.dataset.skin || SKINS[n % SKINS.length], hair = cv.dataset.hair || HAIRS[0];
-    const spr = getSprite(cv.dataset.c, n, false, skin, 'stand', cv.dataset.s, hair, cv.dataset.afro === '1');
+    const spr = getSprite(cv.dataset.c, n, false, skin, 'stand', cv.dataset.s, hair, cv.dataset.hs || (cv.dataset.afro === '1' ? 'afro' : 'short'));
     const g = cv.getContext('2d');
     g.clearRect(0, 0, cv.width, cv.height);
     g.imageSmoothingEnabled = false;
@@ -2705,7 +2762,7 @@ const Match = (() => {
                pace: st('pace'), shot: st('shot'), def: st('def'), side, bx, by, x: bx, y: by,
                ax: side === 0 ? 1 : -1, ay: 0, down: 0, slide: 0, hit: false, diveY: by,
                kickT: 0, px: bx, py: by, spd: 0,
-               skin: lookOf(p).skin, hair: lookOf(p).hair, afro: !!lookOf(p).afro };
+               skin: lookOf(p).skin, hair: lookOf(p).hair, afro: !!lookOf(p).afro, hs: lookOf(p).hs || (lookOf(p).afro ? 'afro' : 'short') };
     });
   }
 
@@ -3506,7 +3563,7 @@ const Match = (() => {
       else if (p.spd > 35) frame = (performance.now() / 110 | 0) % 2 ? 'run2' : 'run1';
       else if (p.spd > 8) frame = (performance.now() / 220 | 0) % 2 ? 'walk2' : 'walk';
     }
-    const spr = getSprite(color, p.num, lying, p.skin, frame, shorts, p.hair, !!p.afro);
+    const spr = getSprite(color, p.num, lying, p.skin, frame, shorts, p.hair, p.hs || !!p.afro);
     let topY;
     c.imageSmoothingEnabled = false;                      // игроки остаются пиксельными
     if (lying) {
@@ -3714,6 +3771,7 @@ VIEWS.coachNew = el => {
     <section class="card"><label class="field"><span>${tc('Имя тренера', 'Бапкер аты')}</span>
       <input type="text" id="coachName" maxlength="24" value="${tc('Тренер', 'Бапкер')}"></label>
       <p class="hint">${tc('Начинаешь с малой репутацией: клубы предложат контракт, зарплата растёт с успехом. Не выполнишь цель сезона — уволят.', 'Беделің аз болып бастайсың: клубтар келісімшарт ұсынады. Маусым мақсатын орындамасаң — жұмыстан шығарады.')}</p></section>
+    <button class="ghost big" onclick="go('coachLook')">🎨 ${tc('Внешность тренера', 'Бапкер сыртқы түрі')}</button>
     <button class="big" onclick="coachCreate()">${tc('Создать тренера', 'Бапкер жасау')}</button>
     <button class="ghost big" onclick="go('start')">${t('back')}</button>`;
 };
@@ -3756,7 +3814,7 @@ function coachJoin(id) {
   if (!S || S.mode !== 'coach') {
     const d = COACH_DRAFT; COACH_DRAFT = null;
     newGame(i);
-    S.mode = 'coach'; S.coach = { name: d.name, rep: d.rep, cash: 0, salary: 0, goal: 3, fired: false };
+    S.mode = 'coach'; S.coach = { name: d.name, rep: d.rep, cash: 0, salary: 0, goal: 3, fired: false, look: coachLookOf() };
     S.mail = [];
   } else {
     const old = S.me;
@@ -3778,6 +3836,7 @@ VIEWS.coach = el => {
       <p>${tc('Зарплата', 'Жалақы')}: <b>${money(co.salary)}</b> ${t('perWeek')}</p>
       <p>${tc('Накоплено', 'Жиналған')}: <b>${money(co.cash)}</b></p>
       <p>${tc('Цель сезона', 'Маусым мақсаты')}: ${tc('место не ниже', 'орын кемінде')} <b>${co.goal}</b> · ${tc('сейчас', 'қазір')} <b>${place}</b></p></section>
+    <button class="ghost big" onclick="go('coachLook')">🎨 ${tc('Внешность тренера', 'Бапкер сыртқы түрі')}</button>
     <button class="ghost big" onclick="coachQuit()">${tc('Расторгнуть контракт', 'Келісімшартты бұзу')}</button>
     <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
 };
@@ -4003,9 +4062,12 @@ function heroJoin() {
 // ===== Старт (после всех модулей, чтобы экраны и быстрый матч уже были объявлены) =====
 S = load();
 // свой клуб из сохранения возвращаем на его место в лиге
+const ORIG_LAST_CLUB = { ...CLUBS[CLUBS.length - 1] };
 if (S && S.customClub) CLUBS[CLUBS.length - 1] = S.customClub;
 // старые сохранения без нового клуба и новых полей: добавляем недостающее
 migrate();
+// Нурасыл (ФК Столичный): кудри вверх, в том числе в уже сохранённых играх
+if (S) Object.values(S.squads || {}).forEach(sq => sq.forEach(p => { if (p.id === 'altynbekov-7' && p.look) { p.look.hs = 'curly_crop'; p.look.afro = false; } }));
 if (!S) { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
 applyControls();
 go(S ? 'hub' : 'start');
@@ -4021,29 +4083,28 @@ const CS_BG = {
   sun: 'linear-gradient(#ffd08a,#f29a4a)', dark: 'linear-gradient(#1a1a1a,#3a1212)'
 };
 // внешность героя: полная фигура (тот же спрайт, что на поле)
-function heroLookOf() { return (S && S.hero && S.hero.look) || { skin: SKINS[1], hair: HAIRS[0], afro: false }; }
+function heroLookOf() { return (S && S.hero && S.hero.look) || { skin: SKINS[1], hair: HAIRS[2], hs: 'short' }; }
 function cfigHTML(look, num, scale) {
-  const spr = getSprite(look.color, num, false, look.skin, 'stand', look.shorts, look.hair, !!look.afro);
-  return `<img class="vn-fig" alt="" src="${spr.toDataURL()}">`;
+  const spr = getSprite(look.color, num, false, look.skin, 'stand', look.shorts, look.hair, look.hs || !!look.afro);
+  const st = scale ? ` style="width:${16 * scale}px;height:${24 * scale}px;image-rendering:pixelated"` : '';
+  return `<img class="vn-fig" alt=""${st} src="${spr.toDataURL()}">`;
 }
+function lookOpts(arr, val) { return arr.map(([v, ru, kz]) => `<option value="${v}" ${v === val ? 'selected' : ''}>${tc(ru, kz)}</option>`).join(''); }
 function lookFormHTML(look) {
-  const cur = { skin: look.skin, hair: look.hair, afro: !!look.afro };
-  return `<label class="field"><span>${tc('Цвет кожи', 'Тері түсі')}</span><select id="lkSkin" onchange="lookPreview()">${SKINS.map((c, i) =>
-      `<option value="${c}" ${c === cur.skin ? 'selected' : ''}>${tc('Оттенок', 'Реңк')} ${i + 1}</option>`).join('')}</select></label>
-    <label class="field"><span>${tc('Цвет волос', 'Шаш түсі')}</span><select id="lkHair" onchange="lookPreview()">${HAIRS.map((c, i) =>
-      `<option value="${c}" ${c === cur.hair ? 'selected' : ''}>${tc('Цвет', 'Түс')} ${i + 1}</option>`).join('')}</select></label>
-    <label class="field"><span>${tc('Причёска', 'Шаш пішімі')}</span><select id="lkStyle" onchange="lookPreview()">
-      <option value="short" ${cur.afro ? '' : 'selected'}>${tc('Короткая', 'Қысқа')}</option>
-      <option value="afro" ${cur.afro ? 'selected' : ''}>${tc('Афро', 'Афро')}</option></select></label>
-    <div id="lkPrev" style="text-align:center">${lookPreviewHTML(cur)}</div>`;
+  const hs = look.hs || (look.afro ? 'afro' : 'short');
+  return `<div id="lkPrev" style="text-align:center;margin:4px 0 14px">${lookPreviewHTML({ skin: look.skin, hair: look.hair, hs })}</div>
+    <label class="field"><span>${tc('Цвет кожи', 'Тері түсі')}</span><select id="lkSkin" onchange="lookPreview()">${lookOpts(SKIN_OPTS, look.skin)}</select></label>
+    <label class="field"><span>${tc('Цвет волос', 'Шаш түсі')}</span><select id="lkHair" onchange="lookPreview()">${lookOpts(HAIR_OPTS, look.hair)}</select></label>
+    <label class="field"><span>${tc('Причёска', 'Шаш пішімі')}</span><select id="lkStyle" onchange="lookPreview()">${lookOpts(HAIR_STYLES, hs)}</select></label>
+`;
 }
 function lookRead() {
   const v = id => document.getElementById(id)?.value;
-  return { skin: v('lkSkin') || SKINS[1], hair: v('lkHair') || HAIRS[0], afro: v('lkStyle') === 'afro' };
+  return { skin: v('lkSkin') || SKIN_OPTS[1][0], hair: v('lkHair') || HAIR_OPTS[2][0], hs: v('lkStyle') || 'short' };
 }
 function lookPreviewHTML(l) {
   const c = S && S.me ? CLUBS.find(x => x.id === S.me) : null;
-  return cfigHTML({ ...l, color: c ? c.color : '#2e8b3e', shorts: c ? c.shorts : '#111111' }, 10, 5);
+  return cfigHTML({ ...l, color: c ? c.color : '#2e8b3e', shorts: c ? c.shorts : '#111111' }, 10, 8);
 }
 function lookPreview() { const el = document.getElementById('lkPrev'); if (el) el.innerHTML = lookPreviewHTML(lookRead()); }
 function heroSyncLook() {
@@ -4084,7 +4145,7 @@ VIEWS.scene = el => {
   const s = SCENE.steps[SCENE.i], last = SCENE.i + 1 >= SCENE.steps.length;
   const chars = (s.cast || []).map(k => {
     const on = !s.sp || s.sp === k;
-    const body = k === 'hero' ? cfigHTML(castLook('hero'), 10, 0) : portraitHTML(SCENE.looks[k]);
+    const body = k === 'hero' ? cfigHTML(castLook('hero'), 10, 0) : k === 'cme' ? portraitHTML(coachLookOf()) : portraitHTML(SCENE.looks[k]);
     return `<div class="vn-char ${on ? 'on' : 'off'}">${body}</div>`;
   }).join('');
   el.innerHTML = `<style>
@@ -4161,29 +4222,88 @@ function contractSteps() {
 }
 
 // --- тренер
+// облик тренера: один на всю карьеру (пиксельный бюст, как у штата)
+let COACH_LOOK = null;
+function coachLookOf() {
+  if (S && S.coach) { if (!S.coach.look) S.coach.look = COACH_LOOK || (COACH_LOOK = staffLook('coach')); return S.coach.look; }
+  return COACH_LOOK || (COACH_LOOK = staffLook('coach'));
+}
+// редактор внешности тренера: пол, хиджаб (для женщин), цвет и причёска, цвет спортивки
+function coachStyleOpts(gender) {
+  return gender === 'f' ? FEMALE_STYLES : MALE_STYLES;
+}
+function coachLookRead() {
+  const v = id => document.getElementById(id)?.value;
+  const g = v('ckGender') || 'm';
+  return { gender: g, skin: v('ckSkin') || SKIN_OPTS[1][0], hair: v('ckHair') || HAIR_OPTS[2][0], hs: v('ckStyle') || 'short',
+    hijab: g === 'f' ? (v('ckHijab') || '') : '', top: v('ckTop') || TRACK_OPTS[0][0], style: 'tracksuit' };
+}
+function coachLookFormHTML(l) {
+  const styles = coachStyleOpts(l.gender);
+  const hs = styles.some(x => x[0] === l.hs) ? l.hs : 'short';
+  return `<style>#ckWrap canvas.portrait{width:128px;height:128px;image-rendering:pixelated}</style>
+    <div style="text-align:center">${portraitHTML({ ...l, hs })}</div>
+    <label class="field"><span>${tc('Пол', 'Жынысы')}</span><select id="ckGender" onchange="coachLookChange()">${lookOpts(GENDER_OPTS, l.gender)}</select></label>
+    <label class="field"><span>${tc('Цвет кожи', 'Тері түсі')}</span><select id="ckSkin" onchange="coachLookChange()">${lookOpts(SKIN_OPTS, l.skin)}</select></label>
+    <label class="field"><span>${tc('Цвет волос', 'Шаш түсі')}</span><select id="ckHair" onchange="coachLookChange()">${lookOpts(HAIR_OPTS, l.hair)}</select></label>
+    <label class="field"><span>${tc('Причёска', 'Шаш пішімі')}</span><select id="ckStyle" onchange="coachLookChange()">${lookOpts(styles, hs)}</select></label>
+    ${l.gender === 'f' ? `<label class="field"><span>${tc('Хиджаб', 'Хиджаб')}</span><select id="ckHijab" onchange="coachLookChange()">${lookOpts(HIJAB_OPTS, l.hijab || '')}</select></label>` : ''}
+    <label class="field"><span>${tc('Цвет спортивки', 'Спорт костюмнің түсі')}</span><select id="ckTop" onchange="coachLookChange()">${lookOpts(TRACK_OPTS, l.top)}</select></label>`;
+}
+function coachLookChange() {
+  const w = document.getElementById('ckWrap');
+  if (!w) return;
+  w.innerHTML = coachLookFormHTML(coachLookRead());
+  drawPortraits(w);
+}
+VIEWS.coachLook = el => {
+  el.innerHTML = `<h2>🎨 ${tc('Внешность тренера', 'Бапкер сыртқы түрі')}</h2>
+    <section class="card" id="ckWrap">${coachLookFormHTML(coachLookOf())}</section>
+    <button class="big" onclick="coachLookSave()">${tc('Сохранить', 'Сақтау')}</button>
+    <button class="ghost big" onclick="coachLookBack()">${t('back')}</button>`;
+  drawPortraits(el);
+};
+function coachLookSave() {
+  const l = coachLookRead();
+  if (S && S.coach) { S.coach.look = l; save(); return go('coach'); }
+  COACH_LOOK = l; go('coachNew');
+}
+function coachLookBack() { go(S && S.mode === 'coach' ? 'coach' : (S ? 'hub' : 'coachNew')); }
+
 function coachIntroSteps() {
   return [
-    { bg: 'night', icon: '🧢', text: tc('Ты тренер без клуба. Репутация низкая, но клубы уже интересуются.', 'Сен клубсыз бапкерсің. Бедел төмен, бірақ клубтар қызығушылық танытып жатыр.') },
-    { bg: 'office', icon: '📞', who: tc('Агент', 'Агент'), text: tc('Есть предложения. Выбирай клуб или договаривайся сам.', 'Ұсыныстар бар. Клуб таңда немесе өзің келіс.') }
+    { bg: 'night', cap: tc('Ночь. Без клуба', 'Түн. Клубсыз'), cast: ['cme'], sp: 'cme', who: tc('Тренер', 'Бапкер'),
+      text: tc('Ты тренер без клуба. Репутация низкая, но клубы уже интересуются.', 'Сен клубсыз бапкерсің. Бедел төмен, бірақ клубтар қызығушылық танытып жатыр.') },
+    { bg: 'office', cap: tc('Телефон', 'Телефон'), cast: ['agent', 'cme'], sp: 'agent', who: tc('Агент', 'Агент'),
+      text: tc('Есть предложения. Выбирай клуб или договаривайся сам.', 'Ұсыныстар бар. Клуб таңда немесе өзің келіс.') }
   ];
 }
 function coachArriveSteps(c) {
   return [
-    { bg: 'stadium', icon: '🏟️', text: tc(`Ты приехал в ${c.name.ru}. Поле, трибуны и новая команда.`, `${c.name.kz} клубына келдің. Алаң, трибуналар және жаңа команда.`) },
-    { bg: 'office', icon: '💼', who: tc('Директор', 'Директор'), text: tc('Штатом и наймом занимается директор. Твоя задача — команда на поле.', 'Штатпен және жалдаумен директор айналысады. Сенің міндетің — команда алаңда.') },
-    { bg: 'field', icon: '📋', text: tc('Тактику, покупки и продажи решаешь сам.', 'Тактиканы, сатып алу мен сатуды өзің шешесің.') }
+    { bg: 'stadium', cap: nm(c), cast: ['cme'], sp: 'cme', who: tc('Тренер', 'Бапкер'),
+      text: tc(`Ты приехал в ${c.name.ru}. Поле, трибуны и новая команда.`, `${c.name.kz} клубына келдің. Алаң, трибуналар және жаңа команда.`) },
+    { bg: 'office', cap: tc('Кабинет директора', 'Директор кабинеті'), cast: ['ceo', 'cme'], sp: 'ceo', who: tc('Директор', 'Директор'),
+      text: tc('Штатом и наймом занимается директор. Твоя задача — команда на поле.', 'Штатпен және жалдаумен директор айналысады. Сенің міндетің — команда алаңда.') },
+    { bg: 'field', cap: tc('Поле', 'Алаң'), cast: ['cme'], sp: 'cme', who: tc('Тренер', 'Бапкер'),
+      text: tc('Тактику, покупки и продажи решаешь сам.', 'Тактиканы, сатып алу мен сатуды өзің шешесің.') }
   ];
 }
 function firedSteps() {
-  return { bg: 'dark', icon: '📄', who: tc('Директор', 'Директор'), text: tc('Цель сезона не выполнена. Контракт расторгнут.', 'Маусым мақсаты орындалмады. Келісімшарт бұзылды.') };
+  return { bg: 'dark', cap: tc('Увольнение', 'Босату'), cast: ['ceo', 'cme'], sp: 'ceo', who: tc('Директор', 'Директор'),
+    text: tc('Цель сезона не выполнена. Контракт расторгнут.', 'Маусым мақсаты орындалмады. Келісімшарт бұзылды.') };
 }
 
 // --- конец сезона (общая часть для игрока и тренера)
 function seasonSteps(done, myCup, kind, extra) {
-  const steps = [{ bg: 'sun', icon: '🏁', text: tc(`Сезон ${done} завершён.`, `${done}-маусым аяқталды.`) }];
-  if (myCup) steps.push({ bg: 'sun', icon: '🏆', text: tc('Кубок чемпиона у вашего клуба! Команда празднует на поле.', 'Чемпион кубогы сіздің клубта! Команда алаңда мереке жасайды.') });
-  if (kind === 'up') steps.push({ bg: 'field', icon: '⬆️', text: tc('Клуб поднялся в дивизион выше. Новые соперники ждут.', 'Клуб жоғары дивизионға көтерілді. Жаңа қарсыластар күтеді.') });
-  if (kind === 'down') steps.push({ bg: 'dark', icon: '⬇️', text: tc('Клуб вылетел. Теперь задача — вернуться.', 'Клуб түсіп кетті. Енді міндет — қайту.') });
+  const me = S && S.mode === 'coach' ? 'cme' : 'hero';
+  const steps = [{ bg: 'sun', cap: tc(`Сезон ${done} завершён`, `${done}-маусым аяқталды`), cast: [me], sp: me,
+    text: tc('Сезон окончен. Подводим итоги.', 'Маусым аяқталды. Қорытынды шығарамыз.') }];
+  if (myCup) steps.push({ bg: 'sun', cap: tc('Кубок', 'Кубок'), cast: [me], sp: me,
+    text: tc('Кубок чемпиона у вашего клуба! Команда празднует на поле.', 'Чемпион кубогы сіздің клубта! Команда алаңда мереке жасайды.') });
+  if (kind === 'up') steps.push({ bg: 'field', cap: tc('Повышение', 'Көтерілу'), cast: [me], sp: me,
+    text: tc('Клуб поднялся в дивизион выше. Новые соперники ждут.', 'Клуб жоғары дивизионға көтерілді. Жаңа қарсыластар күтеді.') });
+  if (kind === 'down') steps.push({ bg: 'dark', cap: tc('Вылет', 'Төмендеу'), cast: [me], sp: me,
+    text: tc('Клуб вылетел. Теперь задача — вернуться.', 'Клуб түсіп кетті. Енді міндет — қайту.') });
   return steps.concat(extra || []);
 }
 </script>
