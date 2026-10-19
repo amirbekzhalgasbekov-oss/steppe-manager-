@@ -1,0 +1,27 @@
+{
+  "name": "Neon Cube",
+  "short_name": "Neon Cube",
+  "description": "Neon rhythm runner: 9 levels, one tap to jump",
+  "start_url": "Neon_Cube.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#05050d",
+  "theme_color": "#05050d",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "neon-cube-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "neon-cube-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "neon-cube"
+}

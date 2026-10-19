@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Neon Cube — неоновый ритм-раннер: девять уровней, шипы, платформы и монеты. Один тап — один прыжок. Играйте в браузере.">
+<title>Neon Cube</title>
+<link rel="manifest" href="neon-cube.webmanifest">
+<link rel="icon" href="neon-cube-icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="neon-cube-apple-touch-icon.png">
+<meta name="theme-color" content="#05050d">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700;800&display=swap">
+<style>
+  :root { --cyan:#00f0ff; --pink:#ff2bd6; --gold:#ffd23f; --bg:#05050d; --card:#0b0b1c; --line:#1b1b3a; --text:#cfd3ff; --muted:#8087b8; color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 400 16px/1.6 Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    overflow-x: hidden;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding-block: 24px 40px; }
+  h1, h2, h3 { font-family: Unbounded, Manrope, system-ui, sans-serif; line-height: 1.2; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  .label { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--pink); }
+  .title {
+    font-size: clamp(44px, 13vw, 104px); line-height: 1; font-weight: 800; margin-top: 12px;
+    background: linear-gradient(90deg, var(--cyan), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 22px rgba(0,240,255,.35));
+  }
+  .lead { color: var(--text); margin-top: 16px; max-width: 38em; font-size: 17px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 200px;
+    padding: 14px 24px; border: 2px solid var(--cyan); border-radius: 12px; color: var(--cyan);
+    font: 800 15px/1 Manrope, sans-serif; letter-spacing: .06em; text-transform: uppercase; text-decoration: none;
+    background: transparent; cursor: pointer; transition: background .15s, box-shadow .15s;
+  }
+  .btn:hover, .btn:focus-visible { background: rgba(0,240,255,.12); box-shadow: 0 0 18px rgba(0,240,255,.35); outline: none; }
+  .btn.solid { background: var(--cyan); color: var(--bg); }
+  .btn.solid:hover, .btn.solid:focus-visible { background: #7af6ff; }
+
+  .scene { margin-top: 32px; border: 2px solid var(--line); border-radius: 18px; overflow: hidden; background: #080814; box-shadow: 0 0 40px rgba(0,240,255,.12); }
+  .scene svg { display: block; width: 100%; height: auto; }
+
+  section { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--line); }
+  section > h2 { font-size: clamp(22px, 5.5vw, 30px); color: #fff; }
+  .sub { color: var(--muted); margin-top: 10px; max-width: 40em; }
+  .grid { display: grid; gap: 14px; margin-top: 22px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { .grid.three { grid-template-columns: repeat(3, 1fr); } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; min-width: 0; }
+  .card h3 { font-size: 15px; color: var(--cyan); display: flex; gap: 10px; align-items: baseline; }
+  .card h3 .k { color: var(--pink); font-size: 12px; }
+  .card p { color: var(--muted); margin-top: 8px; font-size: 15px; }
+
+  .levels { display: grid; gap: 10px; margin-top: 22px; grid-template-columns: repeat(3, 1fr); }
+  .lv {
+    --h: 180; border: 2px solid hsl(var(--h) 100% 60% / .55); border-radius: 14px; padding: 12px 10px; text-align: center;
+    background: hsl(var(--h) 100% 60% / .07); box-shadow: inset 0 0 18px hsl(var(--h) 100% 60% / .08);
+  }
+  .lv b { display: block; font: 800 28px/1 Unbounded, sans-serif; color: hsl(var(--h) 100% 65%); text-shadow: 0 0 14px hsl(var(--h) 100% 60% / .7); }
+  .lv span { display: block; margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .tiers { display: grid; gap: 10px; margin-top: 18px; }
+  .tiers div { border-left: 3px solid var(--pink); padding: 4px 12px; font-size: 15px; }
+  .tiers b { color: #fff; }
+  .tiers span { color: var(--muted); }
+
+  .steps { list-style: none; counter-reset: s; display: grid; gap: 10px; margin-top: 18px; }
+  .steps li { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .steps li::before { counter-increment: s; content: '0' counter(s) ' · '; color: var(--pink); font-weight: 800; }
+  .install-note { display: none; margin-top: 14px; font-size: 14px; color: var(--muted); max-width: 38em; }
+  .install-note.on { display: block; }
+  #install[hidden] { display: none; }
+  kbd { font: 700 13px Manrope, sans-serif; border: 1px solid var(--muted); border-bottom-width: 3px; border-radius: 6px; padding: 1px 7px; color: #fff; }
+  .foot { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="label">Ритм-раннер // браузер</span>
+    <h1 class="title">NEON CUBE</h1>
+    <p class="lead">Неоновый куб бежит вперёд сам, а вы решаете только одно: когда прыгнуть. Шипы, платформы и монеты на девяти уровнях, которые становятся всё плотнее. Одно касание — и всё сначала.</p>
+    <div class="cta">
+      <a class="btn solid" href="Neon_Cube.html">▶ Играть</a>
+      <button class="btn" id="install" type="button" hidden>⬇ Установить приложение</button>
+      <a class="btn" href="index.html">Steppe Manager</a>
+    </div>
+    <p class="install-note" id="ios-note">На iPhone: нажмите «Поделиться» в Safari и выберите «На экран «Домой»».</p>
+  </header>
+
+  <div class="scene" role="img" aria-label="Неоновый куб прыгает через шипы и платформы">
+    <svg viewBox="0 0 960 300" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#00f0ff" stop-opacity="0"/><stop offset=".5" stop-color="#00f0ff"/><stop offset="1" stop-color="#ff2bd6"/></linearGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <rect width="960" height="300" fill="#080814"/>
+      <g stroke="#14143a" stroke-width="1">
+        <path d="M0 60H960M0 120H960M0 180H960M120 0V300M240 0V300M360 0V300M480 0V300M600 0V300M720 0V300M840 0V300"/>
+      </g>
+      <rect y="240" width="960" height="60" fill="#0b0b22"/>
+      <line x1="0" y1="240" x2="960" y2="240" stroke="url(#gl)" stroke-width="3" filter="url(#glow)"/>
+      <g fill="none" stroke="#ff2bd6" stroke-width="3" filter="url(#glow)" stroke-linejoin="round">
+        <path d="M520 240l20-40 20 40z"/>
+        <path d="M720 240l20-40 20 40zM760 240l20-40 20 40z"/>
+      </g>
+      <g fill="#0b0b22" stroke="#00f0ff" stroke-width="3" filter="url(#glow)">
+        <rect x="610" y="200" width="80" height="40"/>
+        <rect x="860" y="200" width="80" height="40"/>
+      </g>
+      <g fill="#ffd23f" filter="url(#glow)">
+        <circle cx="400" cy="130" r="9"/><circle cx="650" cy="150" r="9"/><circle cx="820" cy="215" r="9"/>
+      </g>
+      <g transform="rotate(-24 300 150)" filter="url(#glow)">
+        <rect x="280" y="130" width="40" height="40" fill="#0b0b22" stroke="#00f0ff" stroke-width="3"/>
+        <rect x="290" y="140" width="20" height="20" fill="#00f0ff" opacity=".35"/>
+      </g>
+      <g stroke="#00f0ff" stroke-width="2" opacity=".35"><path d="M60 150h140M20 170h120M90 130h90"/></g>
+    </svg>
+  </div>
+
+  <section id="features">
+    <h2>Что внутри</h2>
+    <div class="grid three">
+      <article class="card">
+        <h3><span class="k">01</span>Одна кнопка</h3>
+        <p>Пробел, клик или тап по экрану. Зажали — куб прыгает, как только коснётся земли или платформы.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">02</span>Девять уровней</h3>
+        <p>Уровни собираются заново по номеру, поэтому каждый всегда выглядит одинаково и его можно выучить. Чем выше номер, тем он длиннее.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">03</span>Платформы</h3>
+        <p>Блоки можно использовать как опору: приземлитесь сверху. Врезались сбоку — уровень начинается заново.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">04</span>Монеты</h3>
+        <p>На каждом уровне разбросаны монеты. Соберите все ради рекорда, который показывается на карточке уровня.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">05</span>Рекорды</h3>
+        <p>Лучший процент прохождения и число монет сохраняются в вашем браузере для каждого уровня.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">06</span>Везде</h3>
+        <p>Работает на телефоне и компьютере. Картинка сама подстраивается под размер экрана.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="levels">
+    <h2>Девять уровней</h2>
+    <p class="sub">Каждый уровень светится своим цветом.</p>
+    <div class="levels">
+      <div class="lv" style="--h:182"><b>1</b><span>разогрев</span></div>
+      <div class="lv" style="--h:204"><b>2</b><span>разогрев</span></div>
+      <div class="lv" style="--h:226"><b>3</b><span>разогрев</span></div>
+      <div class="lv" style="--h:248"><b>4</b><span>связки</span></div>
+      <div class="lv" style="--h:270"><b>5</b><span>связки</span></div>
+      <div class="lv" style="--h:292"><b>6</b><span>связки</span></div>
+      <div class="lv" style="--h:314"><b>7</b><span>цепочки</span></div>
+      <div class="lv" style="--h:336"><b>8</b><span>цепочки</span></div>
+      <div class="lv" style="--h:358"><b>9</b><span>финал</span></div>
+    </div>
+    <div class="tiers">
+      <div><b>1–3</b> <span>— редкие шипы и невысокие блоки, чтобы привыкнуть к прыжку.</span></div>
+      <div><b>4–6</b> <span>— шипы группами, блоки рядом с шипами, связки из нескольких прыжков.</span></div>
+      <div><b>7–9</b> <span>— короткие платформы, ямы с шипами и цепочки прыжков подряд.</span></div>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2>Как начать</h2>
+    <ol class="steps">
+      <li>Нажмите «Играть» и выберите уровень: тапом по карточке или цифрой <kbd>1</kbd>–<kbd>9</kbd>.</li>
+      <li>Прыгайте через шипы по пробелу, клику или тапу. На компьютере в меню выбирать уровень можно и стрелками.</li>
+      <li>Доберитесь до конца уровня и откройте следующий. Кнопка MENU и клавиша <kbd>Esc</kbd> возвращают к выбору уровней.</li>
+      <li>Хотите как приложение? Нажмите «Установить приложение»: значок появится на экране, а игра будет открываться без интернета после первого запуска.</li>
+    </ol>
+    <div class="cta">
+      <a class="btn solid" href="Neon_Cube.html">▶ Играть в браузере</a>
+    </div>
+  </section>
+
+  <footer class="foot">© Neon Cube · играйте в браузере на телефоне и компьютере</footer>
+
+</div>
+
+<style id="gm-style">
+#gm-wrap{position:fixed;top:8px;right:8px;z-index:2000;font-family:Manrope,system-ui,sans-serif}
+#gm-btn{background:#05050d;color:#00f0ff;border:1px solid #00f0ff;border-radius:10px;padding:8px 14px;font:800 13px Manrope,sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin:0}
+#gm-btn:hover,#gm-btn[aria-expanded="true"]{background:#0b0b22}
+#gm-panel{position:absolute;right:0;top:calc(100% + 8px);min-width:250px;background:#05050d;border:1px solid #00f0ff;border-radius:12px;padding:12px 0 8px;overflow:hidden;color:#cfd3ff;box-shadow:0 0 24px rgba(0,240,255,.2)}
+#gm-panel[hidden]{display:none}
+#gm-panel .t{font:800 14px Unbounded,sans-serif;letter-spacing:.2em;padding:0 16px 10px;margin-bottom:6px;border-bottom:1px solid #1b1b3a;color:#fff}
+#gm-panel a,#gm-panel .cur{display:block;padding:10px 16px;color:#cfd3ff;text-decoration:none;font-size:14px;font-weight:700}
+#gm-panel a:hover{background:rgba(0,240,255,.12)}
+#gm-panel .cur{background:#00f0ff;color:#05050d;margin:4px 12px;padding:10px 12px;border-radius:8px}
+#gm-panel small{display:block;font-size:11px;font-weight:400;opacity:.7;margin-top:2px}
+</style>
+<div id="gm-wrap"><button id="gm-btn" type="button" aria-expanded="false" aria-controls="gm-panel">Меню</button><div id="gm-panel" hidden><div class="t">ИГРЫ</div><a href="./">Steppe Manager<small>футбольный менеджер</small></a><a href="zona.html">Зона<small>экшен по уровням</small></a><span class="cur">Neon Cube<small>о игре</small></span><a href="Neon_Cube.html">Играть в Neon Cube<small>ритм-раннер</small></a></div></div>
+<script>
+(function () {
+  var b = document.getElementById('gm-btn'), p = document.getElementById('gm-panel');
+  function setOpen(o) { p.hidden = !o; b.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+  b.addEventListener('click', function (e) { e.stopPropagation(); setOpen(p.hidden); });
+  document.addEventListener('click', function (e) { if (!p.contains(e.target) && e.target !== b) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+})();
+</script>
+<script>
+(function () {
+  var ins = document.getElementById('install'), note = document.getElementById('ios-note'), ev = null;
+  var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+    addEventListener('load', function () { navigator.serviceWorker.register('neon-cube-sw.js', { scope: './neon-cube' }).catch(function () {}); });
+  }
+  if (standalone) return;
+  addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; ins.hidden = false; });
+  ins.addEventListener('click', function () {
+    if (!ev) return;
+    ev.prompt();
+    ev.userChoice.then(function () { ev = null; ins.hidden = true; });
+  });
+  addEventListener('appinstalled', function () { ins.hidden = true; });
+  var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios) note.classList.add('on');
+})();
+</script>
+</body>
+</html>
