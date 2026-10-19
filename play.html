@@ -689,8 +689,18 @@ function makeSchoolSquad(club) {
              look: { skin: '#fbe3cf', hair: '#1a1a1a', color: club.color, shorts: club.shorts, afro: false } };
   return sq;
 }
+// ФК Байконурцы: Амантуров Бағдаулет — основной вратарь (№1), OVR 70
+function addAmanturov(sq, club) {
+  const p = { id: 'amanturov-1', num: 1, name: 'Амантуров Бағдаулет', pos: 'GK',
+              pace: 52, shot: 64, pass: 58, def: 78, ovr: 70, mor: 70, hp: 100, inj: 0,
+              look: { ...lookOf({ pos: 'GK' }), color: club.color, shorts: club.shorts } };
+  const i = sq.findIndex(q => q.pos === 'GK');
+  if (i >= 0) sq[i] = p; else sq.unshift(p);
+  return sq;
+}
 function makeSquad(club, idx) {
   const sq = makeSquadBase(club, idx);
+  if (club.id === 'baikonurtsy') return addAmanturov(sq, club);
   return club.id === 'stolichny' ? addBrother(sq, club) : sq;
 }
 function makeSquadBase(club, idx) {
@@ -1791,6 +1801,9 @@ function migrate() {
   if (!S.brotherAdded && S.squads.stolichny && !S.squads.stolichny.some(p => p.id === 'altynbekov-7')) {
     addBrother(S.squads.stolichny, CLUBS.find(c => c.id === 'stolichny'));
     S.brotherAdded = true;
+  }
+  if (S.squads.baikonurtsy && !S.squads.baikonurtsy.some(p => p.id === 'amanturov-1')) {
+    addAmanturov(S.squads.baikonurtsy, CLUBS.find(c => c.id === 'baikonurtsy'));
   }
   // дивизионы: в старых сохранениях их не было, начинаем новый сезон с лигами (составы и касса сохраняются)
   const cc = CLUBS.find(c => c.id === 'custom');
