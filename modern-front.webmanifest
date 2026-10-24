@@ -1,0 +1,17 @@
+{
+  "name": "Modern Front",
+  "short_name": "Modern Front",
+  "description": "Стратегия о современных конфликтах: быстрый бой, настраиваемый матч и кампании",
+  "id": "modern-front",
+  "start_url": "modern-front-game.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#10150f",
+  "theme_color": "#10150f",
+  "lang": "ru",
+  "icons": [
+    { "src": "modern-front-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "modern-front-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

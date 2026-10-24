@@ -238,6 +238,11 @@ body.ctl-left .m-auto-btn{left:auto;right:96px}
 .swatches button{width:34px;height:34px;padding:0;margin:0;border-radius:50%;border:2px solid rgba(242,239,230,.5)}
 .club-preview{display:flex;align-items:center;gap:14px;margin-top:18px;padding:14px;border-radius:14px;background:rgba(11,21,16,.7);border:1px solid rgba(242,239,230,.2)}
 .club-preview canvas.portrait{width:96px;height:96px;image-rendering:pixelated;background:#14301f;border-radius:10px}
+.achv-list{display:grid;gap:8px;margin-top:12px}
+.achv{display:flex;gap:12px;align-items:center;opacity:.45;margin:0}
+.achv.on{opacity:1;border-left-color:#e0b000}
+.achv .ic{font-size:24px;flex:none;width:34px;text-align:center}
+.achv b{display:block}.achv small{color:#9fb8a6}
 </style>
 </head>
 <body>
@@ -2245,6 +2250,7 @@ const VIEWS = {
         <button onclick="go('table')"><span class="ic">🏆</span>${t('table')}</button>
         <button onclick="go('stadium')"><span class="ic">🏟️</span>${t('stadium')}</button>
         ${S.mode === 'coach' ? `<button onclick="go('coach')"><span class="ic">🧢</span>${tc('Тренер', 'Бапкер')}</button>` : `<button onclick="go('finance')"><span class="ic">💰</span>${t('finance')}</button>`}
+        <button onclick="go('achv')"><span class="ic">🎖️</span>${tc('Достижения', 'Жетістіктер')}</button>
         <button onclick="go('save')"><span class="ic">💾</span>${t('save')}</button>
         <button onclick="train()"><span class="ic">🏋️</span>${(staffLvl('coach') || S.mode === 'coach') ? t('trainFree') : t('train')}</button>
         <button onclick="go('friendly')"><span class="ic">🤝</span>${t('friendly')}</button>
@@ -5221,6 +5227,25 @@ function seasonSteps(done, myCup, kind, extra) {
     text: tc('Клуб вылетел. Теперь задача — вернуться.', 'Клуб түсіп кетті. Енді міндет — қайту.') });
   return steps.concat(extra || []);
 }
+
+VIEWS.achv = el => {
+  const me = CLUBS[myIdx()];
+  const ovr = squadOvr(me.id), titles = (S.trophies || []).filter(x => x.id === me.id).length;
+  const list = [
+    { ok: titles >= 1, ic: '🏆', ru: 'Первый титул', kz: 'Алғашқы титул', d: 'Выиграть чемпионат', dk: 'Чемпионатты жеңу' },
+    { ok: titles >= 3, ic: '👑', ru: 'Династия', kz: 'Әулет', d: 'Выиграть чемпионат 3 раза', dk: 'Чемпионатты 3 рет жеңу' },
+    { ok: (S.season || 1) >= 2, ic: '📅', ru: 'Второй сезон', kz: 'Екінші маусым', d: 'Дойти до второго сезона', dk: 'Екінші маусымға жету' },
+    { ok: (S.day || 0) >= 100, ic: '⏳', ru: 'Сто дней у руля', kz: 'Жүз күн басқару', d: 'Провести 100 игровых дней', dk: '100 ойын күнін өткізу' },
+    { ok: ovr >= 70, ic: '💪', ru: 'Сильный состав', kz: 'Күшті құрам', d: 'Рейтинг состава 70 и выше', dk: 'Құрам рейтингі 70 және жоғары' },
+    { ok: ovr >= 80, ic: '⭐', ru: 'Элита', kz: 'Элита', d: 'Рейтинг состава 80 и выше', dk: 'Құрам рейтингі 80 және жоғары' },
+    { ok: Math.round(S.pr || 0) >= 80, ic: '📣', ru: 'Уважение', kz: 'Құрмет', d: 'Репутация (PR) 80 и выше', dk: 'Беделі (PR) 80 және жоғары' },
+  ];
+  const done = list.filter(a => a.ok).length;
+  el.innerHTML = `<h2>${tc('Достижения', 'Жетістіктер')}: ${nm(me)}</h2>
+    <p class="hint">${done} / ${list.length}</p>
+    <div class="achv-list">${list.map(a => `<div class="card achv ${a.ok ? 'on' : ''}"><span class="ic">${a.ok ? a.ic : '🔒'}</span><div><b>${tc(a.ru, a.kz)}</b><small>${tc(a.d, a.dk)}</small></div></div>`).join('')}</div>
+    <button class="ghost big" onclick="go('hub')">${t('back')}</button>`;
+};
 </script>
 </body>
 </html>

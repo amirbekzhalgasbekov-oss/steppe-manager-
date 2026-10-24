@@ -220,7 +220,7 @@
   var ins = document.getElementById('install'), note = document.getElementById('ios-note'), ev = null;
   var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
-    addEventListener('load', function () { navigator.serviceWorker.register('neon-cube-sw.js', { scope: './neon-cube' }).catch(function () {}); });
+    addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
   }
   if (standalone) return;
   addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; ins.hidden = false; });

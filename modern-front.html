@@ -6,6 +6,11 @@
 <meta name="description" content="Modern Front — стратегия о современных конфликтах: быстрый бой, настраиваемый матч и кампании за шесть стран. Играйте в браузере.">
 <title>Modern Front</title>
 <meta name="theme-color" content="#10150f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Modern Front">
+<link rel="manifest" href="modern-front.webmanifest">
+<link rel="icon" href="modern-front-icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="modern-front-apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Manrope:wght@400;600;700;800&display=swap">
 <style>
@@ -130,7 +135,9 @@
     <div class="cta">
       <a class="btn solid" href="modern-front-game.html">▶ Играть в браузере</a>
       <a class="btn" href="#modes">Режимы игры</a>
+      <button class="btn" id="install" type="button" hidden>⬇ Установить приложение</button>
     </div>
+    <p class="hint" style="margin-top:12px;font-size:14px;color:var(--muted)">Установка добавляет значок на экран. Игра открывается без интернета после первого запуска. На iPhone: «Поделиться» → «На экран «Домой»».</p>
   </header>
 
   <figure class="shot">
@@ -215,6 +222,25 @@
   b.addEventListener('click', function (e) { e.stopPropagation(); setOpen(p.hidden); });
   document.addEventListener('click', function (e) { if (!p.contains(e.target) && e.target !== b) setOpen(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+})();
+</script>
+<script>
+(function () {
+  var ins = document.getElementById('install'), ev = null;
+  var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+    addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+  if (standalone) return;
+  function show() { ins.hidden = false; ins.style.display = ''; }
+  function hide() { ins.hidden = true; ins.style.display = 'none'; }
+  addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; show(); });
+  ins.addEventListener('click', function () {
+    if (!ev) return;
+    ev.prompt();
+    ev.userChoice.then(function () { ev = null; hide(); });
+  });
+  addEventListener('appinstalled', hide);
 })();
 </script>
 </body>

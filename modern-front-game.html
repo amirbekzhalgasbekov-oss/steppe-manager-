@@ -70,7 +70,12 @@ button.on{background:linear-gradient(#55905a,#2a5a2c);border-color:#b5e0a4;color
 #ub,#pb{max-height:38vh;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #main-menu{overflow-y:auto;touch-action:pan-y;justify-content:safe center}
 #msg{touch-action:pan-y}
-</style></head><body><div id="w">
+</style><meta name="theme-color" content="#10150f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Modern Front">
+<link rel="manifest" href="modern-front.webmanifest">
+<link rel="apple-touch-icon" href="modern-front-apple-touch-icon.png">
+</head><body><div id="w">
 
 <!-- Главное Меню -->
 <div id="main-menu">
@@ -79,6 +84,7 @@ button.on{background:linear-gradient(#55905a,#2a5a2c);border-color:#b5e0a4;color
   <button class="mm-btn" id="btn-load-game">Загрузить</button>
   <button class="mm-btn" id="btn-dev">Режим разработчика: выкл</button>
   <button class="mm-btn" onclick="location.href='index.html'">На главную</button>
+  <button class="mm-btn" id="installMF" style="display:none">⬇ Установить приложение</button>
 </div>
 
 <div id="play" style="display:none;position:absolute;inset:0;z-index:10;background:radial-gradient(circle at center,#2c3e2b 0%,#10150f 100%);flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;overflow:auto">
@@ -2124,4 +2130,23 @@ let last=performance.now();
 /* Метки миссии (например, выход из лагеря) поверх карты */
 const _drawMarks=draw;draw=function(){_drawMarks();if(mission&&mission.markers){for(const m of mission.markers){const q=P(m.x,m.y);g.save();g.strokeStyle='#ffd23f';g.lineWidth=3;g.setLineDash([6,4]);g.beginPath();g.arc(q[0],q[1],20,0,7);g.stroke();g.setLineDash([]);g.fillStyle='#ffd23f';g.font='bold 12px sans-serif';g.textAlign='center';g.fillText(m.label,q[0],q[1]-26);g.restore()}}};
 (function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(started){if(!paused)update(dt);draw()}requestAnimationFrame(loop)})(last);
-</script></body></html>
+</script><script>
+(function () {
+  var ins = document.getElementById('installMF'), ev = null;
+  var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+    addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+  if (standalone) return;
+  function show() { ins.hidden = false; ins.style.display = ''; }
+  function hide() { ins.hidden = true; ins.style.display = 'none'; }
+  addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; show(); });
+  ins.addEventListener('click', function () {
+    if (!ev) return;
+    ev.prompt();
+    ev.userChoice.then(function () { ev = null; hide(); });
+  });
+  addEventListener('appinstalled', hide);
+})();
+</script>
+</body></html>

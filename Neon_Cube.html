@@ -18,6 +18,7 @@ canvas{display:block;background:#080814;box-shadow:0 0 40px rgba(0,255,255,.15)}
 </head>
 <body>
 <canvas id="c" width="960" height="540"></canvas>
+<button id="install" type="button" hidden style="position:fixed;right:8px;bottom:8px;z-index:50;background:#05050d;color:#00f0ff;border:1px solid #00f0ff;border-radius:8px;padding:6px 10px;font:700 12px Manrope,sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">⬇ Установить</button>
 <script>
 (function(){
 const cv=document.getElementById('c'),ctx=cv.getContext('2d');
@@ -287,7 +288,26 @@ requestAnimationFrame(loop);
 })();
 </script>
 <script>
-if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){addEventListener('load',()=>{navigator.serviceWorker.register('neon-cube-sw.js',{scope:'./neon-cube'}).catch(()=>{})})}
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+</script>
+<script>
+(function () {
+  var ins = document.getElementById('install'), ev = null;
+  var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+    addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+  if (standalone) return;
+  function show() { ins.hidden = false; ins.style.display = ''; }
+  function hide() { ins.hidden = true; ins.style.display = 'none'; }
+  addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; show(); });
+  ins.addEventListener('click', function () {
+    if (!ev) return;
+    ev.prompt();
+    ev.userChoice.then(function () { ev = null; hide(); });
+  });
+  addEventListener('appinstalled', hide);
+})();
 </script>
 </body>
 </html>
