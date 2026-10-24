@@ -82,6 +82,7 @@
     gap: 2px;
   }
 
+  .home-pill { position: fixed; top: 8px; right: 8px; z-index: 30; pointer-events: auto; text-decoration: none; color: var(--green); align-items: flex-end; }
   .hud-label { color: var(--dim-green); font-size: 8px; letter-spacing: 2px; }
   .hud-val { color: var(--green); font-family: 'Oswald', sans-serif; font-size: 18px; }
 
@@ -475,6 +476,8 @@
     </div>
   </div>
 
+  <a class="hud-pill home-pill" href="index.html"><div class="hud-val" style="font-size:14px">⌂</div><div class="hud-label" id="txt-home-link">ГЛАВНАЯ</div></a>
+
   <div id="kills-wrap">
     <div class="hud-label">УБИТО</div>
     <div class="hud-val" id="kills-num" style="font-size:16px">0</div>
@@ -567,6 +570,7 @@
     <button class="btn" onclick="startGame()" id="txt-start-btn">Войти в зону</button>
     <button class="btn" style="font-size:9px;opacity:0.5;margin-top:-8px" onclick="showLang()" id="txt-lang-btn">◀ ЯЗЫК</button>
     <button class="btn" style="font-size:9px;opacity:0.5;margin-top:-8px" onclick="showSettings()">⚙ НАСТРОЙКИ</button>
+    <a class="btn" href="index.html" id="txt-home-btn" style="font-size:9px;opacity:0.5;margin-top:-8px;text-decoration:none">◀ НА ГЛАВНУЮ</a>
   </div>
 
   <div class="overlay" id="lv-title-screen" style="display:none; background:rgba(0,0,0,0.7)">
@@ -605,7 +609,7 @@ const LANG_DATA = {
     langBtn:       '◀ ЯЗЫК',
     deathTitle:    'СМЕРТЬ',
     retryBtn:      'Повторить',
-    menuBtn:       'В меню',
+    menuBtn:       'В меню', homeBtn: 'На главную',
     completeTitle: 'ЗАЧИЩЕНО',
     nextBtn:       'Дальше',
     winTitle:      'ВЫЖИЛ',
@@ -635,7 +639,7 @@ const LANG_DATA = {
     langBtn:       '◀ ТІЛ',
     deathTitle:    'ӨЛІМ',
     retryBtn:      'Қайталау',
-    menuBtn:       'Мәзірге',
+    menuBtn:       'Мәзірге', homeBtn: 'Басты бет',
     completeTitle: 'ТАЗАРТЫЛДЫ',
     nextBtn:       'Келесі',
     winTitle:      'ТІРІ ҚАЛДЫҢ',
@@ -665,7 +669,7 @@ const LANG_DATA = {
     langBtn:       '◀ LANGUAGE',
     deathTitle:    'DEAD',
     retryBtn:      'Retry',
-    menuBtn:       'Menu',
+    menuBtn:       'Menu', homeBtn: 'Home',
     completeTitle: 'CLEARED',
     nextBtn:       'Next',
     winTitle:      'SURVIVED',
@@ -713,6 +717,8 @@ function applyLang(){
   document.getElementById('txt-death-title').textContent   = L.deathTitle;
   document.getElementById('txt-retry-btn').textContent     = L.retryBtn;
   document.getElementById('txt-menu-btn').textContent      = L.menuBtn;
+  document.getElementById('txt-home-btn').textContent = '◀ ' + L.homeBtn;
+  document.getElementById('txt-home-link').textContent = L.homeBtn;
   document.getElementById('txt-complete-title').textContent= L.completeTitle;
   document.getElementById('txt-next-btn').textContent      = L.nextBtn;
   document.getElementById('txt-win-title').textContent     = L.winTitle;

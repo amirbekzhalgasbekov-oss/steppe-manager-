@@ -78,13 +78,14 @@ function burst(cx,cy,n,sp,g,hue,life){
 function die(){state='dead';timer=0;rec(L.n,Math.min(99,Math.floor(P.x/L.len*100)),0);burst(P.x+S/2,P.y+S/2,44,650,1500,L.hue,1);return true}
 
 // ---------- input ----------
-const MENU_BTN={x:W-150,y:56,w:130,h:30};
+const MENU_BTN={x:W-150,y:56,w:130,h:30};const HOME_BTN={x:W-290,y:56,w:130,h:30};
 function cardRect(i){const c=i%3,r=Math.floor(i/3);return{x:126+c*244,y:160+r*120,w:220,h:100}}
 function inR(r,x,y){return x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h}
 function cpos(e){const t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0])||e,b=cv.getBoundingClientRect();return[(t.clientX-b.left)*W/b.width,(t.clientY-b.top)*H/b.height]}
 function startLevel(n){attempt=0;held=false;loadLevel(n)}
 function press(e){
   const [x,y]=e?cpos(e):[-1,-1];
+  if(inR(HOME_BTN,x,y)){location.href='index.html';return}
   if(state==='menu'){for(let i=0;i<LEVELS;i++)if(inR(cardRect(i),x,y)){startLevel(i+1);return}return}
   if(state==='win'){if(timer>1){state='menu';parts=[]}return}
   if(inR(MENU_BTN,x,y)){state='menu';held=false;parts=[];return}
@@ -262,6 +263,7 @@ function render(){
   txt(pct+'%',W/2,40,28,'center',col,12);
   txt('Attempt: '+attempt,W-20,40,22,'right','#fff',6);
   txt('● '+coinsRun+' / '+L.coins.length,20,70,22,'left','#ffd23f',8);
+  ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1;ctx.strokeRect(HOME_BTN.x,HOME_BTN.y,HOME_BTN.w,HOME_BTN.h);txt('HOME',HOME_BTN.x+HOME_BTN.w/2,HOME_BTN.y+21,16,'center','rgba(255,255,255,.7)');
   if(state!=='win'){ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1;ctx.strokeRect(MENU_BTN.x,MENU_BTN.y,MENU_BTN.w,MENU_BTN.h);txt('MENU',MENU_BTN.x+MENU_BTN.w/2,MENU_BTN.y+21,16,'center','rgba(255,255,255,.7)')}
   if(state==='menu'){
     txt('NEON CUBE',W/2,200,64,'center',col,25);

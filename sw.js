@@ -1,6 +1,6 @@
 // Офлайн-кеш: игра открывается без интернета после первого запуска.
 // Версию меняем при каждом обновлении игры, чтобы старый кеш не остался.
-const CACHE = 'steppe-manager-v2';
+const CACHE = 'steppe-manager-v3';
 const FILES = ['./', './play.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Modern Front — стратегия о современных конфликтах: быстрый бой, настраиваемый матч и кампании за шесть стран. Играйте в браузере.">
+<title>Modern Front</title>
+<meta name="theme-color" content="#10150f">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Manrope:wght@400;600;700;800&display=swap">
+<style>
+  :root {
+    --bg: #10150f; --bg2: #2c3e2b; --panel: #1c2418; --line: #3d4a33;
+    --cream: #f3e6c4; --text: #e8dcc0; --muted: #a9b596;
+    --gold: #8a6a3a; --gold-hi: #c9a25a; --brown: #5a4030; --brown-d: #2a1d14;
+    --ok: #4f9a5b;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: radial-gradient(circle at 50% 0%, var(--bg2) 0%, var(--bg) 70%) fixed, var(--bg);
+    color: var(--text);
+    font: 400 16px/1.6 Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    overflow-x: hidden;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding-block: 28px 40px; }
+  h1, h2, h3 { font-family: Oswald, Manrope, system-ui, sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; line-height: 1.15; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  .label { font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-hi); }
+  .title {
+    font-size: clamp(44px, 12vw, 96px); line-height: 1; margin-top: 12px; color: var(--cream);
+    text-shadow: 0 4px 8px rgba(0,0,0,.8), 0 0 14px rgba(138,106,58,.5);
+  }
+  .lead { margin-top: 16px; max-width: 38em; font-size: 17px; color: var(--text); }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 200px; padding: 14px 24px;
+    border: 2px solid var(--gold); border-radius: 12px; color: var(--cream); text-decoration: none;
+    font: 800 15px/1 Manrope, sans-serif; letter-spacing: .04em;
+    background: linear-gradient(180deg, var(--brown) 0%, var(--brown-d) 100%);
+    box-shadow: 0 4px 0 #0b0704; cursor: pointer;
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .btn:hover, .btn:focus-visible { border-color: var(--gold-hi); outline: none; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #0b0704; }
+  .btn.solid { background: linear-gradient(180deg, #4f7a4f 0%, #2f5233 100%); border-color: var(--ok); }
+
+  .shot {
+    margin-top: 30px; border: 2px solid var(--gold); border-radius: 14px; overflow: hidden;
+    background: #000; box-shadow: 0 6px 0 #0b0704, 0 0 40px rgba(138,106,58,.18);
+  }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot figcaption { font-size: 13px; color: var(--muted); padding: 10px 14px; background: var(--panel); }
+
+  section { margin-top: 44px; padding-top: 30px; border-top: 2px dashed var(--line); }
+  section > h2 { font-size: clamp(22px, 5.5vw, 30px); color: var(--cream); }
+  .sub { color: var(--muted); margin-top: 10px; max-width: 40em; }
+  .grid { display: grid; gap: 14px; margin-top: 22px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 900px) { .grid.three { grid-template-columns: repeat(3, 1fr); } }
+  .card {
+    background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 18px; min-width: 0;
+    box-shadow: 0 4px 0 #0b0704;
+  }
+  .card h3 { font-size: 17px; letter-spacing: 2px; color: var(--cream); }
+  .card p { color: var(--muted); margin-top: 8px; font-size: 15px; }
+  .card .k { color: var(--gold-hi); margin-right: 8px; }
+
+  .nations { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .nations span {
+    border: 1px solid var(--gold); border-radius: 999px; padding: 6px 14px; font-size: 14px; color: var(--cream);
+    background: rgba(0,0,0,.25);
+  }
+
+  .steps { list-style: none; counter-reset: s; display: grid; gap: 10px; margin-top: 18px; }
+  .steps li {
+    background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 14px 16px 14px 60px;
+    position: relative; color: var(--text);
+  }
+  .steps li::before {
+    counter-increment: s; content: counter(s); position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+    font: 700 16px/1 Oswald, sans-serif; color: var(--brown-d); background: var(--gold-hi);
+  }
+  .steps b { color: var(--cream); }
+
+  .final {
+    margin-top: 44px; padding: 26px 22px; border: 2px solid var(--gold); border-radius: 18px;
+    background: linear-gradient(180deg, var(--bg2), var(--bg)); display: grid; gap: 14px; justify-items: start;
+    box-shadow: 0 6px 0 #0b0704;
+  }
+  .final h2 { font-size: clamp(22px, 5.5vw, 28px); color: var(--cream); }
+  .final p { color: var(--text); }
+
+  footer {
+    margin-top: 40px; padding-top: 18px; border-top: 2px dashed var(--line);
+    font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between;
+  }
+
+  /* меню «Игры» в углу — как на других страницах сайта */
+  #gm-wrap { position: fixed; top: 8px; right: 8px; z-index: 2000; font-family: Manrope, system-ui, sans-serif; }
+  #gm-btn {
+    background: var(--panel); color: var(--cream); border: 2px solid var(--gold); border-radius: 10px;
+    padding: 8px 14px; font: 800 13px Manrope, sans-serif; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; margin: 0;
+  }
+  #gm-btn:hover, #gm-btn[aria-expanded="true"] { background: var(--brown-d); }
+  #gm-panel {
+    position: absolute; right: 0; top: calc(100% + 8px); min-width: 250px; background: var(--panel);
+    border: 2px solid var(--gold); border-radius: 12px; padding: 12px 0 8px; overflow: hidden; color: var(--text);
+    box-shadow: 0 6px 0 #0b0704;
+  }
+  #gm-panel[hidden] { display: none; }
+  #gm-panel .t { font: 700 14px Oswald, sans-serif; letter-spacing: .2em; padding: 0 16px 10px; margin-bottom: 6px; border-bottom: 1px solid var(--line); color: var(--cream); }
+  #gm-panel a, #gm-panel .cur { display: block; padding: 10px 16px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 700; }
+  #gm-panel a:hover { background: rgba(201,162,90,.15); }
+  #gm-panel .cur { background: var(--gold); color: var(--brown-d); margin: 4px 12px; padding: 10px 12px; border-radius: 8px; }
+  #gm-panel small { display: block; font-size: 11px; font-weight: 400; opacity: .75; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="label">Стратегия // браузер</span>
+    <h1 class="title">MODERN FRONT</h1>
+    <p class="lead">Стратегия о современных конфликтах. Стройте базы, собирайте армию и ведите бои на карте в изометрической проекции. Можно сыграть быстрый бой, собрать матч по своим настройкам или пройти кампании за шесть стран.</p>
+    <div class="cta">
+      <a class="btn solid" href="modern-front-game.html">▶ Играть в браузере</a>
+      <a class="btn" href="#modes">Режимы игры</a>
+    </div>
+  </header>
+
+  <figure class="shot">
+    <img src="modern-front-game.png" alt="Скриншот Modern Front: изометрическая карта, здания, юниты, ресурсы и панель управления" width="1280" height="720" loading="eager">
+    <figcaption>Скрин из игры: база, юниты, ресурсы и панель строительства</figcaption>
+  </figure>
+
+  <section id="modes">
+    <h2>Режимы игры</h2>
+    <p class="sub">Начните с обычного боя или настройте матч под себя.</p>
+    <div class="grid three">
+      <article class="card">
+        <h3><span class="k">01</span>Обычная игра</h3>
+        <p>Быстрый бой с готовыми настройками: одна кнопка — и вы на карте.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">02</span>Настраиваемая игра</h3>
+        <p>Карта, размер, число игроков, фракции и команды, стартовые ресурсы и ресурсы на карте. Тап по точке расстановки меняет команду.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">03</span>Кампания</h3>
+        <p>Миссии с текстом и заданиями. Каждая кампания рассказывает о своей стране и своём конфликте.</p>
+      </article>
+    </div>
+    <div class="nations" aria-label="Страны кампаний">
+      <span>США</span><span>КНР</span><span>Иран</span><span>Саудовская Аравия</span><span>Россия</span><span>Турция</span>
+    </div>
+  </section>
+
+  <section id="features">
+    <h2>Что внутри</h2>
+    <div class="grid">
+      <article class="card">
+        <h3><span class="k">01</span>Строительство и армия</h3>
+        <p>Возводите здания, стройте бульдозеры, грузовики, солдат и танки. Следите за лимитом армии и ресурсами в верхней панели.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">02</span>Управление отрядами</h3>
+        <p>Выделяйте здания и юниты рамкой или выбирайте всю армию одной кнопкой.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">03</span>Миникарта и пауза</h3>
+        <p>Миникарта показывает всю карту, а меню паузы в шестерёнке позволяет продолжить, сохранить игру или вернуться на главную.</p>
+      </article>
+      <article class="card">
+        <h3><span class="k">04</span>Сохранения</h3>
+        <p>Сохранение хранится в вашем браузере. Загрузить его можно из главного меню на том же устройстве.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2>Как начать</h2>
+    <ol class="steps">
+      <li><b>Откройте игру.</b> Нажмите «Играть в браузере» и выберите «Играть» в главном меню.</li>
+      <li><b>Выберите режим.</b> Обычная игра для быстрого старта, настраиваемая для своего матча или кампания.</li>
+      <li><b>Стройте и воюйте.</b> Добывайте ресурсы, возводите здания и выводите армию на карту.</li>
+    </ol>
+    <div class="cta">
+      <a class="btn solid" href="modern-front-game.html">▶ Играть в браузере</a>
+    </div>
+  </section>
+
+  <div class="final">
+    <h2>Готовы командовать?</h2>
+    <p>Выберите режим и начните первый бой прямо сейчас.</p>
+    <a class="btn solid" href="modern-front-game.html">▶ Играть в браузере</a>
+  </div>
+
+  <footer>
+    <span>© Modern Front</span>
+    <span>Играйте в браузере на телефоне и компьютере</span>
+  </footer>
+
+</div>
+
+<div id="gm-wrap"><button id="gm-btn" type="button" aria-expanded="false" aria-controls="gm-panel">Игры</button><div id="gm-panel" hidden><div class="t">ИГРЫ</div><a href="./">Steppe Manager<small>футбольный менеджер</small></a><a href="zona.html">Зона<small>экшен по уровням</small></a><a href="neon-cube.html">Neon Cube<small>ритм-раннер</small></a><span class="cur">Modern Front<small>о игре</small></span><a href="modern-front-game.html">Играть в Modern Front<small>стратегия · кампании</small></a></div></div>
+<script>
+(function () {
+  var b = document.getElementById('gm-btn'), p = document.getElementById('gm-panel');
+  function setOpen(o) { p.hidden = !o; b.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+  b.addEventListener('click', function (e) { e.stopPropagation(); setOpen(p.hidden); });
+  document.addEventListener('click', function (e) { if (!p.contains(e.target) && e.target !== b) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+})();
+</script>
+</body>
+</html>

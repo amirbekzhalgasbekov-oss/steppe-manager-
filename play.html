@@ -259,7 +259,7 @@ const T = {
     chooseClub: 'Выберите клуб', budget: 'Тенге', rating: 'Рейтинг клуба',
     squad: 'Состав', table: 'Таблица', stadium: 'Стадион', playMatch: 'Играть матч',
     simRound: 'Сыграть тур', train: 'Тренировка (50млн₸)', round: 'Тур',
-    seasonOver: 'Сезон завершён', newSeason: 'Начать заново', back: 'Назад',
+    seasonOver: 'Сезон завершён', newSeason: 'Начать заново', back: 'Назад', home: 'На главную',
     exit: 'В меню', result: 'Результат', next: 'Далее',
     win: 'Победа', draw: 'Ничья', loss: 'Поражение', reward: 'Призовые',
     club: 'Клуб', played: 'И', w: 'В', d: 'Н', l: 'П', gf: 'ЗМ', ga: 'ПМ', pts: 'О',
@@ -331,7 +331,7 @@ const T = {
     chooseClub: 'Клубты таңдаңыз', budget: 'Теңге', rating: 'Клуб рейтингі',
     squad: 'Құрам', table: 'Кесте', stadium: 'Стадион', playMatch: 'Матч ойнау',
     simRound: 'Турды модельдеу', train: 'Жаттығу (50млн₸)', round: 'Тур',
-    seasonOver: 'Маусым аяқталды', newSeason: 'Қайтадан бастау', back: 'Артқа',
+    seasonOver: 'Маусым аяқталды', newSeason: 'Қайтадан бастау', back: 'Артқа', home: 'Басты бет',
     exit: 'Мәзірге', result: 'Нәтиже', next: 'Әрі қарай',
     win: 'Жеңіс', draw: 'Тең', loss: 'Жеңіліс', reward: 'Сыйақы',
     club: 'Клуб', played: 'О', w: 'Ж', d: 'Т', l: 'Ж', gf: 'СС', ga: 'ҚС', pts: 'Ұп',
@@ -2117,6 +2117,7 @@ const VIEWS = {
             <p id="installHint" class="hint" hidden>${tc('На iPhone: нажмите «Поделиться» в Safari и выберите «На экран «Домой»».', 'iPhone-да: Safari-де «Бөлісу» → «Басты экранға қосу» таңдаңыз.')}</p>
             <button onclick="go('settings')"><span class="ic">⚙️</span>${t('settings')}</button>
             <button onclick="go('help')"><span class="ic">❓</span>${t('help')}</button>
+            <button onclick="location.href='index.html'"><span class="ic">🏠</span>${t('home')}</button>
           </div>
         </div>
       </section>`;
@@ -2328,8 +2329,9 @@ function go(view) {
   const langBtn = inGame ? '' :
     `<button class="ghost" onclick="toggleLang('${view}')">${t('langBtn')}</button>`;
   const saveBtn = (inGame || !S || view.startsWith('quick') || view === 'scene') ? '' : `<button class="save-btn" onclick="go('save')">${t('saveGame')}</button>`;
+  const homeBtn = inGame ? '' : `<button class="ghost" onclick="location.href='index.html'">${t('home')}</button>`;
   $('#app').className = 'v-' + view;
-  $('#app').innerHTML = `<header class="top"><b>${t('appTitle')}</b><span>${saveBtn}${langBtn}</span></header><main id="view"></main>`;
+  $('#app').innerHTML = `<header class="top"><b>${t('appTitle')}</b><span>${homeBtn}${saveBtn}${langBtn}</span></header><main id="view"></main>`;
   VIEWS[view]($('#view'));
   if (typeof installSync === 'function') installSync();
 }
