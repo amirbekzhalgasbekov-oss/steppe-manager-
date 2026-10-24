@@ -135,9 +135,9 @@
     <div class="cta">
       <a class="btn solid" href="modern-front-game.html">▶ Играть в браузере</a>
       <a class="btn" href="#modes">Режимы игры</a>
-      <button class="btn" id="install" type="button" hidden>⬇ Установить приложение</button>
+      <button class="btn" id="install" type="button">⬇ Скачать на телефон</button>
     </div>
-    <p class="hint" style="margin-top:12px;font-size:14px;color:var(--muted)">Установка добавляет значок на экран. Игра открывается без интернета после первого запуска. На iPhone: «Поделиться» → «На экран «Домой»».</p>
+    <p id="installHint" class="hint" style="margin-top:12px;font-size:14px;color:var(--muted)">Установка добавляет значок на экран. Игра открывается без интернета после первого запуска. На iPhone: «Поделиться» → «На экран «Домой»».</p>
   </header>
 
   <figure class="shot">
@@ -226,21 +226,21 @@
 </script>
 <script>
 (function () {
-  var ins = document.getElementById('install'), ev = null;
+  var btn = document.getElementById('install'), hint = document.getElementById('installHint'), ev = null;
   var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
     addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
   }
-  if (standalone) return;
-  function show() { ins.hidden = false; ins.style.display = ''; }
-  function hide() { ins.hidden = true; ins.style.display = 'none'; }
-  addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; show(); });
-  ins.addEventListener('click', function () {
-    if (!ev) return;
-    ev.prompt();
-    ev.userChoice.then(function () { ev = null; hide(); });
+  if (standalone) { btn.style.display = 'none'; return; }
+  var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; });
+  addEventListener('appinstalled', function () { btn.style.display = 'none'; hint.textContent = 'Готово: значок появится на экране.'; });
+  btn.addEventListener('click', function () {
+    if (ev) { ev.prompt(); ev.userChoice.then(function () { ev = null; }); return; }
+    hint.textContent = ios
+      ? 'На iPhone: нажмите «Поделиться» в Safari и выберите «На экран «Домой»».'
+      : 'Откройте меню браузера (⋮) и выберите «Установить приложение» или «Добавить на главный экран».';
   });
-  addEventListener('appinstalled', hide);
 })();
 </script>
 </body>

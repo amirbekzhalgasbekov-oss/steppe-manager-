@@ -963,13 +963,13 @@ document.addEventListener('keydown', ev => {
   if(ev.key === '5') switchWeapon('m16', null);
   if(ev.key === '6') switchWeapon('avm', null);
   if(ev.key === '7') switchWeapon('gauss', null);
-  if(ev.key.toLowerCase() === 'e') meleeAttack();
+  if(ev.key.toLowerCase() === 'e' && !ev.repeat) meleeStart();
   // Cheat console: ~ key (only after first win)
   if(ev.key === '`' || ev.key === '~') {
     if(cheatUnlocked) toggleCheatConsole();
   }
 });
-document.addEventListener('keyup', ev => { pcKeys[ev.key.toLowerCase()] = false; });
+document.addEventListener('keyup', ev => { pcKeys[ev.key.toLowerCase()] = false; if(ev.key.toLowerCase() === 'e') meleeRelease(); });
 
 function setControlMode(mode) {
   controlMode = mode;
@@ -1065,8 +1065,11 @@ window.addEventListener('mouseup', () => { firing = false; fireBtn.classList.rem
 
 // MELEE BUTTON
 const meleeBtn = document.getElementById('melee-btn');
-meleeBtn.addEventListener('touchstart', e => { e.preventDefault(); meleeAttack(); }, {passive:false});
-meleeBtn.addEventListener('mousedown', ev => { if(controlMode==='mobile') meleeAttack(); });
+meleeBtn.addEventListener('touchstart', e => { e.preventDefault(); meleeStart(); }, {passive:false});
+meleeBtn.addEventListener('touchend', e => { e.preventDefault(); meleeRelease(); }, {passive:false});
+meleeBtn.addEventListener('touchcancel', () => meleeRelease());
+window.addEventListener('mouseup', () => { if(controlMode==='mobile') meleeRelease(); });
+meleeBtn.addEventListener('mousedown', ev => { if(controlMode==='mobile') meleeStart(); });
 
 // ═══════════════════════════════════════
 // MAP GENERATION
@@ -1156,7 +1159,7 @@ function initPlayer(savedInventory, savedWeaponKey) {
     x: (s.x+1)*TILE+TILE/2, y: (s.y+1)*TILE+TILE/2,
     angle: 0, hp: 100, maxHp: 100,
     radius: 12, speed: 2.8,
-    fireTimer: 0, alive: true,
+    fireTimer: 0, alive: true, lastMoveT: 0,
     weaponKey: wk,
     inventory: inv,
   };
@@ -1319,19 +1322,77 @@ function nearestPickup() {
   return bestD < 30*30 ? best : null;
 }
 
-function meleeAttack() {
+function meleeAttack(){ meleeStart(); meleeRelease(); }
+
+// ═══════════════════════════════════════
+// MELEE — удар: направление, дуга, сила зажатия
+// ═══════════════════════════════════════
+const MELEE = { base: 45, tapMs: 160, fullMs: 900, durTap: 140, durFull: 380,
+                arcMin: 0.9, arcMax: 1.8, reachMin: 30, reachMax: 42 };
+let meleeCharge = 0;    // момент нажатия (0 — не заряжаем)
+let meleeSwing = null;  // текущий взмах: { a0, a1, t0, dur, reach, dmg, power, hit }
+// статистика силы: растёт от убитых в рубеже, от 1.00 до 1.60
+function meleeStrength(){ return 1 + Math.min(kills, 30) * 0.02; }
+function meleeStart(){
   if (!player.alive || gameState !== 'playing') return;
-  if(nearestPickup()){ tryPickupWeapon(); return; }
+  if (nearestPickup()) { tryPickupWeapon(); return; }
+  if (!meleeCharge) meleeCharge = performance.now();
+}
+function meleeRelease(){
+  if (!meleeCharge) return;
+  const held = performance.now() - meleeCharge;
+  meleeCharge = 0;
+  // сила: тап — 25 %, полное зажатие — 100 %
+  const k = Math.min(1, Math.max(0, (held - MELEE.tapMs) / (MELEE.fullMs - MELEE.tapMs)));
+  const p = 0.25 + 0.75 * k;
+  const arc = MELEE.arcMin + (MELEE.arcMax - MELEE.arcMin) * p;   // тяжёлый удар — шире дуга
+  const dur = MELEE.durTap + (MELEE.durFull - MELEE.durTap) * p;  // тап — быстрый взмах, зажатие — медленный
+  meleeSwing = {
+    a0: player.angle - arc / 2, a1: player.angle + arc / 2,       // бьём туда, куда смотрит игрок
+    t0: performance.now(), dur, power: p,
+    reach: MELEE.reachMin + (MELEE.reachMax - MELEE.reachMin) * p,
+    dmg: MELEE.base * (0.4 + 0.6 * p) * meleeStrength(),
+    hit: new Set(),
+  };
+}
+function updateStrHUD(){
+  const box = document.getElementById('kills-wrap'); if (!box) return;
+  let el = document.getElementById('str-num');
+  if (!el) {
+    el = document.createElement('div'); el.id = 'str-num';
+    el.style.cssText = 'font-size:9px;color:#00aa2b;margin-top:2px;letter-spacing:1px';
+    el.innerHTML = 'СИЛА <span></span>'; box.appendChild(el);
+  }
+  el.querySelector('span').textContent = meleeStrength().toFixed(2);
+}
+function updateMelee(){
+  const now = performance.now();
+  // подсветка кнопки УДАР растёт, пока зажата
+  const btn = document.getElementById('melee-btn');
+  if (btn) {
+    if (meleeCharge) {
+      const k = Math.min(1, (now - meleeCharge) / MELEE.fullMs);
+      btn.style.boxShadow = '0 0 ' + Math.round(6 + 20 * k) + 'px #00ff41';
+    } else if (btn.style.boxShadow) btn.style.boxShadow = '';
+  }
+  if (!meleeSwing) return;
+  const s = meleeSwing, k = (now - s.t0) / s.dur;
+  if (k >= 1) { meleeSwing = null; return; }
+  const blade = s.a0 + (s.a1 - s.a0) * k;   // где сейчас лезвие
   for (const e of enemies) {
-    if (!e.alive) continue;
-    const dx=e.x-player.x, dy=e.y-player.y;
-    if (Math.sqrt(dx*dx+dy*dy) < 30) {
-      e.hp -= 45;
-      spawnParticles(e.x,e.y,C.blood,8);
-      if (e.hp<=0) killEnemy(e);
-    }
+    if (!e.alive || s.hit.has(e)) continue;
+    const dx = e.x - player.x, dy = e.y - player.y;
+    if (Math.hypot(dx, dy) > s.reach + (e.radius || 12)) continue;
+    let diff = Math.atan2(dy, dx) - blade;
+    diff = Math.atan2(Math.sin(diff), Math.cos(diff));   // −π..π
+    if (Math.abs(diff) > 0.3) continue;                  // лезвие сейчас проходит по врагу
+    s.hit.add(e);
+    e.hp -= s.dmg;
+    spawnParticles(e.x, e.y, C.blood, 8);
+    if (e.hp <= 0) killEnemy(e);
   }
 }
+window.addEventListener('blur', () => { meleeCharge = 0; });
 
 function updateWeaponHUD(){
   if(!player.inventory) return;
@@ -1371,6 +1432,7 @@ function hasWall(x1,y1,x2,y2) {
 // ═══════════════════════════════════════
 function updatePlayer() {
   if (!player.alive) return;
+  updateMelee();
 
   if (controlMode === 'pc') {
     // WASD movement
@@ -1398,10 +1460,12 @@ function updatePlayer() {
       if (player._noclip||isFree(nx,player.y,player.radius)) player.x=nx;
       if (player._noclip||isFree(player.x,ny,player.radius)) player.y=ny;
       player.angle = Math.atan2(my,mx);
+      player.lastMoveT = performance.now();
     }
-    // Auto-aim
+    // Автонаведение только когда игрок бездействует (не двигается ~0.6 с)
     const autoTarget = nearestEnemy();
-    if (autoTarget) player.angle = Math.atan2(autoTarget.y-player.y, autoTarget.x-player.x);
+    const idle = performance.now() - (player.lastMoveT || 0) > 600;
+    if (autoTarget && idle) player.angle = Math.atan2(autoTarget.y-player.y, autoTarget.x-player.x);
   }
 
   // Target label (both modes)
@@ -1422,7 +1486,8 @@ function updatePlayer() {
   if (canFire && player.fireTimer <= 0) {
     const ammoNow = player.inventory[player.weaponKey]||0;
     if (ammoNow > 0) {
-      shoot(player.x, player.y, player.angle, true, activeWeapon);
+      const fireAng = (controlMode==='mobile' && target) ? Math.atan2(target.y-player.y, target.x-player.x) : player.angle;
+      shoot(player.x, player.y, fireAng, true, activeWeapon);
       player.inventory[player.weaponKey] = ammoNow - 1;
       player.fireTimer = wDef.fireRate;
       if (player.inventory[player.weaponKey] <= 0) {
@@ -1643,7 +1708,7 @@ function updateParticles() {
 }
 
 function killEnemy(e){
-  e.alive=false; kills++;
+  e.alive=false; kills++; updateStrHUD();
   document.getElementById('kills-num').textContent=kills;
   if (e.isBoss) {
     for(let i=0;i<40;i++) spawnParticles(e.x+(Math.random()-0.5)*60, e.y+(Math.random()-0.5)*60, C.blood, 6);
@@ -1700,6 +1765,16 @@ function render(){
 
   ctx.save();
   ctx.translate(-camX + screenShakeX, -camY + screenShakeY);
+  // след взмаха: дуга от начала до текущего положения лезвия
+  if (meleeSwing && player.alive) {
+    const k = Math.min(1, (performance.now() - meleeSwing.t0) / meleeSwing.dur);
+    const blade = meleeSwing.a0 + (meleeSwing.a1 - meleeSwing.a0) * k;
+    ctx.save(); ctx.translate(player.x, player.y);
+    ctx.strokeStyle = 'rgba(0,255,65,' + (0.15 + 0.7 * (1 - k)).toFixed(2) + ')';
+    ctx.lineWidth = 3 + 3 * meleeSwing.power;
+    ctx.beginPath(); ctx.arc(0, 0, meleeSwing.reach, meleeSwing.a0, blade); ctx.stroke();
+    ctx.restore();
+  }
 
   // Tiles (на стартовом экране карты ещё нет)
   if (map.length) for(let r=0;r<ROWS;r++){

@@ -84,7 +84,8 @@ button.on{background:linear-gradient(#55905a,#2a5a2c);border-color:#b5e0a4;color
   <button class="mm-btn" id="btn-load-game">Загрузить</button>
   <button class="mm-btn" id="btn-dev">Режим разработчика: выкл</button>
   <button class="mm-btn" onclick="location.href='index.html'">На главную</button>
-  <button class="mm-btn" id="installMF" style="display:none">⬇ Установить приложение</button>
+  <button class="mm-btn" id="installMF">⬇ Скачать на телефон</button>
+  <p id="installHintMF" style="color:#e8dcc0;font-size:13px;line-height:1.4;max-width:360px;text-align:center;margin:0"></p>
 </div>
 
 <div id="play" style="display:none;position:absolute;inset:0;z-index:10;background:radial-gradient(circle at center,#2c3e2b 0%,#10150f 100%);flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;box-sizing:border-box;overflow:auto">
@@ -2132,21 +2133,21 @@ const _drawMarks=draw;draw=function(){_drawMarks();if(mission&&mission.markers){
 (function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(started){if(!paused)update(dt);draw()}requestAnimationFrame(loop)})(last);
 </script><script>
 (function () {
-  var ins = document.getElementById('installMF'), ev = null;
+  var btn = document.getElementById('installMF'), hint = document.getElementById('installHintMF'), ev = null;
   var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
     addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
   }
-  if (standalone) return;
-  function show() { ins.hidden = false; ins.style.display = ''; }
-  function hide() { ins.hidden = true; ins.style.display = 'none'; }
-  addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; show(); });
-  ins.addEventListener('click', function () {
-    if (!ev) return;
-    ev.prompt();
-    ev.userChoice.then(function () { ev = null; hide(); });
+  if (standalone) { btn.style.display = 'none'; return; }
+  var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; });
+  addEventListener('appinstalled', function () { btn.style.display = 'none'; hint.textContent = 'Готово: значок появится на экране.'; });
+  btn.addEventListener('click', function () {
+    if (ev) { ev.prompt(); ev.userChoice.then(function () { ev = null; }); return; }
+    hint.textContent = ios
+      ? 'На iPhone: нажмите «Поделиться» в Safari и выберите «На экран «Домой»».'
+      : 'Откройте меню браузера (⋮) и выберите «Установить приложение» или «Добавить на главный экран».';
   });
-  addEventListener('appinstalled', hide);
 })();
 </script>
 </body></html>
