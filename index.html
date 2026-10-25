@@ -150,6 +150,21 @@ footer {
   color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap;
   gap: 8px 16px; justify-content: space-between;
 }
+
+/* about */
+.about-grid { display: grid; gap: 14px; margin-top: 22px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .about-grid { grid-template-columns: 1fr 1fr; } }
+.facts { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; font-size: 15px; }
+.facts li { color: var(--muted); }
+.facts b { color: var(--ink); font-weight: 800; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tags span { border: 2px solid var(--ink); border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 700; background: var(--paper); }
+.glist { display: grid; gap: 10px; margin-top: 12px; }
+.glist a { display: block; border: 2px solid var(--ink); border-radius: 14px; padding: 12px 14px; background: var(--paper); color: var(--ink); text-decoration: none; font-weight: 800; }
+.glist a small { display: block; color: var(--muted); font-weight: 500; margin-top: 2px; }
+.donate .num { font: 800 clamp(20px, 5.5vw, 26px)/1.2 Unbounded, sans-serif; color: var(--ink); margin-top: 10px; }
+.contact-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.contact-links a { border: 2px solid var(--ink); border-radius: 999px; padding: 8px 16px; background: var(--paper); color: var(--ink); text-decoration: none; font-weight: 800; font-size: 15px; }
 </style>
 </head>
 <body>
@@ -171,11 +186,11 @@ footer {
       <div class="menu-panel" id="menu-panel" hidden>
         <span class="menu-title">ИГРЫ</span>
         <a class="game" href="play.html"><b>STEPPE MANAGER</b><small>футбольный менеджер</small></a>
-        <a class="game" href="zona.html"><b>ЗОНА</b><small>экшен по уровням</small></a>
         <a class="game" href="neon-cube.html"><b>NEON CUBE</b><small>ритм-раннер, 9 уровней</small></a>
         <a class="game" href="modern-front.html"><b>MODERN FRONT</b><small>стратегия · кампании</small></a>
         <span class="menu-sep"></span>
         <a href="#features">Что внутри</a>
+        <a href="about.html">О платформе</a>
         <a href="#how">Как начать</a>
         <a href="#top">Наверх</a>
         <span class="menu-foot">Играйте прямо в браузере</span>
@@ -297,7 +312,7 @@ footer {
   </div>
 
   <footer>
-    <span>© 2026 Steppe Manager</span>
+    <span>© 2026 Steppe Manager · Zh.A.T</span>
     <span>Играйте в браузере на любом устройстве</span>
   </footer>
 
