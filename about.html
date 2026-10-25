@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>О платформе — Steppe Manager</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700;800&family=Share+Tech+Mono&family=Oswald:wght@700&display=swap">
+<style>
+:root {
+  --paper: #f4efe2;
+  --card: #fffdf6;
+  --ink: #1d2a22;
+  --muted: #56655b;
+  --pitch: #2f7a45;
+  --pitch-d: #235f35;
+  --gold: #e3a73c;
+  --rust: #c9542e;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 16px/1.55 Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  overflow-x: hidden;
+}
+h1, h2, h3 { font-family: Unbounded, Manrope, system-ui, sans-serif; line-height: 1.2; text-wrap: balance; margin: 0; }
+p { margin: 0; text-wrap: pretty; }
+a { color: inherit; }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 0; }
+
+/* header */
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding-block: 16px;
+}
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.brand svg { width: 36px; height: 36px; flex: none; }
+.brand b { font: 800 17px/1 Unbounded, Manrope, sans-serif; letter-spacing: .02em; }
+.lang {
+  font-weight: 700; font-size: 14px; padding: 8px 12px; border-radius: 999px;
+  border: 2px solid var(--ink); background: var(--card); color: var(--ink);
+}
+
+/* buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  border: 2px solid var(--ink); border-radius: 14px; padding: 14px 22px;
+  font: 800 16px/1 Manrope, sans-serif; text-decoration: none; color: var(--ink);
+  background: var(--gold); box-shadow: 0 4px 0 var(--ink);
+  transition: transform .08s ease, box-shadow .08s ease;
+  cursor: pointer;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--ink); }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.btn.ghost { background: var(--card); }
+.btn.big { width: 100%; max-width: 360px; font-size: 18px; padding: 18px 22px; }
+
+/* menu: бежевый стиль менеджера */
+.menu { position: relative; }
+.menu-btn {
+  background: #fffdf6; color: #1d2a22; border: 2px solid #1d2a22; border-radius: 12px;
+  padding: 9px 14px; font: 700 14px Manrope, system-ui, sans-serif; box-shadow: 0 3px 0 #1d2a22; margin: 0; cursor: pointer;
+}
+.menu-btn:hover, .menu-btn[aria-expanded="true"] { background: #f4efe2; }
+.menu-panel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 10; min-width: 260px;
+  display: grid; gap: 4px; padding: 10px; background: #fffdf6; border: 2px solid #1d2a22; border-radius: 16px;
+  box-shadow: 0 4px 0 #1d2a22;
+}
+.menu-panel[hidden] { display: none !important; }
+.menu-title {
+  font: 800 13px Manrope, system-ui, sans-serif; letter-spacing: 2px; color: #1d2a22;
+  padding: 2px 6px 8px; border-bottom: 2px dashed rgba(29,42,34,.25); margin-bottom: 4px;
+}
+.menu-panel a { display: block; padding: 10px 12px; border-radius: 10px; color: #1d2a22; text-decoration: none; font-weight: 700; }
+.menu-panel a:hover, .menu-panel a:focus-visible { background: #f4efe2; outline: none; }
+.menu-panel a.game b { display: block; font-weight: 800; font-size: 16px; }
+.menu-panel a.game small { display: block; font-size: 12px; font-weight: 400; color: #56655b; }
+.menu-panel a.game:first-of-type { background: #e3a73c; border: 2px solid #1d2a22; }
+.menu-sep { display: block; border-top: 2px dashed rgba(29,42,34,.25); margin: 4px 6px; }
+.menu-foot { display: block; padding: 8px 6px 0; margin-top: 4px; border-top: 2px dashed rgba(29,42,34,.25); font-size: 12px; color: #56655b; }
+
+/* hero */
+.hero { display: grid; gap: 22px; padding-block: 8px 36px; }
+.eyebrow {
+  display: inline-block; font-weight: 800; font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--rust);
+}
+.hero h1 { font-size: clamp(30px, 8vw, 52px); margin-top: 10px; }
+.lead { color: var(--muted); font-size: 17px; margin-top: 14px; max-width: 34em; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.pitch {
+  border: 2px solid var(--ink); border-radius: 20px; overflow: hidden;
+  box-shadow: 0 6px 0 var(--ink); background: var(--pitch); max-width: 100%;
+}
+.pitch svg { display: block; width: 100%; height: auto; }
+.hint { font-size: 14px; color: var(--muted); margin-top: 12px; }
+
+/* sections */
+section { padding-block: 36px; border-top: 2px dashed rgba(29,42,34,.25); }
+section > h2 { font-size: clamp(22px, 5.5vw, 30px); }
+.sub { color: var(--muted); margin-top: 10px; max-width: 40em; }
+
+.grid { display: grid; gap: 14px; margin-top: 22px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 900px) { .grid.three { grid-template-columns: repeat(3, 1fr); } }
+
+.card {
+  background: var(--card); border: 2px solid var(--ink); border-radius: 18px;
+  padding: 20px; box-shadow: 0 4px 0 var(--ink); min-width: 0;
+}
+.card .ic {
+  width: 44px; height: 44px; border-radius: 12px; border: 2px solid var(--ink);
+  display: grid; place-items: center; background: var(--paper); margin-bottom: 14px;
+}
+.card .ic svg { width: 24px; height: 24px; }
+.card h3 { font-size: 16px; }
+.card p { color: var(--muted); margin-top: 8px; font-size: 15px; }
+
+.steps { counter-reset: s; display: grid; gap: 14px; margin-top: 22px; padding: 0; list-style: none; }
+.steps li {
+  display: flex; gap: 14px; align-items: flex-start; background: var(--card);
+  border: 2px solid var(--ink); border-radius: 16px; padding: 16px 18px;
+}
+.steps .n {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--ink);
+  display: grid; place-items: center; font: 800 15px/1 Unbounded, sans-serif; background: var(--gold);
+}
+.steps p { color: var(--muted); margin-top: 4px; font-size: 15px; }
+.steps b { font-weight: 800; }
+
+.final {
+  background: var(--pitch); color: #f6f2e6; border: 2px solid var(--ink);
+  border-radius: 22px; padding: 28px 22px; box-shadow: 0 6px 0 var(--ink);
+  display: grid; gap: 16px; justify-items: start; margin-block: 8px 36px;
+}
+.final h2 { font-size: clamp(22px, 5.5vw, 28px); }
+.final p { color: #dcead9; }
+.final .btn { box-shadow: 0 4px 0 #0f2e18; border-color: #0f2e18; }
+
+footer {
+  border-top: 2px dashed rgba(29,42,34,.25); padding-block: 22px 30px;
+  color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap;
+  gap: 8px 16px; justify-content: space-between;
+}
+
+/* about */
+.about-grid { display: grid; gap: 14px; margin-top: 22px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .about-grid { grid-template-columns: 1fr 1fr; } }
+.facts { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; font-size: 15px; }
+.facts li { color: var(--muted); }
+.facts b { color: var(--ink); font-weight: 800; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tags span { border: 2px solid var(--ink); border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 700; background: var(--paper); }
+.glist { display: grid; gap: 10px; margin-top: 12px; }
+.glist a { display: block; border: 2px solid var(--ink); border-radius: 14px; padding: 12px 14px; background: var(--paper); color: var(--ink); text-decoration: none; font-weight: 800; }
+.glist a small { display: block; color: var(--muted); font-weight: 500; margin-top: 2px; }
+.donate .num { font: 800 clamp(20px, 5.5vw, 26px)/1.2 Unbounded, sans-serif; color: var(--ink); margin-top: 10px; }
+.contact-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.contact-links a { border: 2px solid var(--ink); border-radius: 999px; padding: 8px 16px; background: var(--paper); color: var(--ink); text-decoration: none; font-weight: 800; font-size: 15px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <a class="brand" href="index.html" id="top" aria-label="Steppe Manager">
+      <svg viewBox="0 0 36 36" aria-hidden="true">
+        <circle cx="18" cy="18" r="16" fill="#fffdf6" stroke="#1d2a22" stroke-width="2"/>
+        <path d="M18 6l5 3.6-1.9 5.9h-6.2L13 9.6z" fill="#1d2a22"/>
+        <path d="M6.5 15.5l5.5-1.8 3.6 4.4-2.2 5.2H7.4z" fill="#1d2a22" opacity=".85"/>
+        <path d="M29.5 15.5l-5.5-1.8-3.6 4.4 2.2 5.2h5.5z" fill="#1d2a22" opacity=".85"/>
+        <path d="M12 29.5l2.4-4.8h7.2l2.4 4.8z" fill="#1d2a22" opacity=".85"/>
+      </svg>
+      <b>STEPPE MANAGER</b>
+    </a>
+    <nav class="menu">
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu-panel">Меню</button>
+      <div class="menu-panel" id="menu-panel" hidden>
+        <span class="menu-title">ИГРЫ</span>
+        <a class="game" href="play.html"><b>STEPPE MANAGER</b><small>футбольный менеджер</small></a>
+        <a class="game" href="neon-cube.html"><b>NEON CUBE</b><small>ритм-раннер, 9 уровней</small></a>
+        <a class="game" href="modern-front.html"><b>MODERN FRONT</b><small>стратегия · кампании</small></a>
+        <span class="menu-sep"></span>
+        <a href="index.html">На главную</a>
+        <a href="about.html">О платформе</a>
+        <span class="menu-foot">Играйте прямо в браузере</span>
+      </div>
+    </nav>
+  </header>
+
+  <section id="about" style="border-top:0">
+    <h2>О платформе</h2>
+    <p class="sub">Steppe Manager — сайт с браузерными играми. Играйте на телефоне или компьютере, установка не нужна.</p>
+    <div class="about-grid">
+      <article class="card">
+        <h3>Разработчик</h3>
+        <ul class="facts">
+          <li><b>Автор:</b> Жалгасбеков Амирбек</li>
+          <li><b>Студия:</b> Zh.A.T</li>
+          <li><b>Платформа:</b> Steppe Manager</li>
+        </ul>
+        <h3 style="margin-top:16px">Инструменты</h3>
+        <div class="tags"><span>Claude</span><span>Gemini</span><span>DeepSeek</span><span>ChatGPT</span><span>HTML5 Canvas</span><span>JavaScript</span></div>
+      </article>
+      <article class="card">
+        <h3>Игры</h3>
+        <div class="glist">
+          <a href="play.html">Steppe Manager<small>Жанр: футбольный менеджер</small></a>
+          <a href="neon-cube.html">Neon Cube<small>Жанр: ритм-раннер</small></a>
+          <a href="modern-front.html">Modern Front<small>Жанр: стратегия</small></a>
+        </div>
+      </article>
+    </div>
+    <article class="card donate" style="margin-top:14px">
+      <h3>Поддержать проект</h3>
+      <p>Донат добровольный. Если игры вам нравятся, можно поддержать разработку переводом на Kaspi:</p>
+      <div class="num">+7 776 284 05 68</div>
+    </article>
+    <article class="card" style="margin-top:14px">
+      <h3>Нашли баг? Поддержка</h3>
+      <p>Если нашли ошибку или есть вопрос, пишите в Telegram или WhatsApp. Номер для связи: <b>+7 776 284 05 68</b>.</p>
+      <div class="contact-links">
+        <a href="https://t.me/amirbekzhalgasbekov" target="_blank" rel="noopener">Telegram: @amirbekzhalgasbekov</a>
+        <a href="https://whatsapp.com/channel/0029Vb9pPWeKAwEq9iLJ4V2Q" target="_blank" rel="noopener">WhatsApp</a>
+        <a href="https://t.me/Zgaymes" target="_blank" rel="noopener">Telegram-канал: Zgaymes</a>
+      </div>
+    </article>
+  </section>
+
+  <footer>
+    <span>© 2026 Steppe Manager · Zh.A.T</span>
+    <span>Играйте в браузере на любом устройстве</span>
+  </footer>
+
+</div>
+<script>
+(function () {
+  var btn = document.querySelector('.menu-btn'), panel = document.getElementById('menu-panel');
+  function setOpen(open) { panel.hidden = !open; btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(panel.hidden); });
+  document.addEventListener('click', function (e) { if (!panel.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+  panel.addEventListener('click', function (e) { if (e.target.tagName === 'A') setOpen(false); });
+})();
+</script>
+</body>
+</html>
