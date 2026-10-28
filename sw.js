@@ -1,9 +1,9 @@
-// Офлайн-кеш для всего сайта: Steppe Manager, Neon Cube, Modern Front.
+// Офлайн-кеш для всего сайта: Steppe Manager, ЗОНА, Neon Cube, Modern Front.
 // Один service worker в корне сайта — он управляет всеми страницами.
 // Версию меняем при каждом обновлении сайта, чтобы старый кеш не остался.
-const CACHE = 'steppe-site-v6';
+const CACHE = 'steppe-site-v4';
 const FILES = [
-  './', './index.html', './about.html', './manifest.webmanifest', './play.html',
+  './', './index.html', './manifest.webmanifest', './play.html',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png',
   './neon-cube.html', './Neon_Cube.html', './neon-cube.webmanifest',
   './neon-cube-icon-192.png', './neon-cube-icon-512.png', './neon-cube-apple-touch-icon.png',

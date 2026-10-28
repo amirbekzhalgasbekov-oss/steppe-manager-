@@ -4,319 +4,366 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
-<title>Steppe Manager</title>
+<meta name="description" content="Каталог браузерных игр: Steppe Manager, ЗОНА, Neon Cube, Modern Front. Выберите игру и узнайте подробнее.">
+<title>Игры — каталог</title>
+<meta name="theme-color" content="#07090b">
+<script>document.documentElement.classList.add("js")</script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Manrope:wght@400;600;700;800&family=Share+Tech+Mono&family=Oswald:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-:root {
-  --paper: #f4efe2;
-  --card: #fffdf6;
-  --ink: #1d2a22;
-  --muted: #56655b;
-  --pitch: #2f7a45;
-  --pitch-d: #235f35;
-  --gold: #e3a73c;
-  --rust: #c9542e;
-  color-scheme: light;
-}
-* { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
-body {
-  margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font: 400 16px/1.55 Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  overflow-x: hidden;
-}
-h1, h2, h3 { font-family: Unbounded, Manrope, system-ui, sans-serif; line-height: 1.2; text-wrap: balance; margin: 0; }
-p { margin: 0; text-wrap: pretty; }
-a { color: inherit; }
-.wrap { max-width: 980px; margin: 0 auto; padding-block: 0; }
+  :root {
+    --bg: #07090b; --panel: #0c1014; --line: #1b2530; --line-2: #263443;
+    --text: #cbd5df; --muted: #6a7a8a; --head: #eef4fa;
+    --accent: #7fe3ff; --accent-d: #3fb6d6;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 400 15px/1.6 "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    overflow-x: hidden;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; letter-spacing: .02em; }
+  .label { font: 500 11px/1.4 "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-block: 0 48px; }
+  a { color: inherit; }
 
-/* header */
-.top {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; padding-block: 16px;
-}
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.brand svg { width: 36px; height: 36px; flex: none; }
-.brand b { font: 800 17px/1 Unbounded, Manrope, sans-serif; letter-spacing: .02em; }
-.lang {
-  font-weight: 700; font-size: 14px; padding: 8px 12px; border-radius: 999px;
-  border: 2px solid var(--ink); background: var(--card); color: var(--ink);
-}
+  /* шапка */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--head); }
+  .brand svg { width: 22px; height: 22px; flex: none; }
+  .brand b { font: 500 13px/1 "JetBrains Mono", monospace; letter-spacing: .14em; text-transform: uppercase; }
+  .nav { display: flex; gap: 6px; align-items: center; position: relative; }
+  .nav a.link { font: 500 12px/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase; text-decoration: none; color: var(--muted); padding: 8px 10px; }
+  .nav a.link:hover { color: var(--head); }
+  .menu-btn {
+    font: 500 12px/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase;
+    background: transparent; color: var(--head); border: 1px solid var(--line-2); padding: 8px 12px; cursor: pointer; margin: 0;
+  }
+  .menu-btn:hover, .menu-btn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+  .menu-panel {
+    position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; min-width: 260px;
+    background: var(--panel); border: 1px solid var(--line-2); padding: 6px;
+  }
+  .menu-panel[hidden] { display: none; }
+  .menu-panel a { display: flex; justify-content: space-between; gap: 12px; padding: 10px 10px; text-decoration: none; color: var(--text); font-size: 14px; }
+  .menu-panel a:hover, .menu-panel a:focus-visible { background: var(--line); outline: none; }
+  .menu-panel a small { font: 400 11px/1.6 "JetBrains Mono", monospace; color: var(--muted); }
 
-/* buttons */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  border: 2px solid var(--ink); border-radius: 14px; padding: 14px 22px;
-  font: 800 16px/1 Manrope, sans-serif; text-decoration: none; color: var(--ink);
-  background: var(--gold); box-shadow: 0 4px 0 var(--ink);
-  transition: transform .08s ease, box-shadow .08s ease;
-  cursor: pointer;
-}
-.btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--ink); }
-.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
-.btn.ghost { background: var(--card); }
-.btn.big { width: 100%; max-width: 360px; font-size: 18px; padding: 18px 22px; }
+  /* первый экран */
+  .hero { padding: 72px 0 56px; border-bottom: 1px solid var(--line); }
+  .hero h1 { font: 500 clamp(36px, 7vw, 64px)/1.05 "Space Grotesk", sans-serif; color: var(--head); letter-spacing: -.02em; margin-top: 18px; text-wrap: balance; }
+  .hero p { color: var(--muted); max-width: 40em; margin-top: 18px; font-size: 16px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); margin-top: 40px; }
+  .stats > div { padding: 16px 18px; border-right: 1px solid var(--line); }
+  .stats > div:last-child { border-right: 0; }
+  .stats b { display: block; font: 500 22px/1.2 "JetBrains Mono", monospace; color: var(--head); margin-top: 6px; }
+  .stats span { font: 400 11px/1.4 "JetBrains Mono", monospace; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
 
-/* menu: бежевый стиль менеджера */
-.menu { position: relative; }
-.menu-btn {
-  background: #fffdf6; color: #1d2a22; border: 2px solid #1d2a22; border-radius: 12px;
-  padding: 9px 14px; font: 700 14px Manrope, system-ui, sans-serif; box-shadow: 0 3px 0 #1d2a22; margin: 0; cursor: pointer;
-}
-.menu-btn:hover, .menu-btn[aria-expanded="true"] { background: #f4efe2; }
-.menu-panel {
-  position: absolute; right: 0; top: calc(100% + 8px); z-index: 10; min-width: 260px;
-  display: grid; gap: 4px; padding: 10px; background: #fffdf6; border: 2px solid #1d2a22; border-radius: 16px;
-  box-shadow: 0 4px 0 #1d2a22;
-}
-.menu-panel[hidden] { display: none !important; }
-.menu-title {
-  font: 800 13px Manrope, system-ui, sans-serif; letter-spacing: 2px; color: #1d2a22;
-  padding: 2px 6px 8px; border-bottom: 2px dashed rgba(29,42,34,.25); margin-bottom: 4px;
-}
-.menu-panel a { display: block; padding: 10px 12px; border-radius: 10px; color: #1d2a22; text-decoration: none; font-weight: 700; }
-.menu-panel a:hover, .menu-panel a:focus-visible { background: #f4efe2; outline: none; }
-.menu-panel a.game b { display: block; font-weight: 800; font-size: 16px; }
-.menu-panel a.game small { display: block; font-size: 12px; font-weight: 400; color: #56655b; }
-.menu-panel a.game:first-of-type { background: #e3a73c; border: 2px solid #1d2a22; }
-.menu-sep { display: block; border-top: 2px dashed rgba(29,42,34,.25); margin: 4px 6px; }
-.menu-foot { display: block; padding: 8px 6px 0; margin-top: 4px; border-top: 2px dashed rgba(29,42,34,.25); font-size: 12px; color: #56655b; }
+  /* каталог */
+  section { padding: 56px 0 0; }
+  .sec-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  .sec-head h2 { font: 500 24px/1.2 "Space Grotesk", sans-serif; color: var(--head); letter-spacing: -.01em; }
+  .catalog { display: grid; grid-template-columns: 1fr; border: 1px solid var(--line); }
+  @media (min-width: 720px) { .catalog { grid-template-columns: 1fr 1fr; } }
+  .game { padding: 24px; border-bottom: 1px solid var(--line); border-right: 0; display: flex; flex-direction: column; gap: 14px; min-width: 0; background: var(--bg); transition: background .15s; }
+  @media (min-width: 720px) { .game:nth-child(odd) { border-right: 1px solid var(--line); } .game:nth-last-child(-n+2) { border-bottom: 0; } }
+  .game:hover { background: var(--panel); }
+  .game-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .game .idx { font: 400 12px/1 "JetBrains Mono", monospace; color: var(--muted); }
+  .tag { font: 500 10px/1 "JetBrains Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent-d); padding: 5px 7px; }
+  .game h3 { font: 500 20px/1.2 "Space Grotesk", sans-serif; color: var(--head); }
+  .game p { color: var(--muted); font-size: 14px; }
+  .game .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 400 11px/1.4 "JetBrains Mono", monospace; color: var(--muted); letter-spacing: .04em; }
+  .game .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; padding-top: 6px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px;
+    font: 500 12px/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase; text-decoration: none;
+    border: 1px solid var(--line-2); color: var(--head); background: transparent; cursor: pointer; min-height: 40px;
+  }
+  .btn:hover, .btn:focus-visible { border-color: var(--accent); color: var(--accent); outline: none; }
+  .btn.solid { background: var(--accent); border-color: var(--accent); color: #05161c; }
+  .btn.solid:hover { background: #a6ecff; color: #05161c; }
 
-/* hero */
-.hero { display: grid; gap: 22px; padding-block: 8px 36px; }
-.eyebrow {
-  display: inline-block; font-weight: 800; font-size: 12px; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--rust);
-}
-.hero h1 { font-size: clamp(30px, 8vw, 52px); margin-top: 10px; }
-.lead { color: var(--muted); font-size: 17px; margin-top: 14px; max-width: 34em; }
-.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
-.pitch {
-  border: 2px solid var(--ink); border-radius: 20px; overflow: hidden;
-  box-shadow: 0 6px 0 var(--ink); background: var(--pitch); max-width: 100%;
-}
-.pitch svg { display: block; width: 100%; height: auto; }
-.hint { font-size: 14px; color: var(--muted); margin-top: 12px; }
+  /* подробности */
+  .detail { margin-top: 48px; border: 1px solid var(--line); background: var(--panel); }
+  .detail-head { padding: 22px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+  .detail-head h2 { font: 500 26px/1.2 "Space Grotesk", sans-serif; color: var(--head); }
+  .detail-body { display: grid; grid-template-columns: 1fr; }
+  @media (min-width: 760px) { .detail-body { grid-template-columns: 1.4fr 1fr; } }
+  .detail-body > div { padding: 22px 24px; }
+  .detail-body > div + div { border-top: 1px solid var(--line); }
+  @media (min-width: 760px) { .detail-body > div + div { border-top: 0; border-left: 1px solid var(--line); } }
+  .detail p { color: var(--text); max-width: 40em; }
+  .detail ul { list-style: none; margin-top: 14px; display: grid; gap: 8px; }
+  .detail li { padding-left: 16px; position: relative; color: var(--text); font-size: 14px; }
+  .detail li::before { content: ""; position: absolute; left: 0; top: .6em; width: 6px; height: 1px; background: var(--accent); }
+  .spec { display: grid; grid-template-columns: 1fr; }
+  .spec div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .spec div span:first-child { color: var(--muted); font: 400 11px/1.9 "JetBrains Mono", monospace; text-transform: uppercase; letter-spacing: .08em; }
+  .spec div span:last-child { color: var(--head); text-align: right; }
 
-/* sections */
-section { padding-block: 36px; border-top: 2px dashed rgba(29,42,34,.25); }
-section > h2 { font-size: clamp(22px, 5.5vw, 30px); }
-.sub { color: var(--muted); margin-top: 10px; max-width: 40em; }
+  footer { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; color: var(--muted); font: 400 11px/1.6 "JetBrains Mono", monospace; letter-spacing: .04em; }
 
-.grid { display: grid; gap: 14px; margin-top: 22px; grid-template-columns: 1fr; }
-@media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 900px) { .grid.three { grid-template-columns: repeat(3, 1fr); } }
-
-.card {
-  background: var(--card); border: 2px solid var(--ink); border-radius: 18px;
-  padding: 20px; box-shadow: 0 4px 0 var(--ink); min-width: 0;
-}
-.card .ic {
-  width: 44px; height: 44px; border-radius: 12px; border: 2px solid var(--ink);
-  display: grid; place-items: center; background: var(--paper); margin-bottom: 14px;
-}
-.card .ic svg { width: 24px; height: 24px; }
-.card h3 { font-size: 16px; }
-.card p { color: var(--muted); margin-top: 8px; font-size: 15px; }
-
-.steps { counter-reset: s; display: grid; gap: 14px; margin-top: 22px; padding: 0; list-style: none; }
-.steps li {
-  display: flex; gap: 14px; align-items: flex-start; background: var(--card);
-  border: 2px solid var(--ink); border-radius: 16px; padding: 16px 18px;
-}
-.steps .n {
-  flex: none; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--ink);
-  display: grid; place-items: center; font: 800 15px/1 Unbounded, sans-serif; background: var(--gold);
-}
-.steps p { color: var(--muted); margin-top: 4px; font-size: 15px; }
-.steps b { font-weight: 800; }
-
-.final {
-  background: var(--pitch); color: #f6f2e6; border: 2px solid var(--ink);
-  border-radius: 22px; padding: 28px 22px; box-shadow: 0 6px 0 var(--ink);
-  display: grid; gap: 16px; justify-items: start; margin-block: 8px 36px;
-}
-.final h2 { font-size: clamp(22px, 5.5vw, 28px); }
-.final p { color: #dcead9; }
-.final .btn { box-shadow: 0 4px 0 #0f2e18; border-color: #0f2e18; }
-
-footer {
-  border-top: 2px dashed rgba(29,42,34,.25); padding-block: 22px 30px;
-  color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap;
-  gap: 8px 16px; justify-content: space-between;
-}
-
-/* about */
-.about-grid { display: grid; gap: 14px; margin-top: 22px; grid-template-columns: 1fr; }
-@media (min-width: 640px) { .about-grid { grid-template-columns: 1fr 1fr; } }
-.facts { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; font-size: 15px; }
-.facts li { color: var(--muted); }
-.facts b { color: var(--ink); font-weight: 800; }
-.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.tags span { border: 2px solid var(--ink); border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 700; background: var(--paper); }
-.glist { display: grid; gap: 10px; margin-top: 12px; }
-.glist a { display: block; border: 2px solid var(--ink); border-radius: 14px; padding: 12px 14px; background: var(--paper); color: var(--ink); text-decoration: none; font-weight: 800; }
-.glist a small { display: block; color: var(--muted); font-weight: 500; margin-top: 2px; }
-.donate .num { font: 800 clamp(20px, 5.5vw, 26px)/1.2 Unbounded, sans-serif; color: var(--ink); margin-top: 10px; }
-.contact-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-.contact-links a { border: 2px solid var(--ink); border-radius: 999px; padding: 8px 16px; background: var(--paper); color: var(--ink); text-decoration: none; font-weight: 800; font-size: 15px; }
+  /* живой фон: тонкая сетка, которая медленно дрейфует, и свет за курсором */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image: linear-gradient(rgba(127,227,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(127,227,255,.045) 1px, transparent 1px);
+    background-size: 48px 48px; animation: drift 28s linear infinite;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 70%); mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 70%);
+  }
+  @keyframes drift { to { background-position: 48px 48px; } }
+  .hero { position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(420px circle at var(--mx, 70%) var(--my, 30%), rgba(127,227,255,.12), transparent 70%);
+    transition: background-position .2s;
+  }
+  .hero::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .7;
+    animation: scan 6s ease-in-out infinite;
+  }
+  @keyframes scan { 0% { top: 0; opacity: 0; } 10% { opacity: .7; } 90% { opacity: .7; } 100% { top: 100%; opacity: 0; } }
+  .hero > * { position: relative; }
+  .status { display: inline-flex; align-items: center; gap: 10px; font: 400 11px/1 "JetBrains Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 rgba(127,227,255,.6); animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(127,227,255,.55); } 70% { box-shadow: 0 0 0 9px rgba(127,227,255,0); } 100% { box-shadow: 0 0 0 0 rgba(127,227,255,0); } }
+  .hero h1 {
+    background: linear-gradient(100deg, var(--head) 35%, var(--accent) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .stats b { font-variant-numeric: tabular-nums; }
+  /* карточки: подсветка за курсором и сдвиг */
+  .game { position: relative; overflow: hidden; }
+  .game::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+    background: radial-gradient(260px circle at var(--gx, 50%) var(--gy, 0%), rgba(127,227,255,.10), transparent 70%);
+  }
+  .game:hover::before { opacity: 1; }
+  .game > * { position: relative; }
+  .game:hover h3 { color: var(--accent); }
+  .game h3 { transition: color .2s; }
+  .btn { transition: border-color .2s, color .2s, background .2s, box-shadow .2s, transform .15s; }
+  .btn.solid:hover { box-shadow: 0 0 22px rgba(127,227,255,.35); transform: translateY(-1px); }
+  .btn:active { transform: translateY(1px); }
+  /* появление при прокрутке */
+  .js .rv { opacity: 0; transform: translateY(14px); transition: opacity .7s ease, transform .7s ease; }
+  .js .rv.in { opacity: 1; transform: none; }
+  .js .game.rv:nth-child(2) { transition-delay: .08s; } .js .game.rv:nth-child(3) { transition-delay: .16s; } .js .game.rv:nth-child(4) { transition-delay: .24s; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .js .rv { opacity: 1; transform: none; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="top">
 
   <header class="top">
-    <a class="brand" href="#top" id="top" aria-label="Steppe Manager">
-      <svg viewBox="0 0 36 36" aria-hidden="true">
-        <circle cx="18" cy="18" r="16" fill="#fffdf6" stroke="#1d2a22" stroke-width="2"/>
-        <path d="M18 6l5 3.6-1.9 5.9h-6.2L13 9.6z" fill="#1d2a22"/>
-        <path d="M6.5 15.5l5.5-1.8 3.6 4.4-2.2 5.2H7.4z" fill="#1d2a22" opacity=".85"/>
-        <path d="M29.5 15.5l-5.5-1.8-3.6 4.4 2.2 5.2h5.5z" fill="#1d2a22" opacity=".85"/>
-        <path d="M12 29.5l2.4-4.8h7.2l2.4 4.8z" fill="#1d2a22" opacity=".85"/>
-      </svg>
-      <b>STEPPE MANAGER</b>
+    <a class="brand" href="#top" aria-label="Каталог игр">
+      <svg viewBox="0 0 22 22" aria-hidden="true"><rect x="1" y="1" width="20" height="20" fill="none" stroke="#7fe3ff" stroke-width="1.5"/><rect x="7" y="7" width="8" height="8" fill="#7fe3ff"/></svg>
+      <b>Игры / каталог</b>
     </a>
-    <nav class="menu">
+    <nav class="nav">
+      <a class="link" href="#games">Игры</a>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu-panel">Меню</button>
       <div class="menu-panel" id="menu-panel" hidden>
-        <span class="menu-title">ИГРЫ</span>
-        <a class="game" href="play.html"><b>STEPPE MANAGER</b><small>футбольный менеджер</small></a>
-        <a class="game" href="neon-cube.html"><b>NEON CUBE</b><small>ритм-раннер, 9 уровней</small></a>
-        <a class="game" href="modern-front.html"><b>MODERN FRONT</b><small>стратегия · кампании</small></a>
-        <span class="menu-sep"></span>
-        <a href="#features">Что внутри</a>
-        <a href="about.html">О платформе</a>
-        <a href="#how">Как начать</a>
-        <a href="#top">Наверх</a>
-        <span class="menu-foot">Играйте прямо в браузере</span>
+        <a href="play.html">Steppe Manager <small>футбол</small></a>
+        <a href="neon-cube.html">Neon Cube <small>ритм</small></a>
+        <a href="modern-front.html">Modern Front <small>стратегия</small></a>
       </div>
     </nav>
   </header>
 
   <div class="hero">
-    <div>
-      <span class="eyebrow">Футбольный менеджер · в браузере</span>
-      <h1>Поднимите клуб из степи до высшей лиги</h1>
-      <p class="lead">Покупайте игроков, нанимайте штаб, выстраивайте тактику и сами выходите на поле в матче. Никакой установки: открыл ссылку — и игра готова.</p>
-      <div class="cta">
-        <a class="btn big" href="play.html">▶&nbsp; Играть в браузере</a>
-        <a class="btn ghost" href="#features">Что внутри</a>
+    <div class="status"><i class="dot"></i><span>Система в сети</span><span>·</span><span id="clock">--:--:--</span></div>
+    <h1>Выберите игру</h1>
+    <p>Каталог собранных в браузере проектов. Каждую игру можно открыть сразу, без установки, или добавить на экран как приложение.</p>
+    <div class="stats">
+      <div><span>Игр</span><b data-count="3">03</b></div>
+      <div><span>Установка</span><b>Не нужна</b></div>
+      <div><span>Платформа</span><b>Браузер</b></div>
+    </div>
+  </div>
+
+  <section id="games" class="rv">
+    <div class="sec-head">
+      <h2>Каталог</h2>
+      <span class="label">Выберите игру или откройте подробности</span>
+    </div>
+    <div class="catalog">
+      <article class="game rv">
+        <div class="game-top"><span class="idx">01</span><span class="tag">Менеджмент · спорт</span></div>
+        <h3>Steppe Manager</h3>
+        <p>Футбольный менеджер: клуб, трансферы, тактика и матчи, в которых вы сами управляете игроком.</p>
+        <div class="meta"><span>Браузер</span><span>Установка: да</span><span>Онлайн-матч</span></div>
+        <div class="actions">
+          <a class="btn solid" href="play.html">Играть →</a>
+          <a class="btn" href="#steppe">Подробнее</a>
+        </div>
+      </article>
+      <article class="game rv">
+        <div class="game-top"><span class="idx">02</span><span class="tag">Ритм · аркада</span></div>
+        <h3>Neon Cube</h3>
+        <p>Ритм-раннер: один прыжок, девять уровней, шипы и монеты. Рекорды сохраняются в браузере.</p>
+        <div class="meta"><span>Браузер</span><span>Установка: да</span><span>9 уровней</span></div>
+        <div class="actions">
+          <a class="btn solid" href="Neon_Cube.html">Играть →</a>
+          <a class="btn" href="#neon">Подробнее</a>
+        </div>
+      </article>
+      <article class="game rv">
+        <div class="game-top"><span class="idx">03</span><span class="tag">Стратегия · кампании</span></div>
+        <h3>Modern Front</h3>
+        <p>Стратегия о современных конфликтах: быстрый бой, настраиваемый матч и кампании за шесть стран.</p>
+        <div class="meta"><span>Браузер</span><span>Установка: да</span><span>Сохранение в браузере</span></div>
+        <div class="actions">
+          <a class="btn solid" href="modern-front-game.html">Играть →</a>
+          <a class="btn" href="#modern">Подробнее</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="steppe" class="rv">
+    <div class="detail">
+      <div class="detail-head">
+        <h2>Steppe Manager</h2>
+        <span class="tag">Менеджмент · спорт</span>
       </div>
-      <p class="hint">Работает на телефоне и компьютере. Прогресс сохраняется в вашем браузере.</p>
-    </div>
-
-    <div class="pitch" role="img" aria-label="Футбольное поле на фоне степи">
-      <svg viewBox="0 0 600 360" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#f6d9a0"/>
-            <stop offset="1" stop-color="#f4efe2"/>
-          </linearGradient>
-          <pattern id="stripes" width="75" height="360" patternUnits="userSpaceOnUse">
-            <rect width="37.5" height="360" fill="#2f7a45"/>
-            <rect x="37.5" width="37.5" height="360" fill="#2a6e3e"/>
-          </pattern>
-        </defs>
-        <rect width="600" height="130" fill="url(#sky)"/>
-        <path d="M0 130 L80 96 L150 118 L240 84 L330 116 L420 90 L520 112 L600 96 L600 130 Z" fill="#c9a36a" opacity=".55"/>
-        <path d="M0 130 L120 110 L220 126 L340 104 L460 124 L600 108 L600 130 Z" fill="#b38a52" opacity=".7"/>
-        <rect y="130" width="600" height="230" fill="url(#stripes)"/>
-        <g fill="none" stroke="#f6f2e6" stroke-width="4" opacity=".95">
-          <rect x="30" y="150" width="540" height="190" rx="2"/>
-          <line x1="300" y1="150" x2="300" y2="340"/>
-          <circle cx="300" cy="245" r="42"/>
-          <circle cx="300" cy="245" r="3" fill="#f6f2e6"/>
-          <rect x="30" y="200" width="90" height="90"/>
-          <rect x="480" y="200" width="90" height="90"/>
-          <rect x="30" y="222" width="34" height="46"/>
-          <rect x="536" y="222" width="34" height="46"/>
-        </g>
-        <g stroke="#1d2a22" stroke-width="3" fill="#fffdf6">
-          <circle cx="470" cy="205" r="13"/>
-          <path d="M470 194 l5 4 -2 6 h-6 l-2 -6z" fill="#1d2a22"/>
-        </g>
-        <g>
-          <rect x="120" y="285" width="46" height="62" rx="10" fill="#c9542e" stroke="#1d2a22" stroke-width="3"/>
-          <circle cx="143" cy="268" r="13" fill="#f2c9a0" stroke="#1d2a22" stroke-width="3"/>
-          <rect x="130" y="342" width="10" height="14" fill="#1d2a22"/>
-          <rect x="146" y="342" width="10" height="14" fill="#1d2a22"/>
-        </g>
-        <g>
-          <rect x="380" y="180" width="40" height="54" rx="9" fill="#fffdf6" stroke="#1d2a22" stroke-width="3"/>
-          <circle cx="400" cy="166" r="12" fill="#f2c9a0" stroke="#1d2a22" stroke-width="3"/>
-          <rect x="390" y="232" width="9" height="12" fill="#1d2a22"/>
-          <rect x="403" y="232" width="9" height="12" fill="#1d2a22"/>
-        </g>
-        <circle cx="262" cy="330" r="11" fill="#fffdf6" stroke="#1d2a22" stroke-width="3"/>
-        <path d="M262 322 l4 3 -1.5 4.5 h-5 l-1.5 -4.5z" fill="#1d2a22"/>
-      </svg>
-    </div>
-  </div>
-
-  <section id="features">
-    <h2>Что внутри</h2>
-    <p class="sub">Карьера, которая не заканчивается на поле: каждое решение влияет на бюджет, репутацию и состав.</p>
-    <div class="grid">
-      <article class="card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg></div>
-        <h3>Свой клуб</h3>
-        <p>Назовите клуб, выберите форму и ведите его от местной команды к высшей лиге. Соперники тоже развиваются по тем же правилам.</p>
-      </article>
-      <article class="card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.8-3.4 3.2-5 6-5s5.2 1.6 6 5"/><path d="M16 5l2 2 4-4"/></svg></div>
-        <h3>Трансферы</h3>
-        <p>Ведите переговоры о зарплате и условиях, следите за свободными игроками и не дайте конкурентам забрать лучших.</p>
-      </article>
-      <article class="card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h18M12 4v16"/></svg></div>
-        <h3>Тактика и формации</h3>
-        <p>Выбирайте схему, расставляйте игроков на позиции и заранее готовьте состав. Травмированные игроки отмечаются в составе.</p>
-      </article>
-      <article class="card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7l3 2.2-1.2 3.6h-3.6L9 9.2z"/></svg></div>
-        <h3>Матчи с управлением</h3>
-        <p>Ведите игру сами: джойстиком управляйте полевым игроком, делайте замены и следите за болельщиками, которые выбегают на поле.</p>
-      </article>
-      <article class="card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><path d="M4 19h16M7 16V9m5 7V5m5 11v-6"/></svg></div>
-        <h3>Финансы и штаб</h3>
-        <p>Спонсоры, зарплаты, доходы и расходы. Тренеры, врачи и скауты влияют на развитие игроков и на результат.</p>
-      </article>
-      <article class="card">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#1d2a22" stroke-width="2"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="4"/></svg></div>
-        <h3>Ваш стиль</h3>
-        <p>Играйте атакующим стилем, держите оборону или делайте ставку на молодёжь. Правила одинаковы для всех, выбор за вами.</p>
-      </article>
+      <div class="detail-body">
+        <div>
+          <p>Поднимите клуб из степи до высшей лиги. Покупайте игроков, нанимайте штаб, выстраивайте тактику и сами выходите на поле в матче.</p>
+          <ul>
+            <li>Свой клуб: название, форма, путь от местной команды до высшей лиги</li>
+            <li>Трансферы: переговоры о зарплате и условиях, конкуренция за лучших игроков</li>
+            <li>Тактика и формации, травмы и замены в составе</li>
+            <li>Матчи с управлением: джойстик, удары, замены и болельщики на поле</li>
+            <li>Финансы и штаб: спонсоры, зарплаты, тренеры, врачи и скауты</li>
+          </ul>
+        </div>
+        <div>
+          <div class="spec">
+            <div><span>Жанр</span><span>Футбольный менеджер</span></div>
+            <div><span>Платформа</span><span>Браузер, телефон и ПК</span></div>
+            <div><span>Установка</span><span>Да, как приложение</span></div>
+            <div><span>Онлайн</span><span>Матч по коду</span></div>
+            <div><span>Сохранение</span><span>В браузере</span></div>
+          </div>
+          <div class="actions" style="margin-top:18px"><a class="btn solid" href="play.html">Играть →</a></div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="how">
-    <h2>Как начать</h2>
-    <p class="sub">Первый матч можно сыграть уже через минуту после старта.</p>
-    <ol class="steps">
-      <li><span class="n">1</span><div><b>Откройте игру</b><p>Нажмите «Играть в браузере». Установка не нужна.</p></div></li>
-      <li><span class="n">2</span><div><b>Назовите клуб и соберите состав</b><p>Посмотрите рынок игроков, выберите схему и первых игроков.</p></div></li>
-      <li><span class="n">3</span><div><b>Выходите на поле</b><p>Играйте матчи, зарабатывайте деньги и развивайте клуб из сезона в сезон.</p></div></li>
-    </ol>
+  <section id="neon" class="rv">
+    <div class="detail">
+      <div class="detail-head">
+        <h2>Neon Cube</h2>
+        <span class="tag">Ритм · аркада</span>
+      </div>
+      <div class="detail-body">
+        <div>
+          <p>Неоновый куб бежит вперёд сам, а вы решаете только одно: когда прыгнуть. Одно касание — и всё сначала.</p>
+          <ul>
+            <li>Одна кнопка: пробел, клик или тап</li>
+            <li>Девять уровней, которые становятся плотнее</li>
+            <li>Монеты на каждом уровне и рекорды для каждого уровня</li>
+          </ul>
+        </div>
+        <div>
+          <div class="spec">
+            <div><span>Жанр</span><span>Ритм-раннер</span></div>
+            <div><span>Платформа</span><span>Браузер, телефон и ПК</span></div>
+            <div><span>Установка</span><span>Да, как приложение</span></div>
+            <div><span>Прогресс</span><span>В браузере</span></div>
+          </div>
+          <div class="actions" style="margin-top:18px">
+            <a class="btn solid" href="Neon_Cube.html">Играть →</a>
+            <a class="btn" href="neon-cube.html">Страница игры</a>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <div class="final">
-    <h2>Готовы стать тренером?</h2>
-    <p>Степь ждёт свою команду. Начните карьеру прямо сейчас.</p>
-    <a class="btn" href="play.html">▶&nbsp; Играть в браузере</a>
-  </div>
+  <section id="modern" class="rv">
+    <div class="detail">
+      <div class="detail-head">
+        <h2>Modern Front</h2>
+        <span class="tag">Стратегия · кампании</span>
+      </div>
+      <div class="detail-body">
+        <div>
+          <p>Стратегия о современных конфликтах. Стройте базы, собирайте армию и ведите бои на карте в изометрической проекции.</p>
+          <ul>
+            <li>Быстрый бой, настраиваемый матч и кампании</li>
+            <li>Строительство зданий, армия из техники и солдат</li>
+            <li>Выделение рамкой и выбор всей армии одной кнопкой</li>
+            <li>Миникарта, пауза и сохранение в браузере</li>
+          </ul>
+        </div>
+        <div>
+          <div class="spec">
+            <div><span>Жанр</span><span>Стратегия</span></div>
+            <div><span>Платформа</span><span>Браузер, телефон и ПК</span></div>
+            <div><span>Установка</span><span>Да, как приложение</span></div>
+            <div><span>Сохранение</span><span>В браузере</span></div>
+          </div>
+          <div class="actions" style="margin-top:18px">
+            <a class="btn solid" href="modern-front-game.html">Играть →</a>
+            <a class="btn" href="modern-front.html">Страница игры</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <footer>
-    <span>© 2026 Steppe Manager · Zh.A.T</span>
-    <span>Играйте в браузере на любом устройстве</span>
+    <span>© 2026 Amirbek Zhalgasbekov. Все права защищены.</span>
+    <span>Игры работают в браузере</span>
   </footer>
 
 </div>
+<script>
+(function () {
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // подсветка за курсором: в hero и на карточках
+  document.querySelectorAll('.hero, .game').forEach(function (el) {
+    el.addEventListener('pointermove', function (e) {
+      var r = el.getBoundingClientRect();
+      el.style.setProperty(el.classList.contains('hero') ? '--mx' : '--gx', (e.clientX - r.left) + 'px');
+      el.style.setProperty(el.classList.contains('hero') ? '--my' : '--gy', (e.clientY - r.top) + 'px');
+    });
+  });
+  // часы
+  var clock = document.getElementById('clock');
+  function tick() { var d = new Date(); clock.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()].map(function (n) { return String(n).padStart(2, '0'); }).join(':'); }
+  tick(); setInterval(tick, 1000);
+  // счётчик игр
+  var cnt = document.querySelector('[data-count]');
+  if (cnt && !reduce) {
+    var target = +cnt.dataset.count, start = null;
+    requestAnimationFrame(function step(t) { if (!start) start = t; var k = Math.min(1, (t - start) / 900); cnt.textContent = String(Math.round(target * k)).padStart(2, '0'); if (k < 1) requestAnimationFrame(step); });
+  }
+  // появление блоков при прокрутке
+  var items = document.querySelectorAll('.rv');
+  if (!('IntersectionObserver' in window) || reduce) { items.forEach(function (el) { el.classList.add('in'); }); }
+  else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { threshold: .12 });
+    items.forEach(function (el) { io.observe(el); });
+  }
+})();
+</script>
 <script>
 (function () {
   var btn = document.querySelector('.menu-btn'), panel = document.getElementById('menu-panel');
