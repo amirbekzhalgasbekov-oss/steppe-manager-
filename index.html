@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Каталог браузерных игр: Steppe Manager, ЗОНА, Neon Cube, Modern Front. Выберите игру и узнайте подробнее.">
+<meta name="description" content="Каталог браузерных игр: Steppe Manager, Neon Cube, Modern Front. Выберите игру и узнайте подробнее.">
 <title>Игры — каталог</title>
 <meta name="theme-color" content="#07090b">
 <script>document.documentElement.classList.add("js")</script>
@@ -42,6 +42,7 @@
   .nav { display: flex; gap: 6px; align-items: center; position: relative; }
   .nav a.link { font: 500 12px/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase; text-decoration: none; color: var(--muted); padding: 8px 10px; }
   .nav a.link:hover { color: var(--head); }
+  @media (max-width: 719px) { .nav a.link { display: none; } }
   .menu-btn {
     font: 500 12px/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase;
     background: transparent; color: var(--head); border: 1px solid var(--line-2); padding: 8px 12px; cursor: pointer; margin: 0;
@@ -161,6 +162,28 @@
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .js .rv { opacity: 1; transform: none; }
   }
+
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+  .hint { margin-top: 14px; font: 400 11px/1.6 "JetBrains Mono", monospace; color: var(--muted); letter-spacing: .04em; }
+  .sec-sub { color: var(--muted); margin-top: 8px; max-width: 42em; font-size: 15px; }
+  .feat { display: grid; grid-template-columns: 1fr; border: 1px solid var(--line); }
+  @media (min-width: 720px) { .feat { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 980px) { .feat { grid-template-columns: 1fr 1fr 1fr; } }
+  .feat-item { padding: 22px 22px 24px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); transition: background .2s; }
+  .feat-item:hover { background: var(--panel); }
+  .feat-item:last-child { border-right: 0; }
+  .feat-item h3 { font: 500 17px/1.3 "Space Grotesk", sans-serif; color: var(--head); margin-top: 14px; }
+  .feat-item p { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  .idx { font: 400 11px/1 "JetBrains Mono", monospace; color: var(--accent-d); letter-spacing: .08em; }
+  .steps { list-style: none; display: grid; gap: 0; border: 1px solid var(--line); }
+  .steps li { display: flex; gap: 18px; align-items: flex-start; padding: 20px 22px; border-bottom: 1px solid var(--line); }
+  .steps li:last-child { border-bottom: 0; }
+  .steps .n { font: 500 13px/1 "JetBrains Mono", monospace; color: var(--accent); padding-top: 3px; flex: none; }
+  .steps h3 { font: 500 17px/1.3 "Space Grotesk", sans-serif; color: var(--head); }
+  .steps p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .final { margin-top: 56px; padding: 32px 26px; border: 1px solid var(--line-2); background: var(--panel); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; }
+  .final h2 { font: 500 26px/1.2 "Space Grotesk", sans-serif; color: var(--head); }
+  .final p { color: var(--muted); margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -173,11 +196,14 @@
     </a>
     <nav class="nav">
       <a class="link" href="#games">Игры</a>
+      <a class="link" href="about.html">Платформа</a>
       <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu-panel">Меню</button>
       <div class="menu-panel" id="menu-panel" hidden>
         <a href="play.html">Steppe Manager <small>футбол</small></a>
         <a href="neon-cube.html">Neon Cube <small>ритм</small></a>
         <a href="modern-front.html">Modern Front <small>стратегия</small></a>
+        <a href="about.html">О платформе</a>
+        <a href="#top">Наверх</a>
       </div>
     </nav>
   </header>
@@ -186,6 +212,11 @@
     <div class="status"><i class="dot"></i><span>Система в сети</span><span>·</span><span id="clock">--:--:--</span></div>
     <h1>Выберите игру</h1>
     <p>Каталог собранных в браузере проектов. Каждую игру можно открыть сразу, без установки, или добавить на экран как приложение.</p>
+    <div class="hero-cta">
+      <a class="btn solid" href="#games">Выбрать игру</a>
+      <a class="btn" href="about.html">О платформе</a>
+    </div>
+    <p class="hint">Работает на телефоне и компьютере. Прогресс сохраняется в вашем браузере.</p>
     <div class="stats">
       <div><span>Игр</span><b data-count="3">03</b></div>
       <div><span>Установка</span><b>Не нужна</b></div>
@@ -206,7 +237,7 @@
         <div class="meta"><span>Браузер</span><span>Установка: да</span><span>Онлайн-матч</span></div>
         <div class="actions">
           <a class="btn solid" href="play.html">Играть →</a>
-          <a class="btn" href="#steppe">Подробнее</a>
+          <a class="btn" href="steppe.html">Подробнее</a>
         </div>
       </article>
       <article class="game rv">
@@ -229,37 +260,6 @@
           <a class="btn" href="#modern">Подробнее</a>
         </div>
       </article>
-    </div>
-  </section>
-
-  <section id="steppe" class="rv">
-    <div class="detail">
-      <div class="detail-head">
-        <h2>Steppe Manager</h2>
-        <span class="tag">Менеджмент · спорт</span>
-      </div>
-      <div class="detail-body">
-        <div>
-          <p>Поднимите клуб из степи до высшей лиги. Покупайте игроков, нанимайте штаб, выстраивайте тактику и сами выходите на поле в матче.</p>
-          <ul>
-            <li>Свой клуб: название, форма, путь от местной команды до высшей лиги</li>
-            <li>Трансферы: переговоры о зарплате и условиях, конкуренция за лучших игроков</li>
-            <li>Тактика и формации, травмы и замены в составе</li>
-            <li>Матчи с управлением: джойстик, удары, замены и болельщики на поле</li>
-            <li>Финансы и штаб: спонсоры, зарплаты, тренеры, врачи и скауты</li>
-          </ul>
-        </div>
-        <div>
-          <div class="spec">
-            <div><span>Жанр</span><span>Футбольный менеджер</span></div>
-            <div><span>Платформа</span><span>Браузер, телефон и ПК</span></div>
-            <div><span>Установка</span><span>Да, как приложение</span></div>
-            <div><span>Онлайн</span><span>Матч по коду</span></div>
-            <div><span>Сохранение</span><span>В браузере</span></div>
-          </div>
-          <div class="actions" style="margin-top:18px"><a class="btn solid" href="play.html">Играть →</a></div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -325,6 +325,9 @@
       </div>
     </div>
   </section>
+
+
+
 
   <footer>
     <span>© 2026 Amirbek Zhalgasbekov. Все права защищены.</span>
