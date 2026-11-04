@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Мировая партия — стратегия на карте мира: захватывайте провинции, стройте экономику, ведите дипломатию и войны.">
+<title>Мировая партия — стратегия</title>
+<meta name="theme-color" content="#0a1522">
+<link rel="manifest" href="mirovaya-partiya.webmanifest">
+<link rel="icon" href="mirovaya-partiya-icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="mirovaya-partiya-apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Russo+One&family=PT+Sans:wght@400;700&display=swap">
+<style>
+  :root {
+    --deep: #0a1522; --ocean: #1c3a58; --panel: #0e1d2e; --panel2: #16304b; --line: #27496c;
+    --ink: #eef4fa; --mute: #92abc4; --gold: #f3c14f; --you: #4cc0ff; --foe: #ff6a5c; --ok: #58d6a6;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    background: var(--deep); color: var(--ink);
+    font: 400 16px/1.6 "PT Sans", "Segoe UI", system-ui, sans-serif;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    overflow-x: hidden;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-bottom: 40px; }
+  .f-d { font-family: "Russo One", "Arial Black", Impact, sans-serif; }
+
+  /* шапка */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 64px; border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .brand img { width: 32px; height: 32px; flex: none; }
+  .brand b { font: 400 15px/1 "Russo One", sans-serif; letter-spacing: .04em; color: var(--ink); }
+  .nav a.link { font: 400 13px/1 "PT Sans", sans-serif; color: var(--mute); text-decoration: none; padding: 10px; }
+  .nav a.link:hover { color: var(--ink); }
+  @media (max-width: 640px) { .nav a.link { display: none; } }
+
+  /* кнопки */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 12px 22px;
+    font: 400 14px/1 "Russo One", sans-serif; text-decoration: none; letter-spacing: .03em;
+    color: var(--deep); background: var(--gold); border: 0; border-radius: 10px; cursor: pointer;
+    transition: transform .08s, background .15s;
+  }
+  .btn:hover { background: #ffd66f; }
+  .btn:active { transform: translateY(2px); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn.ghost:hover { background: var(--panel2); }
+  .btn:focus-visible { outline: 2px solid var(--you); outline-offset: 3px; }
+
+  /* первый экран */
+  .hero { padding: 64px 0 40px; display: grid; gap: 28px; }
+  @media (min-width: 860px) { .hero { grid-template-columns: 1.1fr 1fr; align-items: center; } }
+  .badge { display: inline-block; font: 400 12px/1 "Russo One", sans-serif; letter-spacing: .08em; color: var(--deep); background: var(--gold); padding: 7px 10px; border-radius: 6px; }
+  .hero h1 { font: 400 clamp(36px, 7vw, 66px)/1.05 "Russo One", sans-serif; margin-top: 18px; text-wrap: balance; }
+  .hero h1 span { color: var(--gold); }
+  .hero .lead { color: var(--mute); font-size: 18px; margin-top: 18px; max-width: 32em; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .shot { border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: var(--ocean); max-width: 320px; justify-self: center; }
+  .shot img { display: block; width: 100%; height: auto; }
+
+  /* секции */
+  section { padding-top: 56px; }
+  h2.title { font: 400 clamp(22px, 4vw, 30px)/1.2 "Russo One", sans-serif; }
+  .title-bar { width: 56px; height: 4px; background: var(--gold); border-radius: 2px; margin-top: 12px; }
+  .lead-sm { color: var(--mute); margin-top: 14px; max-width: 40em; }
+
+  .blocks { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 26px; }
+  @media (min-width: 640px) { .blocks { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 960px) { .blocks { grid-template-columns: 1fr 1fr 1fr; } }
+  .block { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .block .ic { width: 40px; height: 40px; display: grid; place-items: center; font-size: 20px; background: var(--ocean); border-radius: 10px; }
+  .block h3 { font: 400 16px/1.3 "Russo One", sans-serif; margin-top: 14px; color: var(--gold); }
+  .block p { color: var(--ink); font-size: 15px; margin-top: 8px; }
+
+  .controls { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 26px; }
+  @media (min-width: 640px) { .controls { grid-template-columns: 1fr 1fr; } }
+  .panel-box { background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+  .panel-box h3 { font: 400 16px/1 "Russo One", sans-serif; color: var(--you); }
+  .panel-box ul { list-style: none; margin-top: 14px; display: grid; gap: 10px; }
+  .panel-box li { position: relative; padding-left: 22px; font-size: 15px; }
+  .panel-box li::before { content: ""; position: absolute; left: 0; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+
+  .final { margin-top: 64px; padding: 36px 24px; text-align: center; background: var(--ocean); border: 1px solid var(--line); border-radius: 22px; }
+  .final h2 { font: 400 clamp(24px, 5vw, 34px)/1.2 "Russo One", sans-serif; }
+  .final p { color: var(--ink); margin: 14px auto 0; max-width: 34em; }
+  .final .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px; }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; color: var(--mute); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <a class="brand" href="index.html" aria-label="Все игры">
+      <img src="mirovaya-partiya-icon-192.png" alt="" width="32" height="32">
+      <b>Мировая партия</b>
+    </a>
+    <nav class="nav">
+      <a class="link" href="index.html">Все игры</a>
+      <a class="link" href="#mechanics">Механики</a>
+      <a class="link" href="#controls">Управление</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <span class="badge">СТРАТЕГИЯ · В БРАУЗЕРЕ</span>
+      <h1>Ведите <span>свою страну</span> через весь мир</h1>
+      <p class="lead">Выберите государство на карте, стройте экономику, расширяйте провинции и решайте, с кем дружить, а с кем воевать. Каждый ход меняет расклад сил.</p>
+      <div class="actions">
+        <a class="btn" href="mirovaya-partiya-game.html">Играть →</a>
+        <a class="btn ghost" href="#mechanics">Как это работает</a>
+      </div>
+    </div>
+    <div class="shot">
+      <img src="mirovaya-partiya-screen.png" alt="Игровая карта: выбранная страна, казна, войска и кнопка следующего хода" width="780" height="1688">
+    </div>
+  </div>
+
+  <section id="mechanics">
+    <h2 class="title f-d">Механики</h2>
+    <div class="title-bar"></div>
+    <p class="lead-sm">Экономика, армия, дипломатия и развитие связаны между собой. Ошибка в одном быстро отзывается в другом.</p>
+    <div class="blocks">
+      <article class="block"><div class="ic">🏙</div><h3>Провинции</h3><p>Захватывайте земли и стройте в них здания. Доход зависит от развития провинции и её уровня.</p></article>
+      <article class="block"><div class="ic">💰</div><h3>Казна и экономика</h3><p>Налоги и торговля пополняют казну. Казна нужна на армию, стройку и дипломатию.</p></article>
+      <article class="block"><div class="ic">🪖</div><h3>Войска</h3><p>Набирайте пехоту и технику, перебрасывайте их по карте. Снабжение и местность решают не меньше численности.</p></article>
+      <article class="block"><div class="ic">🤝</div><h3>Дипломатия</h3><p>Предлагайте союзы, поставляйте оружие и поддерживайте повстанцев. Каждое действие видно в журнале.</p></article>
+      <article class="block"><div class="ic">⚗️</div><h3>Развитие</h3><p>Открывайте технологии, которые дают новые здания и войска. Развитие стоит времени и денег.</p></article>
+      <article class="block"><div class="ic">🌊</div><h3>Морские зоны</h3><p>Берега и морские маршруты открывают торговлю и десант. Флот дорог, но без него не обойтись.</p></article>
+    </div>
+  </section>
+
+  <section id="controls">
+    <h2 class="title f-d">Управление</h2>
+    <div class="title-bar"></div>
+    <p class="lead-sm">Одна игра на телефоне и на компьютере.</p>
+    <div class="controls">
+      <div class="panel-box">
+        <h3>Телефон</h3>
+        <ul>
+          <li>Касание страны для выбора и действий</li>
+          <li>Масштаб и перемещение карты жестами</li>
+          <li>Кнопка «следующий ход» в правом нижнем углу</li>
+        </ul>
+      </div>
+      <div class="panel-box">
+        <h3>Компьютер</h3>
+        <ul>
+          <li>Мышь для выбора стран и провинций</li>
+          <li>Колёсико для приближения карты</li>
+          <li>Журнал и карта мира одной кнопкой слева</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="final">
+      <h2 class="f-d">Чья будет партия?</h2>
+      <p>Начните с любой страны мира. Игра открывается в браузере, ничего устанавливать не нужно.</p>
+      <div class="actions">
+        <a class="btn" href="mirovaya-partiya-game.html">Играть →</a>
+        <a class="btn ghost" href="index.html">В каталог</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Amirbek Zhalgasbekov. Все права защищены.</span>
+    <span>Мировая партия · в браузере</span>
+  </footer>
+
+</div>
+</body>
+</html>
