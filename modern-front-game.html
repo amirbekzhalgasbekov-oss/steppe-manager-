@@ -70,6 +70,22 @@ button.on{background:linear-gradient(#55905a,#2a5a2c);border-color:#b5e0a4;color
 #ub,#pb{max-height:38vh;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #main-menu{overflow-y:auto;touch-action:pan-y;justify-content:safe center}
 #msg{touch-action:pan-y}
+body.pc #bot button{font-size:13px;padding:8px 10px}
+body.pc canvas{cursor:default}
+#pcHint{display:none;color:#e8dcc0;font-size:13px;line-height:1.5;max-width:380px;text-align:center;margin:0;background:rgba(0,0,0,.35);border:1px solid #5a4330;border-radius:8px;padding:8px 10px}
+body.pc #pcHint{display:block}
+body.pc #installMF,body.pc #installHintMF{display:none!important}
+/* ===== HUD режима ПК (только при body.pc) ===== */
+body.pc #top{left:0;right:0;top:0;padding:6px 12px;gap:8px;align-items:center;background:linear-gradient(#2c2216,#140f08);border-bottom:2px solid #8a6a3a;box-sizing:border-box}
+body.pc #top .chip{font-size:14px;padding:5px 12px}
+body.pc #top #res{flex:0 0 auto}
+body.pc #mm{left:auto;right:12px;top:auto;bottom:12px;width:150px;height:150px}
+body.pc #bot{left:50%;right:auto;bottom:10px;transform:translateX(-50%);width:min(980px,calc(100% - 24px));padding:10px 12px;border:2px solid #8a6a3a;border-radius:10px;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+body.pc #info{flex:0 0 100%;font-size:14px;min-height:24px;padding:6px 10px}
+body.pc #bot button{flex:0 1 auto;min-width:104px;font-size:13px;padding:8px 12px}
+body.pc #bot button:hover:not(:disabled){filter:brightness(1.2)}
+body.pc #pb button,body.pc #ub button{flex:1 1 auto;min-width:120px}
+body.pc #bB{display:none!important}
 </style><meta name="theme-color" content="#10150f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Modern Front">
@@ -81,6 +97,8 @@ button.on{background:linear-gradient(#55905a,#2a5a2c);border-color:#b5e0a4;color
 <div id="main-menu">
   <h1>MODERN FRONT</h1>
   <button class="mm-btn" id="btn-play">Играть</button>
+  <button class="mm-btn" id="btn-pc">Режим ПК: выкл</button>
+  <p id="pcHint">ЛКМ — выбор и рамка · ПКМ — приказ · ПКМ или СКМ с перетаскиванием — камера · WASD, стрелки или край экрана — камера · Space — к базе · Q — вся армия · B — строить · Esc — пауза</p>
   <button class="mm-btn" id="btn-load-game">Загрузить</button>
   <button class="mm-btn" id="btn-dev">Режим разработчика: выкл</button>
   <button class="mm-btn" onclick="location.href='index.html'">На главную</button>
@@ -723,7 +741,7 @@ function info(){let h='';
  inf.innerHTML=h}
 const resEl=document.getElementById('res'),popEl=document.getElementById('pop'),tmEl=document.getElementById('tm'),msg=document.getElementById('msg'),mt=document.getElementById('mt');
 const bW=document.getElementById('bW'),bV=document.getElementById('bV'),bS=document.getElementById('bS'),bB=document.getElementById('bB'),bA=document.getElementById('bA');
-let boxMode=false,box_=null,ptr=null;
+let boxMode=false,box_=null,ptr=null,PC=false;
 
 const nt=document.getElementById('nt'),pb=document.getElementById('pb'),bK=document.getElementById('bK'),bT=document.getElementById('bT'),btns={};
 const BD={
@@ -895,13 +913,13 @@ function tap(sx,sy){if(flakSel){const w=ground(sx,sy);FLKT={x:Math.max(1,Math.mi
  if(h){if(h.team>5||foe(my[0],h)){sfxP('at');my.forEach(u=>{if((u.type!=='truck'||u.dtr||isVol(u))&&u.type!=='dozer')u.o={k:'a',t:h}})}return}
  const w=ground(sx,sy),tx=Math.floor(w.x),ty=Math.floor(w.y),ore=T[ty]&&T[ty][tx]===1,treeT=T[ty]&&T[ty][tx]===2&&!BLD[ty][tx]&&MP.m!=='city';
  sfxP(ore&&my[0].type==='truck'?'st':'mv',my[0]);my.forEach((u,i)=>{if(treeT&&isVol(u)){u.o={k:'chop',x:tx,y:ty};u.ct=0}else if(ore&&u.type==='truck'&&!u.dtr)u.o={k:'h',x:tx,y:ty};else{u.o={k:'m',x:cl(w.x+(i%3-1)*.8),y:cl(w.y+(Math.floor(i/3)%3-1)*.8)};if(T[Math.floor(u.o.y)]&&T[Math.floor(u.o.y)][Math.floor(u.o.x)]===3&&landU(u)&&!lightFig(u))note('Тяжёлая техника не заходит в воду')}})}
-cv.addEventListener('pointerdown',e=>{if(ptr||over||!started)return;ptr={id:e.pointerId,x:e.offsetX*k,y:e.offsetY*k,sx:e.offsetX*k,sy:e.offsetY*k,m:false};cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointerdown',e=>{if(ptr||over||!started)return;ptr={id:e.pointerId,x:e.offsetX*k,y:e.offsetY*k,sx:e.offsetX*k,sy:e.offsetY*k,m:false,b:e.button};cv.setPointerCapture(e.pointerId)});
 cv.addEventListener('pointermove',e=>{if(!ptr||e.pointerId!==ptr.id)return;const x=e.offsetX*k,y=e.offsetY*k;
  if(!ptr.m&&Math.hypot(x-ptr.sx,y-ptr.sy)>4)ptr.m=true;
- if(ptr.m){if(boxMode)box_={x0:ptr.sx,y0:ptr.sy,x1:x,y1:y};else{cam.x+=x-ptr.x;cam.y+=y-ptr.y}}ptr.x=x;ptr.y=y});
+ if(ptr.m){if(boxMode||(PC&&ptr.b===0))box_={x0:ptr.sx,y0:ptr.sy,x1:x,y1:y};else{cam.x+=x-ptr.x;cam.y+=y-ptr.y}}ptr.x=x;ptr.y=y});
 function endp(e){if(!ptr||e.pointerId!==ptr.id)return;
- if(!ptr.m)tap(ptr.sx,ptr.sy);
- else if(boxMode&&box_){const x0=Math.min(box_.x0,box_.x1),x1=Math.max(box_.x0,box_.x1),y0=Math.min(box_.y0,box_.y1),y1=Math.max(box_.y0,box_.y1);
+ if(!ptr.m){if(PC&&ptr.b===2)rclick(ptr.sx,ptr.sy);else tap(ptr.sx,ptr.sy)}
+ else if((boxMode||(PC&&ptr.b===0))&&box_){const x0=Math.min(box_.x0,box_.x1),x1=Math.max(box_.x0,box_.x1),y0=Math.min(box_.y0,box_.y1),y1=Math.max(box_.y0,box_.y1);
   selB=null;sel=new Set(E.filter(u=>{if(u.team!==0||u.type==='cc')return false;const[x,y]=P(u.x,u.y);return x>=x0&&x<=x1&&y-5>=y0&&y-5<=y1}).map(u=>u.id));if(sel.size)sfxP('sel',E.find(e=>e.id===[...sel][0]))}
  box_=null;ptr=null}
 cv.addEventListener('pointerup',endp);cv.addEventListener('pointercancel',endp);
@@ -2130,6 +2148,52 @@ document.getElementById('btn-camp-m-back').onclick=()=>showS('camp');
 let last=performance.now();
 /* Метки миссии (например, выход из лагеря) поверх карты */
 const _drawMarks=draw;draw=function(){_drawMarks();if(mission&&mission.markers){for(const m of mission.markers){const q=P(m.x,m.y);g.save();g.strokeStyle='#ffd23f';g.lineWidth=3;g.setLineDash([6,4]);g.beginPath();g.arc(q[0],q[1],20,0,7);g.stroke();g.setLineDash([]);g.fillStyle='#ffd23f';g.font='bold 12px sans-serif';g.textAlign='center';g.fillText(m.label,q[0],q[1]-26);g.restore()}}};
+// ===== режим ПК: мышь и клавиатура =====
+function rclick(sx,sy){                        // ПКМ: приказ без смены выбора
+  if(flakSel||airSel){tap(sx,sy);return}
+  if(place){place=null;return}
+  const h=pick(sx,sy);
+  if(h&&h.team===0)return;
+  tap(sx,sy);
+}
+try{PC=localStorage.getItem('mf_pc')==='1'}catch(e){}
+function applyPC(){document.body.classList.toggle('pc',PC);if(PC){bK.title='Строить (B)';bA.title='Вся армия (Q)';bX.title='Снести выбранное здание'}document.getElementById('btn-pc').textContent='Режим ПК: '+(PC?'вкл':'выкл')}
+document.getElementById('btn-pc').onclick=()=>{PC=!PC;try{localStorage.setItem('mf_pc',PC?'1':'0')}catch(e){};applyPC()};
+applyPC();
+addEventListener('contextmenu',e=>{if(PC)e.preventDefault()});
+const PCM={on:false,x:0,y:0};                  // положение курсора для прокрутки у края
+cv.addEventListener('pointermove',e=>{PCM.on=true;PCM.x=e.offsetX*k;PCM.y=e.offsetY*k});
+cv.addEventListener('pointerleave',()=>{PCM.on=false});
+const PCK={};                                  // зажатые клавиши
+addEventListener('keydown',e=>{
+  if(!PC||!started||over||paused)return;
+  if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+  const c=e.code;PCK[c]=true;
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(c))e.preventDefault();
+  if(e.repeat)return;
+  if(c==='Space'&&pcc){cam.x=W/2-(pcc.x-pcc.y)*TW/2;cam.y=H/2-(pcc.x+pcc.y)*TH/2}
+  else if(c==='KeyQ')bA.click();
+  else if(c==='KeyB')bK.click();
+});
+addEventListener('keyup',e=>{delete PCK[e.code]});
+addEventListener('blur',()=>{for(const c in PCK)delete PCK[c]});
+let pcLast=0;
+(function pcLoop(t){
+  const dt=Math.min(.1,Math.max(0,(t-pcLast)/1000));pcLast=t;
+  if(PC&&started&&!over&&!paused){
+    const sp=600*dt,EDGE=16;let dx=0,dy=0;
+    if(PCK.KeyA||PCK.ArrowLeft)dx+=sp;
+    if(PCK.KeyD||PCK.ArrowRight)dx-=sp;
+    if(PCK.KeyW||PCK.ArrowUp)dy+=sp;
+    if(PCK.KeyS||PCK.ArrowDown)dy-=sp;
+    if(PCM.on&&!ptr){                           // край экрана
+      if(PCM.x<EDGE)dx+=sp;if(PCM.x>W-EDGE)dx-=sp;
+      if(PCM.y<EDGE)dy+=sp;if(PCM.y>H-EDGE)dy-=sp;
+    }
+    cam.x+=dx;cam.y+=dy;
+  }
+  requestAnimationFrame(pcLoop);
+})(performance.now());
 (function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(started){if(!paused)update(dt);draw()}requestAnimationFrame(loop)})(last);
 </script><script>
 (function () {

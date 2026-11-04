@@ -102,6 +102,9 @@ small{display:block;opacity:.8}
 .m-sub-panel .sub-bench .slot canvas.fig{width:22px;height:33px}
 .m-sub-panel .slot.sel{border-color:#ffd200;box-shadow:0 0 0 2px #ffd200}
 .m-sub-panel .sub-msg{color:#ffd200;margin:4px 0}
+.m-keyhint{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);display:none;font-family:monospace;font-size:13px;color:#fff;background:rgba(0,0,0,.45);padding:4px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:5}
+body.pc-mode .m-keyhint{display:block}
+body.pc-mode .m-joy,body.pc-mode .m-btns,body.pc-mode .rotate{display:none!important}
 @media (orientation: portrait){
   .rotate{display:flex;position:fixed;inset:0;align-items:center;justify-content:center;text-align:center;padding:24px;background:#0f1a14;z-index:20;font-size:22px}
 }
@@ -2181,12 +2184,17 @@ const VIEWS = {
   },
 
   layout(el) { layoutView(el); },
+  keys(el) { keysView(el); },
+  pad(el) { padView(el); },
   settings(el) {
     el.innerHTML = `<h2>${t('settings')}</h2>
       <div class="opts">
         <button class="big" onclick="toggleLang('settings')">${t('langBtn')}</button>
         <button class="big" onclick="toggleControls()">${t('ctlLabel')}: ${ctlSide() === 'left' ? t('ctlLeft') : t('ctlRight')}</button>
         <button class="big" onclick="go('layout')">${tc('Раскладка кнопок', 'Түймелер орналасуы')}</button>
+        <button class="big" onclick="togglePc()">${tc('Режим ПК', 'ДК режимі')}: ${pcMode() ? tc('вкл', 'қосулы') : tc('выкл', 'өшірулі')}</button>
+        <button class="big" onclick="go('pad')">${tc('Контроллер', 'Контроллер')}: ${padLabel(padMode())}</button>
+        <button class="big" onclick="go('keys')">${tc('Управление клавишами', 'Перне басқару')}</button>
         ${S ? `<button class="big" onclick="go('save')">💾 ${t('saveGame')}</button>` : ''}
         ${CLUBS[CLUBS.length - 1].id === 'custom' ? `<button class="big danger" onclick="deleteCustomClub(this)">🗑️ ${t('deleteClub')}</button>` : ''}
         <button class="big danger" onclick="resetAll()">${t('resetAll')}</button>
@@ -2342,9 +2350,68 @@ function go(view) {
   if (typeof installSync === 'function') installSync();
 }
 
+// ===== управление с клавиатуры (режим ПК): клавиши хранятся на устройстве и переназначаются в настройках =====
+const KEY_DEF = { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', shoot: 'Space', pass: 'KeyJ', slide: 'KeyK', switch: 'KeyQ', sprint: 'ShiftLeft' };
+const KEY_NAMES = { up: ['Вверх', 'Жоғары'], down: ['Вниз', 'Төмен'], left: ['Влево', 'Солға'], right: ['Вправо', 'Оңға'], shoot: ['Удар', 'Соққы'], pass: ['Пас', 'Пас'], slide: ['Подкат', 'Сырғанау'], switch: ['Смена игрока', 'Ойыншыны ауыстыру'], sprint: ['Спринт', 'Спринт'] };
+const KEY_ENGINE = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', shoot: 'Space', sprint: 'Sprint' };
+function pcMode() { try { return localStorage.getItem('steppe-pc') === '1'; } catch (e) { return false; } }
+function keyBinds() {
+  let s = null; try { s = JSON.parse(localStorage.getItem('steppe-keys') || 'null'); } catch (e) {}
+  const b = {};
+  Object.keys(KEY_DEF).forEach(a => { b[a] = (s && typeof s[a] === 'string') ? s[a] : KEY_DEF[a]; });
+  return b;
+}
+function keyName(code) {
+  const m = { Space: 'Space', ShiftLeft: 'Shift', ShiftRight: 'Shift', ControlLeft: 'Ctrl', ControlRight: 'Ctrl', AltLeft: 'Alt', AltRight: 'Alt', Enter: 'Enter', Tab: 'Tab', Backspace: 'Backspace' };
+  if (m[code]) return m[code];
+  if (/^Key/.test(code)) return code.slice(3);
+  if (/^Digit/.test(code)) return code.slice(5);
+  return code;
+}
+// код клавиши → внутреннее имя движка матча (стрелки всегда двигают игрока)
+function keyMapBuild() {
+  const b = keyBinds(), m = { ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
+  Object.keys(KEY_ENGINE).forEach(a => { m[b[a]] = KEY_ENGINE[a]; });
+  return m;
+}
+// код клавиши → действие (pass, slide, switch)
+function keyActBuild() {
+  const b = keyBinds(), m = {};
+  Object.keys(b).forEach(a => { m[b[a]] = a; });
+  return m;
+}
+function keyHintHTML() {
+  const b = keyBinds(), n = keyName, kz = L() === 'kz';
+  if (padMode() !== 'off') return kz ? 'Сол стик — қозғалу · ✕ соққы · ○ пас · □ сырғанау · △ ауысу · R1 спринт' : 'Левый стик — ход · ✕ удар · ○ пас · □ подкат · △ смена · R1 спринт';
+  const mv = [b.up, b.left, b.down, b.right].map(n).join(' ');
+  return kz
+    ? `${mv} қозғалу · ${n(b.shoot)} соққы · ${n(b.pass)} пас · ${n(b.slide)} сырғанау · ${n(b.switch)} ауысу · ${n(b.sprint)} спринт`
+    : `${mv} ход · ${n(b.shoot)} удар · ${n(b.pass)} пас · ${n(b.slide)} подкат · ${n(b.switch)} смена · ${n(b.sprint)} спринт`;
+}
+// ===== контроллер: DualSense (PS5) или DualShock 4 (PS4) =====
+const PAD_RX = { ds: /0ce6|0df2|dualsense/i, ds4: /05c4|09cc/ };
+function padMode() { try { const v = localStorage.getItem('steppe-pad'); return v === 'ds' || v === 'ds4' ? v : 'off'; } catch (e) { return 'off'; } }
+// ищем выбранную модель; если точного совпадения нет — любой Sony-контроллер, затем любой геймпад
+function padFind() {
+  const mode = padMode();
+  if (mode === 'off' || !navigator.getGamepads) return null;
+  const list = [...navigator.getGamepads()].filter(g => g && g.connected);
+  return list.find(g => PAD_RX[mode].test(g.id)) || list.find(g => /054c/i.test(g.id)) || list[0] || null;
+}
+function padLabel(mode) { return mode === 'ds' ? 'DualSense' : mode === 'ds4' ? 'DualShock 4' : tc('выкл', 'өшірулі'); }
+function setPad(v) {
+  try { localStorage.setItem('steppe-pad', v); } catch (e) {}
+  applyPc(); go('pad');
+}
+function applyPc() { document.body.classList.toggle('pc-mode', pcMode() || padMode() !== 'off'); }
+function togglePc() {
+  try { localStorage.setItem('steppe-pc', pcMode() ? '0' : '1'); } catch (e) {}
+  applyPc(); go('settings');
+}
+
 // раскладка управления в матче: left / right, хранится на устройстве
 const ctlSide = () => { try { return localStorage.getItem('steppe-ctl') === 'left' ? 'left' : 'right'; } catch (e) { return 'right'; } };
-function applyControls() { document.body.classList.toggle('ctl-left', ctlSide() === 'left'); }
+function applyControls() { document.body.classList.toggle('ctl-left', ctlSide() === 'left'); applyPc(); }
 function toggleControls() {
   try { localStorage.setItem('steppe-ctl', ctlSide() === 'left' ? 'right' : 'left'); } catch (e) {}
   applyControls();
@@ -2800,11 +2867,11 @@ const Match = (() => {
   const FORM = [[.03, .5], [.15, .18], [.15, .4], [.15, .6], [.15, .82],
                 [.3, .25], [.3, .5], [.3, .75], [.42, .3], [.42, .5], [.42, .7]];
   const KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'KeyJ', 'KeyK', 'Sprint'];
-  const MAP = { KeyW: 'ArrowUp', KeyS: 'ArrowDown', KeyA: 'ArrowLeft', KeyD: 'ArrowRight',
-                ShiftLeft: 'Sprint', ShiftRight: 'Sprint' };
+  let MAP = {}, ACT = {};   // переназначаемые клавиши, заполняются при старте матча
 
   let c, cfg, teams, ball, score, timeLeft, last, raf, running = false, ref = null;
   let keys = {}, joy = { x: 0, y: 0 }, joyId = null, ox = 0, oy = 0;
+  let padOwn = {}, padPrev = {};   // что сейчас задано контроллером и прошлое состояние кнопок
   let ctrl = null, kickCd = 0, cpuCd = [0, 0], tackleCd = [0, 0];
   let flash = 0, flashKey = 'goal', pen = null;
   let benches = [[], []], subsUsed = [0, 0], subOpen = false, subPick = null;
@@ -3541,9 +3608,10 @@ const Match = (() => {
     if (subOpen) return;   // пока открыта панель замен, клавиши не действуют
     const k = MAP[e.code] || e.code;
     if (KEYS.includes(k)) { keys[k] = true; e.preventDefault(); }
-    if (e.code === 'KeyJ') { passPulse = true; passDir = null; }
-    if (e.code === 'KeyK') slidePulse = true;
-    if (e.code === 'KeyQ') switchPulse = true;
+    const a = ACT[e.code];
+    if (a === 'pass') { passPulse = true; passDir = null; }
+    if (a === 'slide') slidePulse = true;
+    if (a === 'switch') switchPulse = true;
   }
   function onKeyUp(e) { keys[MAP[e.code] || e.code] = false; }
 
@@ -3695,6 +3763,7 @@ const Match = (() => {
     if (thr) { updateThrow(dt); return; }
 
     if (net && net.role === 'host' && !net.dead) driveGuest(dt);   // второй человек управляет гостевой командой
+    padPoll();
     // ввод: джойстик или стрелки/WASD
     let dx = joy.x, dy = joy.y;
     const kx = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0);
@@ -3809,6 +3878,33 @@ const Match = (() => {
     if (v) setFlash('autoOn');
     const b = document.getElementById('autoBtn');
     if (b) b.classList.toggle('on', v);
+  }
+  // контроллер: левый стик и крестовина — ход, ✕ — удар, ○ — пас, □ — подкат, △ — смена, R1/L1 — спринт
+  function padPoll() {
+    const g = padFind();
+    const setK = (k, v) => { if (v) { keys[k] = true; padOwn[k] = true; } else if (padOwn[k]) { keys[k] = false; padOwn[k] = false; } };
+    if (!g) {
+      if (padOwn.joy) { joy = { x: 0, y: 0 }; padOwn.joy = false; }
+      ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Sprint'].forEach(k => setK(k, false));
+      return;
+    }
+    const b = i => !!(g.buttons[i] && g.buttons[i].pressed);
+    const DEAD = .2;
+    const up = b(12), dn = b(13), lf = b(14), rt = b(15);
+    setK('ArrowUp', up); setK('ArrowDown', dn); setK('ArrowLeft', lf); setK('ArrowRight', rt);
+    setK('Space', b(0));
+    setK('Sprint', b(5) || b(4));
+    const edge = (i, fn) => { const p = b(i); if (p && !padPrev[i]) fn(); padPrev[i] = p; };
+    edge(1, () => { passPulse = true; passDir = null; });
+    edge(2, () => { slidePulse = true; });
+    edge(3, () => { switchPulse = true; });
+    const ax = g.axes[0] || 0, ay = g.axes[1] || 0, m = Math.hypot(ax, ay);
+    if (m > DEAD) {
+      const s = Math.min(1, (m - DEAD) / (1 - DEAD)) / m;
+      joy = { x: ax * s, y: ay * s }; padOwn.joy = true;
+    } else if (padOwn.joy) { joy = { x: 0, y: 0 }; padOwn.joy = false; }
+    const any = m > DEAD || up || dn || lf || rt || [0, 1, 2, 3, 4, 5].some(b);
+    if (any) inputNow();
   }
   function inputNow() {
     lastInput = performance.now();
@@ -4181,7 +4277,7 @@ const Match = (() => {
 
   function start(el, config) {
     stop();
-    cfg = config; running = true; keys = {}; joy = { x: 0, y: 0 }; joyId = null;
+    cfg = config; running = true; keys = {}; joy = { x: 0, y: 0 }; joyId = null; padOwn = {}; padPrev = {};
     net = cfg.net || null; FLIP = !!(net && net.role === 'guest'); ctrl2 = null; if (net) netWire();
     auto = false; autoCd = 0; lastInput = performance.now();
     grabLock = 0; shootBuf = null; passDir = null; aim = null;
@@ -4208,10 +4304,12 @@ const Match = (() => {
     kickoff();
 
     const tx = T[cfg.lang];
+    MAP = keyMapBuild(); ACT = keyActBuild();
     el.innerHTML = `
       <div class="m-screen">
         <canvas id="pitch" width="${VW * RES}" height="${VH * RES}"></canvas>
         <div class="m-hud"><span id="hTime"></span><span id="hScore"></span></div>
+        <div class="m-keyhint">${keyHintHTML()}</div>
         <button class="m-top-btn m-sub-btn" id="subBtn">${tx.sub}</button>
         <button class="m-top-btn m-auto-btn" id="autoBtn">${tx.auto}</button>
         <button class="m-top-btn m-fs" id="fsBtn">⛶</button>
@@ -4381,6 +4479,59 @@ function layApply(el) {                               // применяем ра
   });
   const z = el.querySelector('#joyZone');
   if (z) { z.style.setProperty('--js', L.js.s); z.style.opacity = L.js.o; }
+}
+function padView(el) {
+  const cur = padMode();
+  const statusOf = () => { const p = padFind(); return p ? `${tc('подключён', 'қосылған')}: ${p.id.replace(/\(.*\)/, '').trim()}` : tc('не найден. Подключите контроллер и нажмите любую его кнопку.', 'табылмады. Контроллерді қосып, кез келген түймесін басыңыз.'); };
+  const opt = (v, txt) => `<button class="big" onclick="setPad('${v}')">${cur === v ? '✓ ' : ''}${txt}</button>`;
+  el.innerHTML = `<h2>${tc('Контроллер', 'Контроллер')}</h2>
+    <p class="hint">${tc('Выберите модель. В матче сенсорное управление скрывается, ход, удары и паса — стиком и кнопками контроллера. Клавиатура тоже работает.', 'Модельді таңдаңыз. Матчта сенсорлық басқару жасырылады; қозғалыс пен соққыны контроллердің стигі мен түймелері жасайды. Пернетақта да жұмыс істейді.')}</p>
+    <section class="card"><b>${tc('Статус', 'Күйі')}:</b> <span id="padSt">${statusOf()}</span></section>
+    <div class="opts">${opt('off', tc('Выкл', 'Өшірулі'))}${opt('ds', 'DualSense (PS5)')}${opt('ds4', 'DualShock 4 (PS4)')}</div>
+    <button class="ghost big" onclick="go('settings')">${tc('Назад', 'Артқа')}</button>`;
+  const upd = () => {
+    if (!el.isConnected) { removeEventListener('gamepadconnected', upd); removeEventListener('gamepaddisconnected', upd); return; }
+    const s = el.querySelector('#padSt'); if (s) s.textContent = statusOf();
+  };
+  addEventListener('gamepadconnected', upd);
+  addEventListener('gamepaddisconnected', upd);
+}
+function keysView(el) {
+  const cur = keyBinds(), kz = L() === 'kz';
+  let wait = null;
+  const label = a => `${KEY_NAMES[a][kz ? 1 : 0]}: <b>${wait === a ? '…' : keyName(cur[a])}</b>`;
+  el.innerHTML = `<h2>${tc('Управление клавишами', 'Перне басқару')}</h2>
+    <p class="hint" id="keyHint">${tc('Нажмите действие, затем нужную клавишу. Esc — отмена. Стрелки всегда двигают игрока.', 'Әрекетті басып, содан кейін қажетті перне басыңыз. Esc — болдырмау. Бағыт көрсеткілері әрқашан ойыншыны жылжытады.')}</p>
+    <div class="opts">${Object.keys(KEY_DEF).map(a => `<button class="big keybtn" data-a="${a}">${label(a)}</button>`).join('')}</div>
+    <div class="opts">
+      <button class="big" id="keySave">${tc('Сохранить', 'Сақтау')}</button>
+      <button class="big" id="keyReset">${tc('Вернуть стандартные', 'Стандартқа қайтару')}</button>
+      <button class="ghost big" onclick="go('settings')">${tc('Назад', 'Артқа')}</button>
+    </div>`;
+  const hint = el.querySelector('#keyHint');
+  const paint = () => el.querySelectorAll('.keybtn').forEach(b => { b.innerHTML = label(b.dataset.a); });
+  el.querySelectorAll('.keybtn').forEach(b => b.addEventListener('click', () => {
+    wait = b.dataset.a; hint.textContent = tc('Нажмите новую клавишу…', 'Жаңа команданы басыңыз…'); paint();
+  }));
+  const onBind = e => {
+    if (!el.isConnected) { removeEventListener('keydown', onBind, true); return; }
+    if (!wait) return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.code === 'Escape') { wait = null; hint.textContent = ''; paint(); return; }
+    if (/^Arrow/.test(e.code)) { hint.textContent = tc('Стрелки заняты для движения. Выберите другую клавишу.', 'Бағыт көрсеткілері қозғалысқа бос емес. Басқа перне таңдаңыз.'); return; }
+    const a = wait, old = cur[a];
+    const other = Object.keys(cur).find(x => x !== a && cur[x] === e.code);
+    if (other) cur[other] = old;   // клавиша уже занята — меняем местами
+    cur[a] = e.code; wait = null;
+    hint.textContent = other ? tc('Клавиши поменялись местами.', 'Пернелер орындарымен алмасты.') : '';
+    paint();
+  };
+  addEventListener('keydown', onBind, true);
+  el.querySelector('#keySave').onclick = () => {
+    try { localStorage.setItem('steppe-keys', JSON.stringify(cur)); } catch (e) {}
+    removeEventListener('keydown', onBind, true); go('settings');
+  };
+  el.querySelector('#keyReset').onclick = () => { Object.keys(KEY_DEF).forEach(a => { cur[a] = KEY_DEF[a]; }); wait = null; hint.textContent = ''; paint(); };
 }
 function layoutView(el) {                             // редактор раскладки
   const cur = layLoad(), k = { };
