@@ -1064,6 +1064,115 @@ function recount(){PC=C.map(()=>0);G.pOwner.forEach(o=>PC[o]++);}
 function addLog(text,you){const e={turn:G.turn,text,you:!!you};G.log.push(e);if(G.log.length>100)G.log.shift();G.news.push(e);}
 const mine=p=>G.pOwner[p]===G.you;
 
+/* ================= ЯДЕРНОЕ ОРУЖИЕ ================= */
+const NUKE_STATES={US:4,RU:4,CN:3,GB:2,PK:2,KP:1};   /* ядерные державы и стартовый запас бомб */
+const NUKE_URAN=20,NUKE_BUILD_URAN=10,NUKE_BUILD_GOLD=300,NUKE_LIMIT=12;
+const NUKE_EMB_TURNS=10,NUKE_RAD_TURNS=15,NUKE_DISARM_CD=5;
+const NUKE_RES_START=30,NUKE_RES_MAX=200,NUKE_RES_FEED=8; /* урановый резерв: стартовый, предел и приток из добычи в ход */
+const isNukeSt=f=>!!C[f]&&NUKE_STATES[C[f].iso]!==undefined;
+const uranCount=f=>{let n=0;for(let p=0;p<P.length;p++)if(G.pOwner[p]===f&&P[p].dep&&P[p].dep.some(d=>d[0]===RI.uranium))n++;return n;};
+const hasUran=f=>uranCount(f)>0;
+const embOn=(exp,tgt)=>{const t=G.emb&&G.emb[exp+'>'+tgt];return t!==undefined&&t>=G.turn;};
+const embOnTarget=t=>{if(!G.emb)return false;for(const k in G.emb)if(k.endsWith('>'+t)&&G.emb[k]>=G.turn)return true;return false;};
+function nukeFix(){
+  if(!G.nuke)G.nuke=C.map(c=>NUKE_STATES[c.iso]||0);
+  if(!G.ures)G.ures=C.map(c=>NUKE_STATES[c.iso]?NUKE_RES_START:0);
+  if(!G.emb)G.emb={};if(!G.rad)G.rad={};if(!G.disarmT)G.disarmT={};
+}
+function nukeInit(){
+  G.nuke=C.map(c=>NUKE_STATES[c.iso]||0);G.ures=C.map(c=>NUKE_STATES[c.iso]?NUKE_RES_START:0);G.emb={};G.rad={};G.disarmT={};
+  /* союз Пакистана, Саудовской Аравии и Турции с начала партии */
+  const ids=['PK','SA','TR'].map(i=>C.findIndex(c=>c.iso===i));
+  if(ids.every(i=>i>=0&&PC[i]>0)){setAlly(ids[0],ids[1]);setAlly(ids[0],ids[2]);setAlly(ids[1],ids[2]);}
+}
+function nukeInfoHTML(t){
+  if(!isNukeSt(t)||!G.rst)return'';
+  return '<div class="cl"><b>Ядерный арсенал:</b> '+(G.nuke[t]||0)+' бомб · уран '+Math.floor(G.ures[t]||0)+'</div>';
+}
+function nukeCanStrike(f,p){
+  if(!isNukeSt(f))return{ok:false,why:'Нет ядерного оружия'};
+  if(!G.nuke[f])return{ok:false,why:'Бомб не осталось'};
+  const o=G.pOwner[p];
+  if(o===f)return{ok:false,why:'Своя провинция'};
+  if(!atWar(f,o))return{ok:false,why:'Нужна война с владельцем'};
+  const u=Math.floor(G.ures[f]||0);
+  if(u<NUKE_URAN)return{ok:false,why:'Нужно урана '+NUKE_URAN+' (есть '+u+')'};
+  if(G.rad&&G.rad[p]>=G.turn)return{ok:false,why:'Провинция в радиации'};
+  return{ok:true,why:''};
+}
+function nukeStrike(f,p){
+  const r=nukeCanStrike(f,p);if(!r.ok)return{ok:false,msg:r.why};
+  const o=G.pOwner[p];
+  G.nuke[f]--;G.ures[f]-=NUKE_URAN;
+  armiesAt(p).forEach(a=>dropArmy(a));
+  if(G.bld&&G.bld[p])G.bld[p]=[];
+  G.pEco[p]=1;G.rad[p]=G.turn+NUKE_RAD_TURNS;
+  G.res[p]=Math.min(100,(G.res[p]||0)+40);
+  addOp(o,f,-60);
+  for(let c=0;c<C.length;c++)if(c!==f&&c!==o&&PC[c]>0)addOp(c,f,-15);
+  addLog('Ядерный удар по «'+P[p].name+'»: '+fname(f)+' → '+fname(o)+'. Провинция уничтожена.',f===G.you||o===G.you);
+  sfx('drum');
+  return{ok:true,msg:'Ядерный удар нанесён по «'+P[p].name+'»'};
+}
+function nukeBuild(f){
+  if(!isNukeSt(f))return{ok:false,msg:'Ядерная программа недоступна'};
+  if(G.nuke[f]>=NUKE_LIMIT)return{ok:false,msg:'Арсенал полон'};
+  if(embOnTarget(f))return{ok:false,msg:'Эмбарго блокирует ядерную программу'};
+  if(G.gold[f]<NUKE_BUILD_GOLD)return{ok:false,msg:'В казне не хватает золота ('+NUKE_BUILD_GOLD+')'};
+  if(G.ures[f]<NUKE_BUILD_URAN)return{ok:false,msg:'Нужно урана '+NUKE_BUILD_URAN};
+  G.gold[f]-=NUKE_BUILD_GOLD;G.ures[f]-=NUKE_BUILD_URAN;G.nuke[f]++;
+  addLog('Новая бомба: '+fname(f)+' (в арсенале '+G.nuke[f]+')',f===G.you);
+  return{ok:true,msg:'Бомба собрана'};
+}
+function embargoCanImpose(exp,tgt){
+  if(exp===tgt)return{ok:false,why:'Нельзя против себя'};
+  if(!isNukeSt(tgt))return{ok:false,why:'Эмбарго — против ядерной державы'};
+  if(!hasUran(exp))return{ok:false,why:'Нет урановых месторождений'};
+  if(embOn(exp,tgt))return{ok:false,why:'Эмбарго уже действует'};
+  return{ok:true,why:''};
+}
+function imposeEmbargo(exp,tgt){
+  const r=embargoCanImpose(exp,tgt);if(!r.ok)return{ok:false,msg:r.why};
+  G.emb[exp+'>'+tgt]=G.turn+NUKE_EMB_TURNS;addOp(tgt,exp,-15);
+  addLog('Урановое эмбарго: '+fname(exp)+' против '+fname(tgt)+' на '+NUKE_EMB_TURNS+' ходов',exp===G.you||tgt===G.you);
+  return{ok:true,msg:'Эмбарго введено на '+NUKE_EMB_TURNS+' ходов'};
+}
+function demandDisarm(exp,tgt){
+  if(!embOn(exp,tgt))return{ok:false,msg:'Сначала введите урановое эмбарго'};
+  if(!G.nuke[tgt])return{ok:false,msg:'Бомб у страны не осталось'};
+  if(G.disarmT[tgt]!==undefined&&G.disarmT[tgt]>G.turn-NUKE_DISARM_CD)return{ok:false,msg:'Снова требовать можно через '+NUKE_DISARM_CD+' ходов'};
+  G.disarmT[tgt]=G.turn;
+  const yu=(G.you===exp||G.you===tgt);
+  if(Math.floor(G.ures[tgt]||0)<40){
+    G.nuke[tgt]--;addOp(tgt,exp,-20);
+    addLog(fname(tgt)+' уступила требованию '+fname(exp)+': одна бомба демонтирована',yu);
+    return{ok:true,msg:'Бомба демонтирована'};
+  }
+  addOp(tgt,exp,-10);
+  addLog(fname(tgt)+' отказалась разоружаться под давлением '+fname(exp),yu);
+  return{ok:false,msg:'Отказ: у страны достаточно собственного урана'};
+}
+function nukeTurn(){
+  if(!G.emb)return;
+  for(let f=0;f<C.length;f++){
+    if(!PC[f]||!isNukeSt(f)||embOnTarget(f)||!G.rst)continue;
+    const m=Math.min(NUKE_RES_FEED,Math.floor(G.rst[f][RI.uranium]||0));
+    if(m>0&&G.ures[f]<NUKE_RES_MAX){G.rst[f][RI.uranium]-=m;G.ures[f]+=m;}
+  }
+  for(const k in G.emb){
+    if(G.emb[k]<G.turn){delete G.emb[k];continue;}
+    const tgt=+k.split('>')[1];
+    if(PC[tgt]>0&&G.ures)G.ures[tgt]=Math.floor(G.ures[tgt]*0.9);
+  }
+  for(let f=0;f<C.length;f++){
+    if(!PC[f]||f===G.you||!hasUran(f))continue;
+    for(let t=0;t<C.length;t++){
+      if(!isNukeSt(t)||!PC[t]||t===f||embOn(f,t)||embOnTarget(t))continue;
+      if(G.op[f][t]<-30&&Math.random()<0.15)imposeEmbargo(f,t);
+    }
+  }
+}
+
 function newGame(you){
   const n=C.length;
   G={you,turn:1,pOwner:P.map(p=>p.c),core:P.map(p=>p.c),res:P.map(()=>0),tech:C.map(()=>[0,0,0]),xcl:{},ev:null,since:P.map(()=>0),rfund:P.map(()=>0),pEco:[],armies:[],nid:1,gold:[],aggr:[],war:{},ally:{},pact:{},truce:{},trade:{},asked:{},op:[],offers:[],log:[],news:[],over:null,vassal:{},ws:{},lease:{},reg:C.map(c=>REG[c.iso]||'HNC'),reformT:{}};
@@ -1073,7 +1182,7 @@ function newGame(you){
       G.pEco[id]=e;G.armies.push({id:G.nid++,o:c.i,p:id,n:m,mv:false});});
     G.gold[c.i]=c.eco*3;G.aggr[c.i]=Math.max(0.1,Math.min(1,0.35+Math.random()*0.5+eff(c.i,'aggr')));});
   for(let i=0;i<n;i++){const row=new Array(n);for(let j=0;j<n;j++)row[j]=Math.max(-100,Math.min(100,((Math.random()*24-12)|0)+(Math.random()<0.2?14:0)-(C[i].nb.includes(j)?3:0)+Math.round(aff(i,j)*0.8)));G.op.push(row);}
-  applyReal();scenInit();initLeases();recount();resInit();save();return G;
+  applyReal();scenInit();initLeases();recount();resInit();nukeInit();save();return G;
 }
 
 /* ---------- бой ---------- */
@@ -1142,7 +1251,7 @@ const validSave=s=>s&&s.np===P.length&&s.iso===C.map(c=>c.iso).join('')&&s.g&&!s
 function loadSave(){
   let best=null;try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(validSave(s))best=s;}catch(e){}
   if(validSave(CLOUD.s)&&(!best||(CLOUD.s.ts||0)>(best.ts||0)))best=CLOUD.s;
-  if(best){G=best.g;G.news=[];if(!G.lease)G.lease={};if(!G.reg)G.reg=C.map(c=>REG[c.iso]||'HNC');if(!G.reformT)G.reformT={};recount();if(!G.rst)resInit();return true;}return false;
+  if(best){G=best.g;G.news=[];if(!G.lease)G.lease={};if(!G.reg)G.reg=C.map(c=>REG[c.iso]||'HNC');if(!G.reformT)G.reformT={};nukeFix();recount();if(!G.rst)resInit();return true;}return false;
 }
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}cloudClear();}
 /* ================= ДИПЛОМАТИЯ И ИИ ================= */
@@ -1303,7 +1412,7 @@ function endRound(){
   if(!G||G.over)return;
   G.news=[];G.offers=[];
   const n=C.length;
-  scenarioTurn();vassalTurn();leaseTurn();bldTurn();resTurn();
+  scenarioTurn();vassalTurn();leaseTurn();bldTurn();resTurn();nukeTurn();
   for(let a=0;a<n;a++){if(!PC[a])continue;const row=G.op[a];
     for(let b=0;b<n;b++){if(a===b||!PC[b])continue;let v=row[b];
       if(allied(a,b))v+=1;else if(atWar(a,b))v-=2;else if(G.turn%3===0)v+=v>0?-1:v<0?1:0;
@@ -1934,7 +2043,10 @@ function renderSheet(){
   else if(mineP){if(leaseParties(me).some(x=>canLease(p,me,x).ok))h+='<div class="acts" style="grid-template-columns:1fr">'+abtn('lgive','','Сдать в аренду союзнику','рента вам '+rentOf(p)+'/ход',false)+'</div>';}
   else if(canLease(p,o,me).ok)h+='<div class="acts" style="grid-template-columns:1fr">'+abtn('lrent','','Арендовать','рента '+rentOf(p)+'/ход · вам +'+leaseGain(p)+' · '+LEASE_TURNS+' ходов',false)+'</div>';
   if(mineP)h+='<div class="acts">'+abtn('rec','pri','Набрать +'+REC_N,recCost(me)+' из казны',gold<recCost(me))+abtn('up','','Экономика +'+Math.max(1,Math.round(G.pEco[p]*.1)),upCost(p)+' из казны',gold<upCost(p))+'</div>';
+  if(mineP&&isNukeSt(me)&&G.rst)h+='<div class="acts" style="grid-template-columns:1fr">'+abtn('nukebuild','','Собрать бомбу',NUKE_BUILD_GOLD+' из казны · '+NUKE_BUILD_URAN+' урана · в арсенале '+(G.nuke[me]||0),G.gold[me]<NUKE_BUILD_GOLD||Math.floor(G.ures[me]||0)<NUKE_BUILD_URAN||G.nuke[me]>=NUKE_LIMIT)+'</div>';
   if(mineP&&ctrlOf(p)===me)h+='<div class="acts" style="grid-template-columns:1fr">'+abtn('units','','Техника и флот','танки · авиация · корабли',false)+'</div>';
+  if(isNukeSt(me)&&!mineP){const nk=nukeCanStrike(me,p);h+='<div class="acts" style="grid-template-columns:1fr">'+abtn('nuke','pri','Ядерный удар',nk.ok?'бомба · '+NUKE_URAN+' урана · провинция будет уничтожена':nk.why,!nk.ok)+'</div>';}
+  if(G.rad&&G.rad[p]>=G.turn)h+='<p class="hint">Радиация: набор и модернизация заблокированы до хода '+G.rad[p]+'</p>';
   h+='<div class="acts">'+(mineP?'':abtn('dip','','Дипломатия',st.label+' · отн. '+opn(o,me),false,'data-c="'+o+'"'))+abtn('cinfo','','Страна: '+esc(c.ru.length>13?c.ru.slice(0,12)+'…':c.ru),'оккупация и притязания',false,'data-c="'+o+'"')+(og!==o?abtn('cinfo','','Претендент: '+esc(C[og].ru.length>10?C[og].ru.slice(0,9)+'…':C[og].ru),'притязания',false,'data-c="'+og+'"'):'')+'</div>';
   h+=rulersHTML(c);sh.innerHTML=h;
 }
@@ -1949,6 +2061,8 @@ $('#sheet').addEventListener('click',e=>{
   else if(act==='lrent'){const r=tryLease(p,G.pOwner[p],me);toast(r.msg);if(r.ok)save();renderAll();}
   else if(act==='lgive'){showLeaseTo(p);}
   else if(act==='lend'){cancelLease(p,me);save();renderAll();}
+  else if(act==='nuke'){const r=nukeStrike(me,p);toast(r.msg);if(r.ok){save();renderAll();}}
+  else if(act==='nukebuild'){const r=nukeBuild(me);toast(r.msg);if(r.ok){save();renderAll();}}
   else if(act==='dip'){showDip(+b.dataset.c);}
   else if(act==='cinfo'){showCountry(+b.dataset.c);}
   else if(act==='claim'){if(makeClaim(p,me)){sfx('ok');save();renderAll();toast('Притязание предъявлено');}}
@@ -3517,7 +3631,7 @@ function showDip(t){
   if(st.id==='war')ex.unshift('очки войны: вы '+Math.round(wsOf(me,t))+' / враг '+Math.round(wsOf(t,me)));
   if(st.id==='vassal')ex.unshift('платит вам 20% дохода');if(st.id==='lord')ex.unshift('вы платите дань 20% дохода');
   if(ex.length)h+='<p style="color:var(--mute);font-size:13px;margin:0 0 6px">'+esc(ex.join(' · '))+'</p>';
-  h+=countryInfoHTML(t);h+=rulersHTML(c);
+  h+=nukeInfoHTML(t);h+=countryInfoHTML(t);h+=rulersHTML(c);
   if(st.id==='war')acts.push({label:'Мирный договор',cls:'pri',fn:()=>showTreaty(t)});
   else if(st.id==='vassal'){acts.push({label:'Аренда провинций',fn:()=>showLeases(t)});acts.push({label:'Освободить вассала',fn:()=>{releaseVassal(me,t);save();dipDone(t,{msg:'Вассал освобождён и благодарен вам.'});}});[20,50].forEach(g=>acts.push({label:'Подарить '+g,fn:()=>{if(giftGold(me,t,g)){save();dipDone(t,{msg:'Подарок передан.'});}else dipDone(t,{msg:'В казне не хватает золота.'});}}));}
   else if(st.id==='lord'){acts.push({label:'Аренда провинций',fn:()=>showLeases(t)});}
@@ -3534,6 +3648,10 @@ function showDip(t){
     if(enemiesOf(t).some(e=>e!==me&&isAlive(e)))acts.push({label:'Прокси: оружие '+SUP_COST,fn:()=>dipDone(t,proxySupply(me,t))});
   }
   if(st.id!=='ally'&&st.id!=='vassal'&&st.id!=='lord'&&restiveOf(t).length)acts.push({label:'Партизаны '+REB_COST,fn:()=>{const r=proxyRebels(me,t);rebuildOwn();dipDone(t,r);}});
+  if(isNukeSt(t)&&hasUran(me)){
+    acts.push({label:embOn(me,t)?'Эмбарго действует':'Урановое эмбарго',fn:()=>{const r=imposeEmbargo(me,t);if(r.ok)save();dipDone(t,r);}});
+    if(embOn(me,t))acts.push({label:'Требовать разоружения',fn:()=>{const r=demandDisarm(me,t);save();dipDone(t,r);}});
+  }
   acts.push({label:'Ресурсы',fn:()=>showResBalance(t)});
   acts.push({label:'Закрыть'});
   modal('Дипломатия',h,acts);
