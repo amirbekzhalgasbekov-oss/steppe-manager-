@@ -24,7 +24,7 @@ a{color:var(--you)}
 #map{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
 
 /* верхние плашки поверх карты */
-.hud{position:absolute;left:0;right:0;top:0;padding-top:max(8px,env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none;padding-bottom:4px}
+.hud{position:absolute;left:0;right:0;top:0;padding-top:max(8px,env(safe-area-inset-top,0px));display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none;padding-bottom:4px}
 .chip{background:var(--chip);border:1px solid var(--line);border-radius:10px;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.35)}
 .civ{display:flex;align-items:center;gap:9px;padding:6px 12px 6px 8px;min-width:0;max-width:56%}
 #tFlag{font-size:28px;line-height:1;flex:none}
@@ -45,6 +45,9 @@ a{color:var(--you)}
 .dock{position:absolute;left:0;right:0;bottom:0;padding-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
 .dock>*{pointer-events:auto}
 .left{display:flex;flex-direction:column;gap:10px}
+.topbtns{flex-basis:100%;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;pointer-events:auto}
+.tb{font:500 12px/1 'PT Sans',system-ui,sans-serif;color:var(--ink);background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.tb:hover{border-color:var(--you)}
 .rbtn{width:50px;height:50px;border-radius:50%;background:var(--chip);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.4);padding:0}
 .rbtn svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .right{display:flex;flex-direction:column;gap:10px;align-items:flex-end}
@@ -176,6 +179,9 @@ a{color:var(--you)}
         <div id="sGold"><small>Казна</small><span><b>0</b></span></div>
         <div id="sArmy"><small>Войска</small><b>0</b></div>
         <div id="sShare"><small>Мир</small><b>0%</b></div>
+      </div>
+      <div class="topbtns">
+        <button class="tb" data-st="s">Система</button><button class="tb" data-st="e">Экономика</button><button class="tb" data-st="i">Идеология</button><button class="tb" id="bState">Территории</button>
       </div>
     </div>
     <div id="mapui" hidden><div id="rescap" hidden></div></div>
@@ -1050,7 +1056,7 @@ const enemiesOf=f=>relOf(G.war,f),alliesOf=f=>relOf(G.ally,f),tradersOf=f=>relOf
 function provsOf(f){const r=[];for(let p=0;p<P.length;p++)if(G.pOwner[p]===f)r.push(p);return r;}
 function econ(f){let s=0;for(let p=0;p<P.length;p++){const o=G.pOwner[p],l=G.lease&&G.lease[p];if(o===f){if(!l)s+=G.pEco[p];}else if(l&&l.to===f)s+=Math.ceil(G.pEco[p]*1.5);}return s;}
 function tradeBonus(f){let s=0;tradersOf(f).forEach(g=>{if(isAlive(g))s+=Math.min(8,Math.ceil(econ(g)*0.12));});return Math.round(s*eff(f,'trade'));}
-function income(f){let s=incomeBase(f);const l=lordOf(f);if(l>=0&&isAlive(l))s-=Math.floor(s*0.2);vassalsOf(f).forEach(v=>{s+=Math.floor(incomeBase(v)*0.2);});return Math.max(0,s+leaseNet(f));}
+function income(f){let s=incomeBase(f);if(lnSanc(f))s=Math.floor(s*LN_SANC_TAX);s-=lnPen(f);const l=lordOf(f);if(l>=0&&isAlive(l))s-=Math.floor(s*0.2);vassalsOf(f).forEach(v=>{s+=Math.floor(incomeBase(v)*0.2);});return Math.max(0,s+leaseNet(f));}
 function incomeBase(f){let s=Math.round((econ(f)+tradeBonus(f))*(1+0.1*tl(f,1))*eff(f,'inc'))+(G.rfx&&G.rfx[f]?G.rfx[f].flat:0)+bldInc(f);for(let p=0;p<P.length;p++)if(G.pOwner[p]===f&&(G.core[p]!==f||P[p].c!==f)&&G.res[p]>=50)s-=Math.ceil(G.pEco[p]/2);return Math.max(0,s);}
 function totalEco(){let s=0;for(let p=0;p<P.length;p++)s+=G.pEco[p];return s;}
 const share=f=>econ(f)/totalEco();
@@ -1173,6 +1179,264 @@ function nukeTurn(){
   }
 }
 
+/* ================= ЛИГА НАЦИЙ ================= */
+const LN_PERM=['US','RU','CN','GB','FR'],LN_ELECTED=10,LN_EVERY=6,LN_SANC_TURNS=8,LN_SANC_TAX=0.85,LN_MAND_TURNS=20,LN_HUM_TURNS=20;
+const LN_TYPES={condemn:'Осуждение агрессии',sanction:'Санкции',ceasefire:'Перемирие',disarm:'Разоружение',
+  recog:'Признание границ и режима',delegit:'Лишение признания',mandate:'Мандат',arbitrate:'Арбитраж',humanitarian:'Гуманитарные нормы'};
+const LN_NOVETO=['ceasefire','arbitrate'];
+function lnInit(){G.ln={sanc:{},queue:[],elected:[],rec:{},mand:{},hum:{}};lnElect();}
+function lnFix(){if(!G.ln)lnInit();const L=G.ln;if(!L.rec)L.rec={};if(!L.mand)L.mand={};if(!L.hum)L.hum={};}
+function lnPerm(){return LN_PERM.map(i=>C.findIndex(c=>c.iso===i)).filter(i=>i>=0&&PC[i]>0);}
+function lnElect(){
+  const pm=new Set(lnPerm()),cand=[];
+  for(let f=0;f<C.length;f++)if(PC[f]>0&&!pm.has(f))cand.push(f);
+  cand.sort((a,b)=>strength(b)-strength(a));
+  G.ln.elected=cand.slice(0,LN_ELECTED);
+}
+const lnSanc=f=>!!(G.ln&&G.ln.sanc[f]!==undefined&&G.ln.sanc[f]>=G.turn);
+/* 1. Легитимация: занятые территории и непризнанный режим дают штрафы */
+const lnPen=f=>{const R=(G.ln&&G.ln.rec)||{};const base=R[f]===true?0:occupiedBy(f).length*2+(R[f]===false?5:0);const st=(G.state&&G.state[f])||'U';const adj=st==='C'?3:st==='T'?4:st==='L'?-2:0;return Math.max(0,base+adj);};
+/* 2. Санкции: против агрессора, ядерной державы или нарушителя прав народов */
+const lnViol=f=>{let n=0;for(let p=0;p<P.length;p++)if(G.pOwner[p]===f&&G.res[p]>=60)n++;return n>=3;};
+function lnInfoHTML(t){
+  let h='';
+  if(lnSanc(t))h+='<div class="cl"><b>Санкции Лиги наций</b> до хода '+G.ln.sanc[t]+' · доход −'+Math.round((1-LN_SANC_TAX)*100)+'%</div>';
+  if(G.ln&&G.ln.hum[t]>=G.turn)h+='<div class="cl"><b>Гуманитарные нормы</b> до хода '+G.ln.hum[t]+'</div>';
+  if(lnPen(t)>0)h+='<div class="cl"><b>Без признания Лиги</b> · штраф к доходу −'+lnPen(t)+' и к отношениям</div>';
+  return h;
+}
+function lnCanPropose(by,type,t,p){
+  if(by===t&&type!=='mandate')return{ok:false,why:'Нельзя против себя'};
+  if(!LN_TYPES[type])return{ok:false,why:'Неизвестная резолюция'};
+  if(!PC[t])return{ok:false,why:'Страна не существует'};
+  if(type==='ceasefire'&&!atWar(by,t))return{ok:false,why:'Перемирие — только при войне'};
+  if(type==='arbitrate'&&!atWar(by,t))return{ok:false,why:'Арбитраж — только при войне'};
+  if(type==='disarm'&&!isNukeSt(t))return{ok:false,why:'Разоружение — только для ядерной державы'};
+  if(type==='sanction'&&!(atWar(by,t)||isNukeSt(t)||lnViol(t)||occupiedBy(t).length>0))return{ok:false,why:'Санкции — против агрессора, ядерной державы или нарушителя прав'};
+  if(type==='recog'&&!(occupiedBy(t).length>0||G.ln.rec[t]===false))return{ok:false,why:'Нечего признавать'};
+  if(type==='delegit'&&!(occupiedBy(t).length>0))return{ok:false,why:'Лишать признания — только занявших чужие земли'};
+  if(type==='humanitarian'&&!(lnViol(t)||occupiedBy(t).length>0))return{ok:false,why:'Нормы — для стран с занятыми территориями или нарушителей'};
+  if(type==='mandate'){
+    if(p===undefined||G.pOwner[p]!==t)return{ok:false,why:'Нет такой территории'};
+    if(G.core[p]===t)return{ok:false,why:'Своя территория не передаётся под мандат'};
+    if(t===by)return{ok:false,why:'Территория уже ваша'};
+  }
+  if(G.ln.queue.some(q=>q.type===type&&q.t===t&&q.by===by&&q.p===p))return{ok:false,why:'Такое предложение уже внесено'};
+  return{ok:true,why:''};
+}
+function lnPropose(by,type,t,p){
+  const r=lnCanPropose(by,type,t,p);if(!r.ok)return{ok:false,msg:r.why};
+  G.ln.queue.push({type,t,by,p,you:by===G.you});
+  return{ok:true,msg:'Внесено на ближайшую сессию Лиги наций (каждые '+LN_EVERY+' ходов)'};
+}
+function lnVote(type,m,q){
+  const t=q.t,b=q.by;
+  if(type==='ceasefire'||type==='arbitrate'||type==='mandate')return !atWar(m,t)&&!atWar(m,b);
+  if(type==='disarm')return G.op[m][t]<=-20;
+  if(type==='recog')return G.op[m][t]>=0;
+  if(type==='delegit')return G.op[m][t]<=-10||atWar(m,t);
+  if(type==='humanitarian')return G.op[m][t]<=0;
+  return G.op[m][t]<=-10||atWar(m,t);
+}
+function lnApply(q,members){
+  const t=q.t,b=q.by;
+  switch(q.type){
+    case 'condemn':members.forEach(m=>{if(m!==t)addOp(m,t,-12);});break;
+    case 'sanction':G.ln.sanc[t]=G.turn+LN_SANC_TURNS;members.forEach(m=>{if(m!==t)addOp(m,t,-8);});break;
+    case 'ceasefire':if(atWar(b,t))makePeace(b,t);break;
+    case 'disarm':if(G.nuke[t]>0)G.nuke[t]--;addOp(t,b,-10);break;
+    case 'recog':G.ln.rec[t]=true;break;
+    case 'delegit':G.ln.rec[t]=false;break;
+    case 'humanitarian':G.ln.hum[t]=G.turn+LN_HUM_TURNS;break;
+    case 'mandate':{
+      const pp=q.p;if(G.pOwner[pp]!==t||G.core[pp]===t||!PC[b])return'Территория уже изменилась';
+      setOwner(pp,b);armiesAt(pp).forEach(a=>{a.o=b;});
+      G.ln.mand[pp]={to:b,back:t,until:G.turn+LN_MAND_TURNS};break;}
+    case 'arbitrate':{
+      if(atWar(b,t))makePeace(b,t);
+      let n=0;
+      for(let p=0;p<P.length;p++){
+        if(G.pOwner[p]===t&&G.core[p]===b){setOwner(p,b);n++;}
+        else if(G.pOwner[p]===b&&G.core[p]===t){setOwner(p,t);n++;}
+      }
+      addOp(b,t,5);addOp(t,b,5);
+      return'возвращено провинций: '+n;}
+  }
+  return'';
+}
+function lnSession(){
+  const pm=new Set(lnPerm()),members=[];
+  for(let f=0;f<C.length;f++)if(PC[f]>0)members.push(f);
+  const q=G.ln.queue.splice(0);
+  if(!q.length){
+    const wars=[];for(const k in G.war){const [a,b]=k.split('-').map(Number);if(PC[a]>0&&PC[b]>0)wars.push([a,b]);}
+    if(wars.length){const [a,b]=wars[(Math.random()*wars.length)|0];const t=Math.random()<0.5?a:b;
+      q.push({type:Math.random()<0.6?'ceasefire':'arbitrate',t,by:t===a?b:a,ai:true});}
+  }
+  for(const p of q.slice(0,3)){
+    if(!PC[p.t]||!PC[p.by])continue;
+    const noVeto=LN_NOVETO.includes(p.type),yes=[],no=[];let veto=-1;
+    if(!noVeto&&pm.has(p.t))veto=p.t;
+    for(const m of members){
+      if(m===p.t||m===p.by)continue;
+      if(!noVeto&&pm.has(m)&&allied(m,p.t)&&veto<0)veto=m;
+      (lnVote(p.type,m,p)?yes:no).push(m);
+    }
+    const pass=veto<0&&yes.length>no.length;
+    const yu=p.you||p.t===G.you||p.by===G.you;
+    const vt=veto>=0?'вето: '+fname(veto):'голосов '+yes.length+':'+no.length;
+    if(!pass){addLog('Лига наций: «'+LN_TYPES[p.type]+'» против '+fname(p.t)+' — отклонено ('+vt+')',yu);continue;}
+    const note=lnApply(p,members);
+    addLog('Лига наций: «'+LN_TYPES[p.type]+'» — '+fname(p.t)+' — принято ('+vt+')'+(note?' · '+note:''),yu);
+  }
+}
+function lnTurn(){
+  if(!G.ln)lnInit();
+  for(const k in G.ln.sanc)if(G.ln.sanc[k]<G.turn)delete G.ln.sanc[k];
+  /* мандаты: срок истёк или мандатарий исчез — территория возвращается */
+  for(const k in G.ln.mand){
+    const m=G.ln.mand[k],p=+k;
+    if(G.turn>=m.until||!PC[m.to]||G.pOwner[p]!==m.to){
+      if(PC[m.back]>0&&G.pOwner[p]===m.to)setOwner(p,m.back);
+      if(G.pOwner[p]===m.back)armiesAt(p).forEach(a=>{a.o=m.back;});
+      delete G.ln.mand[k];
+    }
+  }
+  if(G.turn%LN_EVERY===0){
+    lnElect();lnSession();
+    /* гуманитарные нормы: обязательная помощь занятым территориям с восстаниями, штраф за нарушение */
+    for(const k in G.ln.hum){
+      const f=+k;if(G.ln.hum[f]<G.turn||!PC[f])continue;
+      for(let p=0;p<P.length;p++)if(G.pOwner[p]===f&&G.core[p]!==f&&G.res[p]>=60){G.res[p]=Math.max(0,G.res[p]-15);G.gold[f]=Math.max(0,G.gold[f]-5);}
+    }
+    /* штрафы непризнанным странам: отношения ухудшаются */
+    for(let f=0;f<C.length;f++){
+      if(!PC[f]||lnPen(f)<=0)continue;
+      for(const m of members_()) if(m!==f)addOp(m,f,-2);
+    }
+  }
+}
+function members_(){const r=[];for(let f=0;f<C.length;f++)if(PC[f]>0)r.push(f);return r;}
+
+/* ================= СТРОЙ СТРАНЫ (управление территориями) ================= */
+function confRevive(f){
+  if(!G.colOv)G.colOv={};
+  if(!G.vassal)G.vassal={};
+  if(!G.confR)G.confR={};
+  let any=false;
+  for(let X=0;X<C.length;X++){
+    if(X===f||PC[X]>0)continue;
+    const list=[];for(let p=0;p<P.length;p++)if(G.core[p]===X&&G.pOwner[p]===f)list.push(p);
+    if(!list.length)continue;
+    G.colOv[X]=C[f].col;C[X].col=C[f].col;
+    list.forEach(p=>{
+      setOwner(p,X);G.res[p]=0;
+      addArmy(X,p,Math.max(1,Math.round(C[X].mil*P[p].n/Math.max(1,C[X].n))),false);
+    });
+    G.vassal[X]=f;G.confR[X]=f;G.reg[X]=G.reg[f];
+    G.gold[X]=Math.max(G.gold[X]||0,C[X].eco*2);
+    addLog('Конфедеративный регион «'+C[X].ru+'» возрождён под властью '+fname(f)+': систему, идеологию и экономику задаёт '+fname(f),X===G.you||f===G.you);
+    any=true;
+  }
+  if(any&&ownC){buildBase();rebuildOwn();}
+}
+const STATES={
+  C:{n:'Колониализм',d:'Занятые территории аннексируются через 8 ходов без местной власти: всё решает центр. Лига признаёт хуже (штраф к отношениям +3).'},
+  U:{n:'Унитаризм',d:'Всё решает центр. Доход ×1.03, набор ×1.05. Недовольство в провинциях растёт.'},
+  F:{n:'Федерализм',d:'Провинции сами строят: улучшения дешевле на 10%. Доход ×1.04. Недовольство падает.'},
+  K:{n:'Конфедерация',d:'Регионы держат свои армии (+1 отряд в провинцию каждые 5 ходов) и подчиняются центру. Анексии дешевле вдвое.'},
+  L:{n:'Лже-федерализм',d:'Недовольство растёт медленнее, чем при унитаризме. Лига признаёт лучше (штраф −2). Провинции с недовольством 70%+ могут отделиться к соседу.'},
+  T:{n:'Тоталитарный контроль',d:'Только для Китая и России. Недовольство подавляется (−3 в ход), отделений нет, армии ×1.10, Лига осуждает (штраф +4).'}
+};
+const STATE_EFF={C:{inc:1.04},U:{inc:1.03,rec:1.05},F:{inc:1.04,up:0.9},K:{ann:0.5},L:{},T:{inc:0.97,rec:1.10,aggr:0.05}};
+const STATE_COST=60,STATE_CD=8;
+const stateOf=f=>(G.state&&G.state[f])||'U';
+function stateInit(){G.state=C.map(c=>(c.iso==='CN'||c.iso==='RU')?'T':'U');G.stT={};}
+function stateFix(){if(!G.state)stateInit();if(!G.stT)G.stT={};if(!G.confR)G.confR={};if(!G.confT)G.confT={};if(!G.colOv)G.colOv={};for(const x in G.colOv)C[+x].col=G.colOv[x];if(Object.keys(G.colOv).length&&ownC){buildBase();rebuildOwn();}}
+function canState(f,code){
+  if(!STATES[code])return{ok:false,why:'Неизвестный строй'};
+  if(code===stateOf(f))return{ok:false,why:'Уже действует'};
+  if(code==='T'&&!(C[f].iso==='CN'||C[f].iso==='RU'))return{ok:false,why:'Тоталитарный контроль — только у Китая и России'};
+  const t=G.stT[f];if(t!==undefined&&G.turn-t<STATE_CD)return{ok:false,why:'Следующая смена через '+(STATE_CD-(G.turn-t))+' ход.'};
+  if(G.gold[f]<STATE_COST)return{ok:false,why:'Нужно '+STATE_COST+' золота'};
+  return{ok:true,why:''};
+}
+function setState(f,code){
+  const r=canState(f,code);if(!r.ok)return{ok:false,why:r.why};
+  G.gold[f]-=STATE_COST;G.state[f]=code;G.stT[f]=G.turn;
+  addLog(fname(f)+': строй → '+STATES[code].n,f===G.you);
+  return{ok:true,msg:'Строй: '+STATES[code].n};
+}
+/* ================= КОНФЕДЕРАТИВНЫЕ РЕГИОНЫ: хозяин задаёт систему, идеологию и экономику ================= */
+const CONF_CD=4;
+// Хозяин конфедеративного региона: только пока действует вассальная связь с ним
+function confLord(t){if(!G.confR||G.confR[t]===undefined||!G.vassal||G.vassal[t]!==G.confR[t])return undefined;return G.confR[t];}
+function confCan(t){
+  const me=confLord(t);
+  if(me===undefined||me!==G.you)return{ok:false,why:'Регион подчиняется другой стране'};
+  const last=G.confT[t];
+  if(last!==undefined&&G.turn-last<CONF_CD)return{ok:false,why:'Следующее изменение через '+(CONF_CD-(G.turn-last))+' хода'};
+  if(G.gold[me]<REFORM_COST)return{ok:false,why:'Нужно '+REFORM_COST+' золота'};
+  return{ok:true,why:''};
+}
+function setConfAxis(t,k,code){
+  const r=confCan(t);if(!r.ok)return{ok:false,why:r.why};
+  const i='sie'.indexOf(k);
+  if(G.reg[t][i]===code)return{ok:false,why:'Уже действует'};
+  G.gold[G.you]-=REFORM_COST;G.reg[t]=G.reg[t].slice(0,i)+code+G.reg[t].slice(i+1);G.confT[t]=G.turn;
+  addLog(fname(t)+' (регион): '+REGK[k].toLowerCase()+' → '+REGN2[k][code],t===G.you||G.you===confLord(t));
+  return{ok:true,msg:REGK[k]+' региона: '+REGN2[k][code]};
+}
+function showConfPick(t,k){
+  const cur=G.reg[t]['sie'.indexOf(k)],cr=confCan(t),acts=[];
+  let h='<p style="color:var(--mute);font-size:13px;margin:0 0 6px">'+(cr.ok?'Цена: '+REFORM_COST+' золота. Регион меняется сразу.':esc(cr.why))+'</p>';
+  Object.keys(REGN2[k]).forEach(code=>{
+    h+='<div class="cl"><b>'+esc(REGN2[k][code])+(code===cur?' (сейчас)':'')+'</b><br><small>'+esc(effText(k,code))+'</small></div>';
+    if(code!==cur)acts.push({label:REGN2[k][code],cls:cr.ok?'pri':'',fn:()=>{const x=setConfAxis(t,k,code);if(x.ok){save();renderAll();toast(x.msg);}else toast(x.why);showDip(t);}});
+  });
+  acts.push({label:'Назад',fn:()=>showDip(t)});
+  modal(REGK[k]+' региона: '+C[t].ru,h,acts);
+}
+
+function strTurn(){
+  if(!G.state)return;
+  for(let f=0;f<C.length;f++)if(PC[f]>0&&stateOf(f)==='K')confRevive(f);
+  for(let f=0;f<C.length;f++){
+    if(!PC[f])continue;
+    const code=stateOf(f),list=provsOf(f);
+    for(const p of list){
+      if(G.pOwner[p]!==f)continue;
+      if(code==='C'){
+        if(G.core[p]!==f&&G.since[p]!==undefined&&G.turn-G.since[p]>=8){G.core[p]=f;G.res[p]=0;addLog('Колония «'+P[p].name+'» аннексирована без местной власти',f===G.you);}
+      }else if(code==='U'){G.res[p]=Math.min(100,(G.res[p]||0)+2);}
+      else if(code==='F'){G.res[p]=Math.max(0,(G.res[p]||0)-2);}
+      else if(code==='K'){G.res[p]=Math.max(0,(G.res[p]||0)-1);if(G.turn%5===0)addArmy(f,p,1,false);}
+      else if(code==='T'){G.res[p]=Math.max(0,(G.res[p]||0)-3);}
+      else if(code==='L'){
+        G.res[p]=Math.min(100,(G.res[p]||0)+1);
+        if(G.res[p]>=70&&Math.random()<0.04){
+          const nb=C[f].nb.filter(x=>PC[x]>0&&x!==f);
+          if(nb.length){const to=nb[(Math.random()*nb.length)|0];
+            armiesAt(p).filter(a=>a.o===f).forEach(dropArmy);
+            setOwner(p,to);G.res[p]=0;addLog('«'+P[p].name+'» отделилась и перешла к '+fname(to),f===G.you||to===G.you);}
+        }
+      }
+    }
+  }
+}
+function showState(){
+  const me=G.you,cur=stateOf(me),acts=[];
+  let h='<p style="color:var(--mute);font-size:13px;margin:0 0 8px">Территории: как центр управляет провинциями. Смена стоит '+STATE_COST+' золота и доступна раз в '+STATE_CD+' ходов.</p>';
+  Object.keys(STATES).forEach(code=>{
+    if(code==='T'&&!(C[me].iso==='CN'||C[me].iso==='RU'))return;
+    const r=canState(me,code);
+    h+='<div class="cl"><b>'+esc(STATES[code].n)+(code===cur?' (сейчас)':'')+'</b><br><small>'+esc(STATES[code].d)+'</small></div>';
+    if(code!==cur)acts.push({label:STATES[code].n,cls:r.ok?'pri':'',fn:()=>{const x=setState(me,code);if(x.ok){save();renderAll();toast(x.msg);}else toast(x.why);showState();}});
+  });
+  acts.push({label:'Закрыть'});
+  modal('Территории: '+C[me].ru,h,acts);
+}
+
 function newGame(you){
   const n=C.length;
   G={you,turn:1,pOwner:P.map(p=>p.c),core:P.map(p=>p.c),res:P.map(()=>0),tech:C.map(()=>[0,0,0]),xcl:{},ev:null,since:P.map(()=>0),rfund:P.map(()=>0),pEco:[],armies:[],nid:1,gold:[],aggr:[],war:{},ally:{},pact:{},truce:{},trade:{},asked:{},op:[],offers:[],log:[],news:[],over:null,vassal:{},ws:{},lease:{},reg:C.map(c=>REG[c.iso]||'HNC'),reformT:{}};
@@ -1182,7 +1446,7 @@ function newGame(you){
       G.pEco[id]=e;G.armies.push({id:G.nid++,o:c.i,p:id,n:m,mv:false});});
     G.gold[c.i]=c.eco*3;G.aggr[c.i]=Math.max(0.1,Math.min(1,0.35+Math.random()*0.5+eff(c.i,'aggr')));});
   for(let i=0;i<n;i++){const row=new Array(n);for(let j=0;j<n;j++)row[j]=Math.max(-100,Math.min(100,((Math.random()*24-12)|0)+(Math.random()<0.2?14:0)-(C[i].nb.includes(j)?3:0)+Math.round(aff(i,j)*0.8)));G.op.push(row);}
-  applyReal();scenInit();initLeases();recount();resInit();nukeInit();save();return G;
+  applyReal();scenInit();initLeases();recount();resInit();nukeInit();lnInit();stateInit();save();return G;
 }
 
 /* ---------- бой ---------- */
@@ -1251,12 +1515,13 @@ const validSave=s=>s&&s.np===P.length&&s.iso===C.map(c=>c.iso).join('')&&s.g&&!s
 function loadSave(){
   let best=null;try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(validSave(s))best=s;}catch(e){}
   if(validSave(CLOUD.s)&&(!best||(CLOUD.s.ts||0)>(best.ts||0)))best=CLOUD.s;
-  if(best){G=best.g;G.news=[];if(!G.lease)G.lease={};if(!G.reg)G.reg=C.map(c=>REG[c.iso]||'HNC');if(!G.reformT)G.reformT={};nukeFix();recount();if(!G.rst)resInit();return true;}return false;
+  if(best){G=best.g;G.news=[];if(!G.lease)G.lease={};if(!G.reg)G.reg=C.map(c=>REG[c.iso]||'HNC');if(!G.reformT)G.reformT={};nukeFix();lnFix();stateFix();recount();if(!G.rst)resInit();return true;}return false;
 }
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}cloudClear();}
 /* ================= ДИПЛОМАТИЯ И ИИ ================= */
 function declareWar(a,b,noJoin){
   if(a===b||atWar(a,b)||!isAlive(a)||!isAlive(b))return false;
+  if(lordOf(a)>=0)return false;
   if(G.vassal&&(G.vassal[a]===b||G.vassal[b]===a))return false;
   const k=key(a,b),brokePact=pactOn(a,b);
   delete G.pact[k];delete G.trade[k];delete G.ally[k];if(G.ws)delete G.ws[k];
@@ -1264,6 +1529,7 @@ function declareWar(a,b,noJoin){
   const cb=provsOf(b).some(p=>G.core[p]===a||claimed(p,a));
   for(let f=0;f<C.length;f++)if(f!==a&&f!==b&&PC[f]>0)addOp(f,a,cb?0:brokePact?-8:-2);
   addLog(fname(a)+' объявляет войну: '+fname(b),a===G.you||b===G.you);checkLeases();
+  vassalsOf(a).forEach(v=>{if(v!==b&&PC[v]>0&&!atWar(v,b))G.war[key(v,b)]=G.turn;});
   vassalsOf(a).forEach(v=>{if(v!==b&&isAlive(v)&&!atWar(v,b)&&!allied(v,b))declareWar(v,b,true);});
   vassalsOf(b).forEach(v=>{if(v!==a&&isAlive(v)&&!atWar(v,a)&&!allied(v,a))declareWar(v,a,true);});
   if(!noJoin){
@@ -1274,7 +1540,8 @@ function declareWar(a,b,noJoin){
   return true;
 }
 function makePeace(a,b){
-  const k=key(a,b);delete G.war[k];if(G.ws)delete G.ws[k];G.truce[k]=G.turn+4;addOp(a,b,10);addOp(b,a,10);
+  const k=key(a,b);delete G.war[k];if(G.ws)delete G.ws[k];G.truce[k]=G.turn+4;
+  vassalsOf(a).forEach(v=>{delete G.war[key(v,b)];});vassalsOf(b).forEach(v=>{delete G.war[key(v,a)];});addOp(a,b,10);addOp(b,a,10);
   addLog('Мир: '+fname(a)+' и '+fname(b),a===G.you||b===G.you);
 }
 function setAlly(a,b){const k=key(a,b);G.ally[k]=G.turn;delete G.pact[k];addOp(a,b,10);addOp(b,a,10);addLog('Союз: '+fname(a)+' и '+fname(b),a===G.you||b===G.you);}
@@ -1286,8 +1553,8 @@ function giftGold(a,b,g){if(G.gold[a]<g)return false;G.gold[a]-=g;G.gold[b]+=g;a
 /* статус пары для интерфейса */
 function statusOf(a,b){
   if(atWar(a,b))return{id:'war',label:'Война'};
-  if(G.vassal&&G.vassal[b]===a)return{id:'vassal',label:'Вассал'};
-  if(G.vassal&&G.vassal[a]===b)return{id:'lord',label:'Сюзерен'};
+  if(G.vassal&&G.vassal[b]===a)return{id:'vassal',label:confLord(b)===a?'Конфедеративный регион':'Вассал'};
+  if(G.vassal&&G.vassal[a]===b)return{id:'lord',label:confLord(a)===b?'Хозяин региона':'Сюзерен'};
   if(allied(a,b))return{id:'ally',label:'Союз'};
   if(pactOn(a,b))return{id:'pact',label:'Пакт о ненападении'};
   if(truceOn(a,b))return{id:'truce',label:'Перемирие'};
@@ -1412,7 +1679,7 @@ function endRound(){
   if(!G||G.over)return;
   G.news=[];G.offers=[];
   const n=C.length;
-  scenarioTurn();vassalTurn();leaseTurn();bldTurn();resTurn();nukeTurn();
+  scenarioTurn();vassalTurn();leaseTurn();bldTurn();resTurn();nukeTurn();strTurn();
   for(let a=0;a<n;a++){if(!PC[a])continue;const row=G.op[a];
     for(let b=0;b<n;b++){if(a===b||!PC[b])continue;let v=row[b];
       if(allied(a,b))v+=1;else if(atWar(a,b))v-=2;else if(G.turn%3===0)v+=v>0?-1:v<0?1:0;
@@ -1425,7 +1692,7 @@ function endRound(){
   occupationTurn();aiEvents();
   G.armies.forEach(a=>{a.mv=false;});
   for(let f=0;f<n;f++)if(PC[f]>0)G.gold[f]+=income(f);
-  G.turn++;G.ev=makeEvent();checkEnd();save();
+  lnTurn();G.turn++;G.ev=makeEvent();checkEnd();save();
 }
 /* ===== ОККУПАЦИЯ, ПРИТЯЗАНИЯ, СОПРОТИВЛЕНИЕ, ПРОКСИ-ВОЙНА ===== */
 const ANNEX_COST=25,ANNEX_AFTER=3,SUP_COST=30,REB_COST=25;
@@ -1434,7 +1701,7 @@ function occupiedBy(f){const r=[];for(let p=0;p<P.length;p++)if(G.pOwner[p]===f&
 const restiveOf=t=>{const r=[];for(let p=0;p<P.length;p++)if(G.pOwner[p]===t&&(G.core[p]!==t||P[p].c!==t))r.push(p);return r;};
 function claimsOf(f){const r=[];for(let p=0;p<P.length;p++)if(G.core[p]===f&&G.pOwner[p]!==f)r.push(p);return r;}
 
-const annexCost=(p,f)=>claimed(p,f)?10:Math.max(10,Math.round((ANNEX_COST-5*tl(f,2))*scx(f).ann*bx(f).adm));
+const annexCost=(p,f)=>claimed(p,f)?10:Math.max(10,Math.round((ANNEX_COST-5*tl(f,2))*scx(f).ann*bx(f).adm*eff(f,'ann')));
 function annexInfo(p,f){
   if(G.pOwner[p]!==f||!isOcc(p))return{ok:false,why:'не оккупация'};
   const w=claimed(p,f)?0:ANNEX_AFTER,t=G.turn-G.since[p];if(t<w)return{ok:false,why:'ещё '+(w-t)+' ход.'};
@@ -1809,7 +2076,7 @@ const PIECES={
   queen:new Path2D('M27 88L21 38l17 20 12-36 12 36 17-20-6 50ZM16 36a6 6 0 1 0 10 0a6 6 0 1 0-10 0ZM45 17a6 6 0 1 0 10 0a6 6 0 1 0-10 0ZM74 36a6 6 0 1 0 10 0a6 6 0 1 0-10 0ZM22 90h56v6H22Z')
 };
 const pieceFor=t=>t<6?PIECES.pawn:t<14?PIECES.knight:t<26?PIECES.bishop:t<48?PIECES.rook:PIECES.queen;
-function facColor(f){if(G&&f===G.you)return '#4cc0ff';let h=(f*137.508)%360;if(h>170&&h<215)h=(h+60)%360;return 'hsl('+(h|0)+' 80% 58%)';}
+function facColor(f){if(G&&G.colOv&&G.colOv[f])return G.colOv[f];if(G&&f===G.you)return '#4cc0ff';let h=(f*137.508)%360;if(h>170&&h<215)h=(h+60)%360;return 'hsl('+(h|0)+' 80% 58%)';}
 
 function minZ(){return V.W/BW;}
 function clampView(){
@@ -2045,6 +2312,7 @@ function renderSheet(){
   if(mineP)h+='<div class="acts">'+abtn('rec','pri','Набрать +'+REC_N,recCost(me)+' из казны',gold<recCost(me))+abtn('up','','Экономика +'+Math.max(1,Math.round(G.pEco[p]*.1)),upCost(p)+' из казны',gold<upCost(p))+'</div>';
   if(mineP&&isNukeSt(me)&&G.rst)h+='<div class="acts" style="grid-template-columns:1fr">'+abtn('nukebuild','','Собрать бомбу',NUKE_BUILD_GOLD+' из казны · '+NUKE_BUILD_URAN+' урана · в арсенале '+(G.nuke[me]||0),G.gold[me]<NUKE_BUILD_GOLD||Math.floor(G.ures[me]||0)<NUKE_BUILD_URAN||G.nuke[me]>=NUKE_LIMIT)+'</div>';
   if(mineP&&ctrlOf(p)===me)h+='<div class="acts" style="grid-template-columns:1fr">'+abtn('units','','Техника и флот','танки · авиация · корабли',false)+'</div>';
+  if(!mineP&&G.core[p]!==o){const lm=lnCanPropose(me,'mandate',o,p);h+='<div class="acts" style="grid-template-columns:1fr">'+abtn('lnmand','','Лига: мандат','территория перейдёт вам на '+LN_MAND_TURNS+' ходов',!lm.ok)+'</div>';}
   if(isNukeSt(me)&&!mineP){const nk=nukeCanStrike(me,p);h+='<div class="acts" style="grid-template-columns:1fr">'+abtn('nuke','pri','Ядерный удар',nk.ok?'бомба · '+NUKE_URAN+' урана · провинция будет уничтожена':nk.why,!nk.ok)+'</div>';}
   if(G.rad&&G.rad[p]>=G.turn)h+='<p class="hint">Радиация: набор и модернизация заблокированы до хода '+G.rad[p]+'</p>';
   h+='<div class="acts">'+(mineP?'':abtn('dip','','Дипломатия',st.label+' · отн. '+opn(o,me),false,'data-c="'+o+'"'))+abtn('cinfo','','Страна: '+esc(c.ru.length>13?c.ru.slice(0,12)+'…':c.ru),'оккупация и притязания',false,'data-c="'+o+'"')+(og!==o?abtn('cinfo','','Претендент: '+esc(C[og].ru.length>10?C[og].ru.slice(0,9)+'…':C[og].ru),'притязания',false,'data-c="'+og+'"'):'')+'</div>';
@@ -2062,6 +2330,7 @@ $('#sheet').addEventListener('click',e=>{
   else if(act==='lgive'){showLeaseTo(p);}
   else if(act==='lend'){cancelLease(p,me);save();renderAll();}
   else if(act==='nuke'){const r=nukeStrike(me,p);toast(r.msg);if(r.ok){save();renderAll();}}
+  else if(act==='lnmand'){const r=lnPropose(me,'mandate',G.pOwner[p],p);toast(r.msg);if(r.ok)save();renderAll();}
   else if(act==='nukebuild'){const r=nukeBuild(me);toast(r.msg);if(r.ok){save();renderAll();}}
   else if(act==='dip'){showDip(+b.dataset.c);}
   else if(act==='cinfo'){showCountry(+b.dataset.c);}
@@ -2104,7 +2373,7 @@ function showMenu(){
   modal('Меню','<p style="color:var(--mute)">Ход '+G.turn+' · версия v8</p>',[
     {label:'Рынок ресурсов',fn:showMarket},
     {label:'Мои ресурсы',fn:()=>showResBalance(G.you)},
-    {label:'Строй страны',fn:showRegime},
+    {label:'Территории',fn:showState},
     {label:'Правила',fn:showRules},
     {label:'Звук: '+(sndOn?'вкл':'выкл'),fn:toggleSound},
     {label:'Флаги на карте: '+(flagsOn&&emojiOK?'вкл':'выкл'),fn:toggleFlags},
@@ -2177,7 +2446,7 @@ function onTap(x,y){
 $('#zIn').onclick=()=>setZoom(V.z*1.5,V.W/2,V.H/2);
 $('#zOut').onclick=()=>setZoom(V.z/1.5,V.W/2,V.H/2);
 $('#zHome').onclick=()=>{if(G)focusProv(C[G.you].cap,3.5);else if(sel.pick>=0)focusOn(sel.pick,4);else{V.z=Math.max(minZ(),V.H/BH*1.05);V.cx=gx(25)*S;V.cy=gy(38)*S;clampView();V.dirty=true;}};
-$('#bEnd').onclick=doEnd;$('#bLog').onclick=()=>G&&showLog();$('#bTech').onclick=()=>G&&showTech();$('#bMenu').onclick=()=>G&&showMenu();$('#bDip').onclick=()=>G&&showDipList();$('#bMap').onclick=()=>G&&showMapMenu();
+$('#bEnd').onclick=doEnd;document.querySelectorAll('.tb[data-st]').forEach(b=>{b.onclick=()=>G&&showRegPick(b.dataset.st);});$('#bState').onclick=()=>G&&showState();$('#bLog').onclick=()=>G&&showLog();$('#bTech').onclick=()=>G&&showTech();$('#bMenu').onclick=()=>G&&showMenu();$('#bDip').onclick=()=>G&&showDipList();$('#bMap').onclick=()=>G&&showMapMenu();
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal'&&!modalLock)closeModal();});
 window.addEventListener('resize',resize);
 if(window.ResizeObserver)new ResizeObserver(()=>resize()).observe($('#stage'));
@@ -3349,6 +3618,7 @@ const ADD_K={atk:1,def:1,aggr:1};
 function eff(f,k){
   const r=(G&&G.reg&&G.reg[f])||'HNC';let v=ADD_K[k]?0:1;
   ['s','i','e'].forEach((t,i)=>{const e=EFF[t][r[i]];if(e&&e[k]!==undefined){if(ADD_K[k])v+=e[k];else v*=e[k];}});
+  const sst=G&&G.state&&G.state[f];if(sst&&STATE_EFF[sst]&&STATE_EFF[sst][k]!==undefined){if(ADD_K[k])v+=STATE_EFF[sst][k];else v*=STATE_EFF[sst][k];}
   const fx=G&&G.rfx&&G.rfx[f];if(fx){if(k==='inc'||k==='rec')v*=fx[k];else if(k==='atk')v+=fx.atk-1;}
   if(G&&(k==='inc'||k==='rec'||k==='atk')){const sx=scx(f);if(k==='inc')v*=sx.inc;else if(k==='rec')v*=sx.rec*bx(f).rec;else v+=sx.atk;}
   return v;
@@ -3631,7 +3901,7 @@ function showDip(t){
   if(st.id==='war')ex.unshift('очки войны: вы '+Math.round(wsOf(me,t))+' / враг '+Math.round(wsOf(t,me)));
   if(st.id==='vassal')ex.unshift('платит вам 20% дохода');if(st.id==='lord')ex.unshift('вы платите дань 20% дохода');
   if(ex.length)h+='<p style="color:var(--mute);font-size:13px;margin:0 0 6px">'+esc(ex.join(' · '))+'</p>';
-  h+=nukeInfoHTML(t);h+=countryInfoHTML(t);h+=rulersHTML(c);
+  h+=nukeInfoHTML(t)+lnInfoHTML(t);h+=countryInfoHTML(t);h+=rulersHTML(c);
   if(st.id==='war')acts.push({label:'Мирный договор',cls:'pri',fn:()=>showTreaty(t)});
   else if(st.id==='vassal'){acts.push({label:'Аренда провинций',fn:()=>showLeases(t)});acts.push({label:'Освободить вассала',fn:()=>{releaseVassal(me,t);save();dipDone(t,{msg:'Вассал освобождён и благодарен вам.'});}});[20,50].forEach(g=>acts.push({label:'Подарить '+g,fn:()=>{if(giftGold(me,t,g)){save();dipDone(t,{msg:'Подарок передан.'});}else dipDone(t,{msg:'В казне не хватает золота.'});}}));}
   else if(st.id==='lord'){acts.push({label:'Аренда провинций',fn:()=>showLeases(t)});}
@@ -3648,10 +3918,13 @@ function showDip(t){
     if(enemiesOf(t).some(e=>e!==me&&isAlive(e)))acts.push({label:'Прокси: оружие '+SUP_COST,fn:()=>dipDone(t,proxySupply(me,t))});
   }
   if(st.id!=='ally'&&st.id!=='vassal'&&st.id!=='lord'&&restiveOf(t).length)acts.push({label:'Партизаны '+REB_COST,fn:()=>{const r=proxyRebels(me,t);rebuildOwn();dipDone(t,r);}});
+  const LNB={condemn:'Лига: осудить',sanction:'Лига: санкции',ceasefire:'Лига: перемирие',disarm:'Лига: разоружение',recog:'Лига: признать',delegit:'Лига: лишить признания',humanitarian:'Лига: гуманитарные нормы',arbitrate:'Лига: арбитраж'};
+  for(const ty in LNB){if(lnCanPropose(me,ty,t).ok)acts.push({label:LNB[ty],fn:((ty)=>()=>{const r=lnPropose(me,ty,t);save();dipDone(t,r);})(ty)});}
   if(isNukeSt(t)&&hasUran(me)){
     acts.push({label:embOn(me,t)?'Эмбарго действует':'Урановое эмбарго',fn:()=>{const r=imposeEmbargo(me,t);if(r.ok)save();dipDone(t,r);}});
     if(embOn(me,t))acts.push({label:'Требовать разоружения',fn:()=>{const r=demandDisarm(me,t);save();dipDone(t,r);}});
   }
+  if(confLord(t)===me){for(const k of ['s','i','e'])acts.push({label:{s:'Система региона',i:'Идеология региона',e:'Экономика региона'}[k],fn:()=>showConfPick(t,k)});}
   acts.push({label:'Ресурсы',fn:()=>showResBalance(t)});
   acts.push({label:'Закрыть'});
   modal('Дипломатия',h,acts);
