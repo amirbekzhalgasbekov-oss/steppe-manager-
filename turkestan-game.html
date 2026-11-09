@@ -141,10 +141,10 @@ body.pc #app{max-width:1600px}
     </div>
     <div id="toast" role="status"></div>
   </div>
-  <p id="keys"><b>← →</b> бег · <b>Пробел</b> прыжок · <b>J</b> удар (<b>↓</b> в воздухе бьёт вниз) · <b>E</b> войти, говорить, пить чай · <b>L</b> рывок · <b>V</b> парировать (меч, мылтык) · <b>Q</b> держать: слиться с толпой · <b>R</b> или <b>1 2 3</b> сменить оружие · <b>P</b> или <b>Esc</b> меню</p>
+  <p id="keys"><b>← →</b> бег · <b>Пробел</b> прыжок · <b>J</b> удар (<b>↓</b> в воздухе бьёт вниз) · <b>E</b> войти, говорить, пить чай · <b>L</b> рывок · <b>V</b> парировать (меч, мылтык) · <b>Q</b> держать: слиться с толпой · <b>R</b> или <b>1 2 3</b> сменить оружие · <b>P</b> или <b>Esc</b> меню · <b>H</b> свист коню (конь у караванщиков) · <b>E</b> у коня: сесть, в седле: спешиться</p>
   <div id="pad">
     <div class="col">
-      <button class="pb dn" data-k="down" type="button" aria-label="Вниз"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="grp"><button class="pb dn" data-k="down" type="button" aria-label="Вниз"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><button class="pb sm" id="whs" data-k="whistle" type="button" aria-label="Свист коню" hidden><span>Свист</span></button></div>
       <div class="grp">
         <button class="pb dir" data-k="left" type="button" aria-label="Влево"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
         <button class="pb dir" data-k="right" type="button" aria-label="Вправо"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
@@ -174,7 +174,7 @@ body.pc #app{max-width:1600px}
       <button class="cta ghost" id="ng" type="button" hidden>Новая игра</button>
       <div class="row" id="ov-extra" style="margin-top:10px"><button class="cta ghost" id="ldb" type="button">Загрузить</button><button class="cta ghost" id="stb" type="button">Настройки</button></div>
       <p class="how" id="ov-how">
-        <span class="touch-only">Слева бег, справа <b>Прыжок</b> и <b>Удар</b>. В воздухе зажми <b>Вниз</b> и бей: клинок идёт вниз. <b>Отбить</b> в момент удара врага: мечом и мылтыком добивает, кинжал не умеет. Удар вниз по врагу сверху убивает его одним ударом. <b>Рывок</b> даёт короткую неуязвимость, у края стены держи вбок, и герой подтянется. У проулка или двери нажми <b>Войти</b>. Рядом с горожанами зажми <b>Слиться</b>, и стража тебя не заметит. Оружие меняется кнопкой наверху.</span>
+        <span class="touch-only">Слева бег, справа <b>Прыжок</b> и <b>Удар</b>. В воздухе зажми <b>Вниз</b> и бей: клинок идёт вниз. <b>Отбить</b> в момент удара врага: мечом и мылтыком добивает, кинжал не умеет. Удар вниз по врагу сверху убивает его одним ударом. <b>Рывок</b> даёт короткую неуязвимость, у края стены держи вбок, и герой подтянется. У проулка или двери нажми <b>Войти</b>. Рядом с горожанами зажми <b>Слиться</b>, и стража тебя не заметит. Оружие меняется кнопкой наверху. Купил коня у караванщиков: <b>Свист</b> зовёт его, <b>Войти</b> у коня садит в седло.</span>
         <span class="kbd-only"><b>← →</b> бег · <b>Пробел</b> прыжок · <b>J</b> удар, в воздухе <b>↓</b> + удар бьёт вниз · <b>L</b> рывок (в воздухе один раз, неуязвим) · у края стены держи вбок, и герой подтянется · <b>E</b> войти за угол, в дом, поговорить, выпить чай · <b>Q</b> держать рядом с горожанами: стража тебя не видит. У стены нажми прыжок ещё раз, чтобы оттолкнуться.</span>
       </p>
     </div>
@@ -208,17 +208,33 @@ const scenes={};
 let S=null;
 function mkScene(id,name,type,cols){
   const g=[];for(let y=0;y<12;y++)g.push(new Uint8Array(cols));
-  const s={id:id,name:name,type:type,cols:cols,grid:g,spikes:[],cps:[],defs:[],enemies:[],portals:[],doors:[],signs:[],facades:[],lamps:[],stalls:[],civs:[],goal:null,tea:null,exit:null,back:null,ww:cols*T,decor:[],item:null,triggers:[],peace:false,alert:false,biome:'city',lines:null,hat:null};
+  const s={id:id,name:name,type:type,cols:cols,grid:g,spikes:[],cps:[],defs:[],enemies:[],portals:[],doors:[],signs:[],facades:[],lamps:[],stalls:[],civs:[],goal:null,tea:null,exit:null,back:null,ww:cols*T,decor:[],item:null,triggers:[],tdoors:[],wells:[],peace:false,alert:false,biome:'city',lines:null,hat:null};
   scenes[id]=s;return s;
 }
 function rect(s,x,y,w,h,v){for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++){if(i>=0&&i<s.cols&&j>=0&&j<12)s.grid[j][i]=v||1;}}
 function ground(s,a,b){rect(s,a,10,b-a+1,2,1);}
+function addWell(s,c,w){rect(s,c,9,1,1,7);rect(s,c+w-1,9,1,1,7);for(let i=c+1;i<c+w-1;i++){s.grid[10][i]=0;s.grid[11][i]=0;}s.wells.push({c:c,w:w});}
+function addTower(s,cl,cr){
+  rect(s,cl,8,2,2,6);rect(s,cr,8,2,2,6);
+  s.tdoors.push({c:cl,w:2,side:-1,open:false,t:0},{c:cr,w:2,side:1,open:false,t:0});
+}
+function setTD(s,td,open){
+  for(let r=8;r<10;r++)for(let c=td.c;c<td.c+td.w;c++)s.grid[r][c]=open?0:6;
+  td.open=open;td.t=0;
+}
 function addSpikes(s,list){list.forEach(function(p){for(let c=p[0];c<=p[1];c++)s.spikes.push({c:c,r:9});});}
 
 const CIVPAL=[{body:'#4a2f5e',trim:'#e0b25a'},{body:'#2a5f5a',trim:'#e8d6a8'},{body:'#6a3a28',trim:'#d8a23a'},{body:'#32467a',trim:'#e6d3ad'},{body:'#5e2a3a',trim:'#e0b25a'},{body:'#3d5a2e',trim:'#e6d3ad'}];
 const REBEL={body:'#2a1a1e',trim:'#d8434b'};
 const WP={dagger:{name:'Кинжал',dur:0.13,cd:0.2,reach:26,dmg:1},sword:{name:'Қылыш',dur:0.22,cd:0.34,reach:40,dmg:2},musket:{name:'Мылтық',dur:0.16,cd:1.3,dmg:3},spear:{name:'Найза',dur:0.2,cd:0.4,reach:62,dmg:1},bow:{name:'Садақ',dur:0.2,cd:0.5,dmg:2}};
 const WORDER=['dagger','sword','spear','bow','musket'];
+/* ---------- horses (кони) ---------- */
+const HORSE_PRICE=160,HSPEED=330,HJUMP=700,MW=40,MH=52,FW=18,FH=30;
+const HCOAT={
+  player:{body:'#5a3a26',edge:'rgba(241,230,210,.4)',trim:'#2fb5a8',mane:'#1c1210'},
+  foe:[{body:'#2a1a22',edge:'rgba(216,67,75,.55)',trim:'#b3262e',mane:'#0e0a10'},{body:'#3a2a2a',edge:'rgba(216,67,75,.55)',trim:'#b3262e',mane:'#140d0d'}],
+  ally:[{body:'#7a5c3e',edge:'rgba(47,181,168,.6)',trim:'#2fb5a8',mane:'#2a1d14'},{body:'#5e4631',edge:'rgba(47,181,168,.6)',trim:'#e8c46a',mane:'#1f150e'},{body:'#8a7050',edge:'rgba(47,181,168,.6)',trim:'#2fb5a8',mane:'#2a1d14'}]
+};
 const GEAR={spear:{n:'Найза (копьё)',p:40},bow:{n:'Садақ (лук)',p:60},shield:{n:'Калқан (щит)',p:50},helm:{n:'Дулыға (шлем)',p:45},armor:{n:'Сауыт (нагрудник)',p:90},boots:{n:'Етік (сапоги)',p:35}};
 const FOOD={baursak:{n:'Бауырсак',p:8,h:1,sub:'+1 сердце'},kurt:{n:'Курт',p:15,h:1,sub:'+1 сердце · бег быстрее'},kymyz:{n:'Қымыз',p:30,h:2,sub:'+2 сердца'}};
 const MAXD={sword:40,spear:30,bow:40,musket:25,shield:20,helm:15,armor:10,boots:25};
@@ -238,7 +254,7 @@ const LINES=[
   'Тише. Стража ходит по рынку.','Хан собирает людей у цитадели.','Встань рядом с нами, и тебя не заметят.',
   'Жди, пока стражник отвернётся.','Не бегай рядом со стражей.','Сын соседа ушёл с войском.',
   'Знамя хана ждёт на башне цитадели.','Зайди в дом, там безопаснее.','Дым над кварталом мастеров. Там горит.',
-  'Лазить по стенам умеют только смелые.','Арыки глубокие, не падай.','Рогатки поставили против конницы. Обходи их поверху.'
+  'Лазить по стенам умеют только смелые.','Колодцы старые, не лезь вниз.','Рогатки поставили против конницы. Обходи их поверху.'
 ];
 function addCiv(s,c,a,b,seed,row,opt){
   opt=opt||{};
@@ -279,14 +295,14 @@ function mkHouse(id,name,seed,back){
 /* Gate district */
 {
   const s=mkScene('gate','Городские ворота','out',72);
-  ground(s,0,29);ground(s,33,71);
+  ground(s,0,71);addWell(s,30,3);
   rect(s,22,9,1,1);rect(s,24,8,2,2);rect(s,38,7,6,1,3);
   addSpikes(s,[[58,59]]);
   s.doors=[{c:14,to:'h_gate1',label:'Дом ткача'},{c:46,to:'h_gate2',label:'Чайхана'}];
   s.portals=[{c:1,to:'steppe',toC:3,label:'Выйти в степь',arch:true,need:'met',lockMsg:'Ворота заперты. Сначала дойди до цитадели'},{c:68,to:'bazaar',toC:3,label:'На базар'}];
   s.cps=[{c:5},{c:40}];
   s.defs=[{c:26,a:20,b:29,hp:3},{c:52,a:48,b:57,hp:3},{c:40,r:6,a:38,b:43,hp:3},{c:64,a:61,b:67,hp:2,kind:'archer'}];
-  s.signs=[{c:6,t:'Улица. У двери нажми «Войти»'},{c:28,t:'Арык. Прыгай'},{c:64,t:'Проулок на базар →'}];
+  s.signs=[{c:6,t:'Улица. У двери нажми «Войти»'},{c:28,t:'Колодец. Не провались'},{c:64,t:'Проулок на базар →'}];
   s.lamps=[8,19,36,50,62];
   [[10,7,13],[18,16,21],[44,41,48],[55,52,57]].forEach(function(a,i){addCiv(s,a[0],a[1],a[2],i+1);});
   addCiv(s,19,19,19,201,9,{still:true,pal:{body:'#5e2a3a',trim:'#e8d6a8'},quest:'mother',face:1,say:'Мой сын ушёл с войском...'});
@@ -295,7 +311,7 @@ function mkHouse(id,name,seed,back){
 /* Bazaar */
 {
   const s=mkScene('bazaar','Базар','out',84);
-  ground(s,0,39);ground(s,43,83);
+  ground(s,0,83);addWell(s,40,3);
   s.stalls=[10,28,56,70];
   s.stalls.forEach(function(c){rect(s,c,7,3,1,2);});
   addSpikes(s,[[60,61]]);
@@ -303,7 +319,7 @@ function mkHouse(id,name,seed,back){
   s.portals=[{c:2,to:'gate',toC:67,label:'К воротам'},{c:80,to:'quarter',toC:3,label:'В квартал мастеров'}];
   s.cps=[{c:4},{c:45}];
   s.defs=[{c:16,a:13,b:19,hp:3},{c:34,a:30,b:38,hp:3},{c:50,a:46,b:54,hp:3},{c:75,a:72,b:78,hp:3},{c:24,a:22,b:27,hp:2,kind:'archer'},{c:68,a:66,b:70,hp:2,kind:'archer'}];
-  s.signs=[{c:7,t:'Базар. Зажми «Слиться» среди людей'},{c:37,t:'Арык'},{c:58,t:'Рогатки стражи. Иди по крышам'}];
+  s.signs=[{c:7,t:'Базар. Зажми «Слиться» среди людей'},{c:37,t:'Колодец. Не провались'},{c:58,t:'Рогатки стражи. Иди по крышам'}];
   s.lamps=[6,16,26,36,48,58,68,78];
   [[8,5,12],[13,11,16],[24,21,27],[31,28,34],[47,44,51],[53,50,57],[67,64,70],[73,70,77],[77,74,79]].forEach(function(a,i){addCiv(s,a[0],a[1],a[2],i+11);});
   addCiv(s,44,44,44,207,9,{still:true,pal:{body:'#5a1f3a',trim:'#f0d070'},quest:'bai2',face:-1,sc:1.05,say:'Серебро любит смелых.'});
@@ -312,15 +328,15 @@ function mkHouse(id,name,seed,back){
 /* Craftsmen quarter */
 {
   const s=mkScene('quarter','Квартал мастеров','out',96);
-  ground(s,0,31);ground(s,35,66);ground(s,70,95);
+  ground(s,0,95);addWell(s,32,3);addWell(s,67,3);
   rect(s,46,8,3,1,3);rect(s,51,6,3,1,3);rect(s,56,6,3,1,3);rect(s,59,8,2,1,3);
-  rect(s,74,4,2,4,1);rect(s,79,4,2,4,1);rect(s,81,4,8,1,3);
+  rect(s,74,4,2,4,1);rect(s,79,4,2,4,1);rect(s,81,4,8,1,3);addTower(s,74,79);
   addSpikes(s,[[48,57]]);
   s.decor=[{c:76,r:4,w:3,h:6}];
   s.doors=[{c:12,to:'h_q1',label:'Мастерская'},{c:38,to:'h_q2',label:'Дом кузнеца'}];
   s.portals=[{c:2,to:'bazaar',toC:79,label:'На базар'},{c:92,to:'citadel',toC:3,label:'К цитадели'}];
   s.cps=[{c:4},{c:36},{c:71}];
-  s.defs=[{c:20,a:16,b:28,hp:3},{c:40,a:36,b:44,hp:3},{c:62,a:59,b:65,hp:3},{c:84,r:3,a:81,b:88,hp:3},{c:90,a:84,b:94,hp:3},{c:30,a:27,b:30,hp:2,kind:'archer'},{c:76,a:72,b:78,hp:2,kind:'archer'}];
+  s.defs=[{c:20,a:16,b:28,hp:3},{c:40,a:36,b:44,hp:3},{c:62,a:59,b:65,hp:3},{c:84,r:3,a:81,b:88,hp:3},{c:90,a:84,b:94,hp:3},{c:30,a:27,b:30,hp:2,kind:'archer'},{c:71,a:70,b:73,hp:2,kind:'archer'}];
   s.signs=[{c:6,t:'Квартал мастеров. Здесь горит'},{c:44,t:'Рогатки. Крыши ведут над ними'},{c:72,t:'Башня: прыгай от стены к стене'}];
   s.lamps=[8,18,30,40,62,72,90];
   [[6,4,9],[16,14,19],[26,23,29],[41,38,44],[63,60,65]].forEach(function(a,i){addCiv(s,a[0],a[1],a[2],i+31);});
@@ -330,7 +346,7 @@ function mkHouse(id,name,seed,back){
 {
   const s=mkScene('citadel','Цитадель','out',64);
   ground(s,0,63);
-  rect(s,36,2,2,6,1);rect(s,41,2,2,6,1);rect(s,41,2,14,1,3);
+  rect(s,36,2,2,6,1);rect(s,41,2,2,6,1);rect(s,41,2,14,1,3);addTower(s,36,41);
   s.decor=[{c:38,r:2,w:3,h:8}];
   s.doors=[{c:14,to:'h_cit',label:'Покои'}];
   s.portals=[{c:2,to:'quarter',toC:91,label:'В квартал'}];
@@ -415,7 +431,7 @@ function steppeScene(id,name,cols){const s=mkScene(id,name,'out',cols);s.biome='
 {
   const s=steppeScene('gorge','Ущелье',80);
   ground(s,0,79);
-  rect(s,30,4,2,4,1);rect(s,35,4,2,4,1);rect(s,37,4,10,1,3);
+  rect(s,30,4,2,4,1);rect(s,35,4,2,4,1);rect(s,37,4,10,1,3);addTower(s,30,35);
   s.decor=[{c:32,r:4,w:3,h:6}];
   s.portals=[{c:1,to:'mound',toC:85,label:'К курганам'},{c:76,to:'hidden',toC:92,label:'Вернуться в ставку',need:'b3',lockMsg:'Сначала найди батыра на скале'}];
   s.cps=[{c:4},{c:26},{c:50}];
@@ -474,7 +490,7 @@ function steppeScene(id,name,cols){const s=mkScene(id,name,'out',cols);s.biome='
 {
   const s=steppeScene('exodus','Исход',112);
   ground(s,0,111);
-  rect(s,60,4,2,4,1);rect(s,65,4,2,4,1);rect(s,65,4,8,1,3);
+  rect(s,60,4,2,4,1);rect(s,65,4,2,4,1);rect(s,65,4,8,1,3);addTower(s,60,65);
   addSpikes(s,[[30,32],[84,86]]);
   s.portals=[{c:1,to:'raid',toC:84,label:'Назад'},{c:108,to:'finale',toC:3,label:'К переправе'}];
   s.cps=[{c:4},{c:44},{c:80}];
@@ -535,6 +551,7 @@ function genWild(i){
     i===6?{c:cols-4,to:'wasteland',toC:3,label:'Дальше'}:{c:cols-4,to:'wild'+(i+1),toC:3,label:'Дальше'}];
   s.signs=[{c:6,t:'Степь '+i+' из 8. Ищи следы каравана'}];
   s.lines=['Ветер гонит пыль.','Здесь давно никого не было.'];
+  if(i===2||i===5){addCiv(s,8,8,8,610+i,9,{still:true,pal:{body:'#6a4a2a',trim:'#e0b25a'},quest:'trader',face:-1,say:'Кони, чай, всё для дороги.'});s.signs.push({c:10,t:'Караван. Здесь продают коней'});}
 }
 for(let i=1;i<=6;i++)genWild(i);
 {
@@ -549,6 +566,8 @@ for(let i=1;i<=6;i++)genWild(i);
   addCiv(s,41,41,41,601,9,{still:true,pal:{body:'#7a5a2a',trim:'#e8c46a'},quest:'caravan',face:-1,say:'Подсаживайся к огню.'});
   addCiv(s,37,37,37,602,9,{still:true,pal:{body:'#3a5a4a',trim:'#e8d6a8'},face:1,say:'Разведчики вернулись. Всё тихо.'});
   addCiv(s,44,44,44,603,9,{still:true,pal:{body:'#5a3a3a',trim:'#d8a23a'},face:-1,say:'Ставка Семеке недалеко.'});
+  addCiv(s,50,50,50,604,9,{still:true,pal:{body:'#6a4a2a',trim:'#e0b25a'},quest:'trader',face:-1,say:'Кони, чай, всё для дороги.'});
+  s.signs.push({c:48,t:'Караванщик продаёт коней'});
 }
 {
   const s=mkScene('semeke','Ставка Семеке-хана','out',64);
@@ -604,6 +623,9 @@ function sfx(k){
     case 'door':tone(180,260,0.14,'triangle',0.05);break;
     case 'blend':tone(400,300,0.12,'sine',0.04);break;
     case 'tea':tone(600,900,0.25,'sine',0.05);break;
+    case 'whistle':tone(1400,2100,0.18,'sine',0.05);setTimeout(function(){tone(1700,2500,0.22,'sine',0.05);},170);break;
+    case 'neigh':tone(520,1000,0.12,'sawtooth',0.04);setTimeout(function(){tone(900,420,0.28,'sawtooth',0.035);},110);break;
+    case 'hoof':tone(110,60,0.05,'square',0.03);break;
     case 'win':tone(440,880,0.5,'triangle',0.07);setTimeout(function(){tone(660,1320,0.5,'triangle',0.07);},220);break;
   }
 }
@@ -615,7 +637,7 @@ const cam={x:0,y:0};
 const parts=[];
 let toastTimer=0;
 const flags={met:false,letter:false,delivered:false,thanked:false,mcap:false,act2:false,guide:false,banner:false,m1a:false,m1d:false,m2a:false,m2d:false,spyOn:false,c1:false,c2:false,spyChase:false,spyDone:false,brief:false,b1:false,b2:false,b3:false,council:false,smith:false};
-let bullets=[],ebullets=[],arrows=[],talk=null;
+let bullets=[],ebullets=[],arrows=[],talk=null,HZ=null,loose=[];
 
 /* ---------- collision ---------- */
 function solidAt(px,py){
@@ -662,8 +684,9 @@ const hearts=$('hearts'),killsEl=$('kills'),ov=$('ov'),toastEl=$('toast');
 function inCity(){try{return !!S&&(S.id==='gate'||S.id==='bazaar'||S.id==='quarter'||S.id.indexOf('h_')===0);}catch(e){return false;}}
 function updateHud(){
   let h='';for(let i=0;i<3;i++)h+='<span class="heart'+(i<P.hp?'':' off')+'">♥</span>';
-  hearts.innerHTML=h;killsEl.textContent='Враги '+kills+'/'+enemyTotal+' · ₸'+total()+((flags.letter&&!flags.delivered)?' · Письмо':'')+(flags.spyOn&&!flags.spyDone?' · Лазутчик':'')+(flags.brief&&!flags.council?' · Батыры '+((flags.b1?1:0)+(flags.b2?1:0)+(flags.b3?1:0))+'/3':'')+(inCity()&&!flags.smith?' · Цель: дом кузнеца':'');
+  hearts.innerHTML=h;killsEl.textContent='Враги '+kills+'/'+enemyTotal+' · ₸'+total()+((flags.letter&&!flags.delivered)?' · Письмо':'')+(flags.spyOn&&!flags.spyDone?' · Лазутчик':'')+(flags.brief&&!flags.council?' · Батыры '+((flags.b1?1:0)+(flags.b2?1:0)+(flags.b3?1:0))+'/3':'')+(inCity()&&!flags.smith?' · Цель: дом кузнеца':'')+(P.horse?(P.mounted?' · Конь ♥'+P.hh:' · Конь'):'');
   const wb=$('wp');if(wb&&P)wb.textContent=WP[P.wp].name;
+  const whb=$('whs');if(whb)whb.hidden=!(P&&P.horse);
 }
 function toast(t){
   toastEl.textContent=t;toastEl.classList.add('show');clearTimeout(toastTimer);
@@ -673,7 +696,138 @@ function fmt(s){const m=Math.floor(s/60),r=Math.floor(s%60);return m+':'+(r<10?'
 
 /* ---------- player / world setup ---------- */
 function newPlayer(){
-  return {x:0,y:0,w:18,h:30,vx:0,vy:0,face:1,ground:false,coyote:0,wallDir:0,wallSide:1,wallT:0,jbuf:0,lock:0,atk:0,atkCd:0,swing:0,inv:0,hp:3,t:0,down:false,bounced:false,splashed:false,blend:false,noBlend:0,has:{dagger:true,sword:false,musket:false,spear:false,bow:false,shield:false,helm:false,armor:false,boots:false},eq:{shield:true,helm:true,armor:true,boots:true},dur:Object.assign({},MAXD),food:{baursak:0,kurt:0,kymyz:0},fast:0,wp:'dagger',atkDur:0.13,dashT:0,dashCd:0,canDash:true,mant:null,dashDir:1,exec:null,parryT:0,parryCd:0};
+  return {x:0,y:0,w:18,h:30,vx:0,vy:0,face:1,ground:false,coyote:0,wallDir:0,wallSide:1,wallT:0,jbuf:0,lock:0,atk:0,atkCd:0,swing:0,inv:0,hp:3,t:0,down:false,bounced:false,splashed:false,blend:false,noBlend:0,has:{dagger:true,sword:false,musket:false,spear:false,bow:false,shield:false,helm:false,armor:false,boots:false},eq:{shield:true,helm:true,armor:true,boots:true},dur:Object.assign({},MAXD),food:{baursak:0,kurt:0,kymyz:0},fast:0,wp:'dagger',atkDur:0.13,dashT:0,dashCd:0,canDash:true,mant:null,dashDir:1,exec:null,parryT:0,parryCd:0,horse:false,mounted:false,hh:3,hHurt:0,hReg:0,prevWp:null,whCd:0,hoofT:0};
+}
+/* ---------- horses: player's horse, whistle, riders ---------- */
+function canWield(w){return !P.mounted||w==='spear'||w==='bow';}
+function steppeHere(){return !!S&&S.biome==='steppe';}
+function setBox(mounted){
+  const cx=P.x+P.w/2,by=P.y+P.h,ox=P.x,oy=P.y,ow=P.w,oh=P.h;
+  P.w=mounted?MW:FW;P.h=mounted?MH:FH;P.x=cx-P.w/2;P.y=by-P.h-0.01;
+  if(mounted&&boxHits(P.x,P.y,P.w,P.h)){
+    const tries=[8,-8,16,-16,24,-24];let ok=false;
+    for(let i=0;i<tries.length;i++){if(!boxHits(P.x+tries[i],P.y,P.w,P.h)){P.x+=tries[i];ok=true;break;}}
+    if(!ok){P.w=ow;P.h=oh;P.x=ox;P.y=oy;return false;}
+  }
+  return true;
+}
+function restoreWeapon(){
+  if(P.prevWp&&P.has[P.prevWp]&&usable(P.prevWp))P.wp=P.prevWp;
+  P.prevWp=null;
+}
+function forceDismount(){
+  if(!P.mounted)return;
+  P.mounted=false;P.w=FW;P.h=FH;P.aiming=false;restoreWeapon();
+}
+function newHZ(cx,feetY,state){return {x:cx-17,y:feetY-26-0.01,w:34,h:26,vx:0,vy:0,face:P.face||1,state:state||'wait',t:0,anim:0};}
+function placeHZNear(state){
+  const cx=P.x+P.w/2,fy=P.y+P.h,offs=[-P.face*44,P.face*44,-P.face*70,P.face*70];
+  for(let i=0;i<offs.length;i++){
+    const h=newHZ(cx+offs[i],fy,state);
+    if(!boxHits(h.x,h.y,h.w,h.h)&&solidAt(h.x+h.w/2,fy+3)){HZ=h;return h;}
+  }
+  HZ=newHZ(cx,fy,state);return HZ;
+}
+function mountHorse(){
+  if(P.mounted||!P.horse||!HZ||!steppeHere())return false;
+  if(!setBox(true)){toast('Здесь тесно для коня');return false;}
+  P.mounted=true;HZ=null;P.vx=0;P.atk=0;P.blend=false;P.prevWp=P.wp;
+  if(P.wp!=='spear'&&P.wp!=='bow'){
+    if(P.has.spear&&usable('spear'))P.wp='spear';
+    else if(P.has.bow&&usable('bow'))P.wp='bow';
+  }
+  sfx('neigh');updateHud();
+  if(!canWield(P.wp))toast('С коня бьют только копьём и луком');
+  return true;
+}
+function dismountHorse(){
+  if(!P.mounted)return;
+  setBox(false);P.mounted=false;P.aiming=false;restoreWeapon();
+  placeHZNear('wait');sfx('neigh');updateHud();
+}
+function horseDown(){
+  setBox(false);P.mounted=false;P.aiming=false;restoreWeapon();
+  P.hHurt=45;P.hh=0;
+  loose.push({x:P.x+P.w/2,y:P.y+P.h,vx:-P.face*300,t:2.4,face:-P.face,pal:HCOAT.player,anim:0});
+  toast('Коня ранили, он ускакал. Позови позже');updateHud();
+}
+function spawnHZ(){
+  const pcx=P.x+P.w/2,cand=[pcx-P.face*(W/2+50),pcx+P.face*(W/2+50)];
+  for(let k=0;k<2;k++){
+    const x=clamp(cand[k],T,S.ww-T-34),c0=Math.floor(x/T),dir=x<pcx?1:-1;
+    for(let j=0;j<14;j++){
+      const c=c0+dir*j;if(c<1||c>=S.cols-1)break;
+      const hx=c*T-1,hy=10*T-26-0.01;
+      if(S.grid[10][c]>0&&!boxHits(hx,hy,34,26)){
+        if(Math.abs(hx+17-pcx)>110||k===1){HZ=newHZ(hx+17,10*T,'come');HZ.face=dir;return;}
+        break;
+      }
+    }
+  }
+  placeHZNear('come');
+}
+function whistle(){
+  if(state!=='playing'||trans||!P||P.hp<=0||P.exec)return;
+  if(!P.horse){toast('У тебя нет коня. Купи у караванщиков');return;}
+  if(!steppeHere()){toast('В городе коню не место: он ждёт в степи');return;}
+  if(P.mounted){toast('Ты уже в седле');return;}
+  if(P.hHurt>0){toast('Конь ранен, отдыхает ещё '+Math.ceil(P.hHurt)+' с');return;}
+  if(P.whCd>0)return;
+  P.whCd=0.8;sfx('whistle');
+  if(HZ){
+    const near=Math.abs((HZ.x+HZ.w/2)-(P.x+P.w/2))<70&&Math.abs((HZ.y+HZ.h)-(P.y+P.h))<40;
+    if(near&&P.ground){mountHorse();return;}
+    HZ.state='come';HZ.t=0;return;
+  }
+  spawnHZ();
+  setTimeout(function(){sfx('neigh');},350);
+}
+function updateHZ(dt){
+  const h=HZ;if(!h)return;
+  h.t+=dt;h.anim+=dt;
+  h.vy=Math.min(h.vy+GRAV*dt,MAXFALL);
+  const onG=h.vy>=0&&boxHits(h.x,h.y+1,h.w,h.h);
+  const pcx=P.x+P.w/2,dx=pcx-(h.x+h.w/2);
+  if(h.state==='come'){
+    if(Math.abs(dx)<44){h.state='wait';}
+    else if(h.t>8){placeHZNear('wait');return;}
+    else{
+      h.face=dx>0?1:-1;
+      h.vx=approach(h.vx,h.face*HSPEED*1.08,1900*dt);
+      if(onG&&h.vx*h.face>110){
+        const fx=h.face>0?h.x+h.w+3:h.x-3;
+        const wall=solidAt(fx,h.y+h.h-6)||solidAt(fx,h.y+8);
+        const gap=!solidAt(fx+h.face*22,h.y+h.h+6);
+        if(wall||gap)h.vy=-HJUMP*0.95;
+      }
+    }
+  }else h.vx=approach(h.vx,0,1500*dt);
+  moveX(h,h.vx*dt);moveY(h,h.vy*dt);
+  if(h.y>12*T+60)HZ=null;
+}
+/* riders: every 6th warrior of each side on the steppe has a horse */
+function mountUnit(e,side,n){
+  const pals=side==='kz'?HCOAT.ally:HCOAT.foe;
+  e.horse={pal:pals[n%pals.length]};
+  e.x-=9;e.y-=22;e.w=38;e.h=52;e.hp++;e.maxhp++;e.sh=false;e.chCd=0;
+}
+function unmountUnit(e){
+  if(!e.horse)return;
+  const cx=e.x+e.w/2,by=e.y+e.h,dir=cx>(P.x+P.w/2)?1:-1;
+  loose.push({x:cx,y:by,vx:dir*270,t:2.4,face:dir,pal:e.horse.pal,anim:0});
+  e.horse=null;e.w=20;e.h=30;e.x=cx-10;e.y=by-30;
+}
+function assignRiders(){
+  const cnt={jz:0,kz:0},pend={jz:false,kz:false};
+  Object.keys(scenes).forEach(function(k){
+    const s=scenes[k];if(s.biome!=='steppe')return;
+    s.enemies.forEach(function(e,i){
+      if(e.boss)return;
+      const side=e.ally?'kz':'jz',d=s.defs[i];
+      cnt[side]++;if(cnt[side]%6===0)pend[side]=true;
+      if(pend[side]&&d.r===undefined&&(d.b-d.a)>=6){pend[side]=false;mountUnit(e,side,cnt[side]);}
+    });
+  });
 }
 function makeEnemy(d){
   const r=d.r===undefined?9:d.r,bw=d.boss?28:20,bh=d.boss?46:30;
@@ -686,12 +840,15 @@ function snapCam(){
   cam.y=clamp(P.y+P.h/2-H*0.55,0,12*T-H);
 }
 function setScene(id,col,face){
-  S=scenes[id];
+  S=scenes[id];HZ=null;loose.length=0;
+  S.tdoors.forEach(function(d){if(d.open)setTD(S,d,false);});
+  let dm=false;
+  if(P.mounted&&S.biome!=='steppe'){forceDismount();dm=true;}
   P.x=col*T+7;P.y=10*T-P.h-0.01;P.vx=0;P.vy=0;P.lock=0;P.atk=0;P.exec=null;P.mant=null;P.dashT=0;P.parryT=0;P.splashed=false;P.blend=false;
   if(face)P.face=face;
   S.enemies.forEach(function(e){if(e.state!=='dead'&&e.state!=='stun'){e.state='patrol';e.vx=0;}});
   parts.length=0;bullets=[];ebullets=[];arrows=[];hint=null;snapCam();
-  updateHud();toast(S.name);
+  updateHud();toast(S.name+(dm?' · конь ждёт в степи':''));
 }
 function goScene(id,col,face,quick){
   if(trans)return;
@@ -706,12 +863,14 @@ function resetGame(){
     if(s.tea)s.tea.used=false;
     if(s.item)s.item.taken=false;
     s.alert=false;s.triggers.forEach(function(g){g.done=false;});
+    s.tdoors.forEach(function(d){setTD(s,d,false);});
     if(!s.baseCps)s.baseCps=s.cps;
     s.baseCps.forEach(function(c){c.on=false;});
     s.entry=s.baseCps.length?s.baseCps[0].c:4;
     rebuildCps(s);
     s.civs.forEach(function(c){c.sayT=0;});
   });
+  HZ=null;loose.length=0;assignRiders();
   scenes.gate.baseCps[0].on=true;
   cpState={scene:'gate',c:5};
   S=scenes.gate;setScene('gate',5,1);
@@ -719,6 +878,7 @@ function resetGame(){
   updateHud();
 }
 function respawn(full){
+  forceDismount();
   if(full)P.hp=3;
   setScene(cpState.scene,cpState.c,1);P.inv=1.5;updateHud();
 }
@@ -740,10 +900,10 @@ function pickItem(){
 }
 function cycleWeapon(){
   const i=WORDER.indexOf(P.wp);
-  for(let k=1;k<=WORDER.length;k++){const w=WORDER[(i+k)%WORDER.length];if(P.has[w]&&usable(w)){P.wp=w;break;}}
+  for(let k=1;k<=WORDER.length;k++){const w=WORDER[(i+k)%WORDER.length];if(P.has[w]&&usable(w)&&canWield(w)){P.wp=w;break;}}
   P.atk=0;updateHud();
 }
-function setWeapon(w){if(P.has[w]&&usable(w)&&P.wp!==w){P.wp=w;P.atk=0;updateHud();}}
+function setWeapon(w){if(P.has[w]&&usable(w)&&!canWield(w)){toast('С коня бьют только копьём и луком');return;}if(P.has[w]&&usable(w)&&P.wp!==w){P.wp=w;P.atk=0;updateHud();}}
 function triggerAlert(){
   if(S.alert)return;S.alert=true;
   S.enemies.forEach(function(e){if(e.ally){e.ally=false;if(e.state!=='dead')e.state='chase';}});
@@ -789,6 +949,14 @@ function findUse(){
       const d=s.doors[i];
       if(cx>=d.c*T-4&&cx<=(d.c+2)*T+4)return {label:d.label,go:function(){goScene(d.to,3,1);}};
     }
+    for(let i=0;i<s.tdoors.length;i++){
+      const td=s.tdoors[i];if(td.open)continue;
+      const x0=td.c*T,x1=(td.c+td.w)*T,out=td.side<0?(cx>=x0-48&&cx<=x0):(cx>=x1&&cx<=x1+48),inn=td.side<0?(cx>x1&&cx<=x1+48):(cx>=x0-48&&cx<x0);
+      if(out)return {label:'Открыть дверь башни',go:function(){
+        if(P.mounted){toast('С коня в башню не войти. Спешься');return;}
+        setTD(s,td,true);sfx('door');}};
+      if(inn)return {label:'Заперто',go:function(){toast('Дверь башни открывается только снаружи. Лезь вверх по стенам');}};
+    }
   }else{
     if(cx<=(s.exit.c+2)*T+8)return {label:'Выйти на улицу',go:function(){goScene(s.back.scene,s.back.c,1);}};
     if(s.item&&!s.item.taken&&Math.abs(cx-(s.item.c*T+16))<40)return {label:s.item.label,go:pickItem};
@@ -806,6 +974,10 @@ function findUse(){
     const c=best;
     return {label:'Поговорить',go:function(){c.vx=0;c.face=(cx>c.x+c.w/2)?1:-1;if(c.quest){runQuest(c);return;}c.sayT=3.2;c.pause=3.2;sfx('blend');}};
   }
+  if(s.type==='out'&&s.biome==='steppe'&&P.horse){
+    if(P.mounted)return {label:'Спешиться',quiet:true,go:dismountHorse};
+    if(HZ&&Math.abs((HZ.x+HZ.w/2)-cx)<60&&Math.abs((HZ.y+HZ.h)-(P.y+P.h))<40)return {label:'Сесть на коня',go:mountHorse};
+  }
   return null;
 }
 function nearCrowd(){
@@ -822,6 +994,12 @@ function hurtPlayer(fromX,src){
   if(P.exec||state!=='playing')return;
   if(src&&P.parryT>0&&P.ground&&(P.wp==='sword'||P.wp==='musket')&&((src.x+src.w/2)-(P.x+P.w/2))*P.face>0){tryParry(src);return;}
   if(P.inv>0||P.dashT>0||P.mant)return;
+  if(P.mounted){
+    P.hh--;P.inv=0.8;P.noBlend=0.7;P.vx=((P.x+P.w/2)<fromX?-1:1)*180;P.vy=-240;P.lock=0.15;shake=0.18;
+    sfx('neigh');burst(P.x+P.w/2,P.y+P.h-14,8,'#d8434b',140);
+    if(P.hh<=0)horseDown();
+    updateHud();return;
+  }
   if(src&&eqd('shield')&&((src.x+src.w/2)-(P.x+P.w/2))*P.face>0)wear('shield',src.boss?8:4);
   wear('boots',1);
   if(eqd('armor')){wear('armor',5);}else P.hp--;
@@ -884,7 +1062,7 @@ function updatePlayer(dt){
   const axis=(input.right?1:0)-(input.left?1:0);
   P.ground=P.vy>=0&&boxHits(P.x,P.y+1,P.w,P.h);
   const wl=boxHits(P.x-2,P.y+3,2,P.h-6),wr=boxHits(P.x+P.w,P.y+3,2,P.h-6);
-  P.wallDir=P.ground?0:(wl?-1:(wr?1:0));
+  P.wallDir=(P.ground||P.mounted)?0:(wl?-1:(wr?1:0));
   if(P.ground)P.coyote=0.1;else P.coyote=Math.max(0,P.coyote-dt);
   if(P.wallDir!==0){P.wallT=0.18;P.wallSide=P.wallDir;}else P.wallT=Math.max(0,P.wallT-dt);
   P.lock=Math.max(0,P.lock-dt);P.inv=Math.max(0,P.inv-dt);P.noBlend=Math.max(0,P.noBlend-dt);
@@ -892,7 +1070,7 @@ function updatePlayer(dt){
   if(P.ground||P.wallDir!==0)P.canDash=true;
   if(P.exec){updateExec(dt);P.t+=dt;return;}
   P.parryT=Math.max(0,P.parryT-dt);P.parryCd=Math.max(0,P.parryCd-dt);
-  if(input.parryPressed&&P.parryCd<=0&&P.ground&&!P.blend&&!P.mant){
+  if(input.parryPressed&&P.parryCd<=0&&P.ground&&!P.blend&&!P.mant&&!P.mounted){
     if(P.wp==='dagger'){toast('Кинжал не умеет парировать');P.parryCd=0.5;}
     else{
       let best=null,bd=130;
@@ -917,20 +1095,23 @@ function updatePlayer(dt){
 
   // blending with the crowd
   const wasBlend=P.blend;
-  P.blend=input.blend&&P.ground&&P.atk<=0&&P.noBlend<=0&&!input.jump&&nearCrowd();
+  P.blend=input.blend&&P.ground&&P.atk<=0&&P.noBlend<=0&&!input.jump&&!P.mounted&&nearCrowd();
   if(P.blend&&!wasBlend){sfx('blend');toast('Ты слился с толпой');}
   if(!P.blend&&wasBlend&&input.blend&&nearCrowd()===false)toast('Рядом нет людей');
-  const mult=P.blend?0.4:(P.aiming?0.35:1);
+  const mult=P.blend?0.4:(P.aiming?(P.mounted?0.8:0.35):1);
 
   if(P.lock<=0){
-    P.vx=approach(P.vx,axis*SPEED*mult*(P.fast>0?1.18:1)*(eqd('boots')?1.1:1),(P.ground?2400:1300)*dt);
+    if(P.mounted){
+      const rev=axis!==0&&P.vx*axis<0;
+      P.vx=approach(P.vx,axis*HSPEED*mult,(axis===0?1400:(rev?1900:(P.ground?1000:600)))*dt);
+    }else P.vx=approach(P.vx,axis*SPEED*mult*(P.fast>0?1.18:1)*(eqd('boots')?1.1:1),(P.ground?2400:1300)*dt);
     if(axis!==0)P.face=axis;
   }
   if(input.jumpPressed&&!P.aiming)P.jbuf=0.12;else P.jbuf=Math.max(0,P.jbuf-dt);
   if(P.jbuf>0){
     if(P.coyote>0){
-      P.vy=-JUMP;P.jbuf=0;P.coyote=0;P.ground=false;P.blend=false;sfx('jump');burst(P.x+P.w/2,P.y+P.h,5,'#c9a073',80);
-    }else if(P.wallT>0){
+      P.vy=-(P.mounted?HJUMP:JUMP);P.jbuf=0;P.coyote=0;P.ground=false;P.blend=false;sfx('jump');burst(P.x+P.w/2,P.y+P.h,5,'#c9a073',80);
+    }else if(P.wallT>0&&!P.mounted){
       P.vy=-WJUMP;P.vx=-P.wallSide*WJX;P.face=-P.wallSide;P.lock=0.13;P.jbuf=0;P.wallT=0;P.canDash=true;sfx('jump');
       burst(P.x+(P.wallSide>0?P.w:0),P.y+P.h/2,5,'#c9a073',80);
     }
@@ -961,10 +1142,16 @@ function updatePlayer(dt){
       if(!boxHits(tx,ty,P.w,P.h)){P.mant={t:0,dur:0.2,x0:P.x,y0:P.y,x1:tx,y1:ty};sfx('jump');}
     }
   }
+  if(P.mounted&&P.ground&&Math.abs(P.vx)>120){P.hoofT-=dt;if(P.hoofT<=0){P.hoofT=Math.abs(P.vx)>250?0.14:0.2;sfx('hoof');}}
   // use: doors, alleys, tea, talk
   if(input.usePressed&&P.ground&&!trans){const u=findUse();if(u)u.go();}
 
   if(!usable(P.wp)){P.wp='dagger';P.aiming=false;updateHud();}
+  if(P.mounted&&!canWield(P.wp)){
+    if(P.has.spear&&usable('spear')){P.wp='spear';updateHud();}
+    else if(P.has.bow&&usable('bow')){P.wp='bow';updateHud();}
+  }
+  const armed=canWield(P.wp);
   // bow: hold attack to draw, jump/down raise and lower the aim, release to shoot
   if(P.wp==='bow'&&input.atk&&!P.blend&&P.atkCd<=0){
     if(!P.aiming){P.aiming=true;P.aimT=0;P.aimA=0;}
@@ -979,19 +1166,20 @@ function updatePlayer(dt){
   pickDrops();
   // attack
   const wp=WP[P.wp];
-  if(input.atkPressed&&P.atkCd<=0&&!P.blend&&P.wp!=='bow'){
+  if(input.atkPressed&&P.atkCd<=0&&!P.blend&&P.wp!=='bow'&&!armed){toast('С коня бьют только копьём и луком');P.atkCd=0.6;}
+  if(input.atkPressed&&P.atkCd<=0&&!P.blend&&P.wp!=='bow'&&armed){
     P.atkDur=wp.dur;P.atk=wp.dur;P.atkCd=wp.cd;P.swing++;P.bounced=false;
     if(P.wp==='musket'){if(input.down&&!P.ground){P.down=true;P.atkCd=0.4;sfx('swing');}else{P.down=false;fireMusket();}}
-    else{P.down=(input.down&&!P.ground);sfx('swing');}
+    else{P.down=(input.down&&!P.ground&&!P.mounted);sfx('swing');}
   }
   P.atk=Math.max(0,P.atk-dt);P.atkCd=Math.max(0,P.atkCd-dt);
   if((P.wp!=='musket'||P.down)&&P.atk>0&&(P.atkDur-P.atk)>0.03){
-    const rc=wp.reach,hb=P.down?{x:P.x-8,y:P.y+P.h-6,w:P.w+16,h:36}:{x:P.face>0?P.x+P.w-2:P.x-rc+2,y:P.y-2,w:rc,h:P.h+4};
+    const rc=wp.reach+((P.mounted&&P.wp==='spear')?22:0),hb=P.down?{x:P.x-8,y:P.y+P.h-6,w:P.w+16,h:36}:{x:P.face>0?P.x+P.w-2:P.x-rc+2,y:P.y-2,w:rc,h:P.h+4};
     for(let i=0;i<S.enemies.length;i++){
       const e=S.enemies[i];
       if(e.state!=='dead'&&!e.ally&&e.lastSwing!==P.swing&&overlap(hb,e)){
         if(P.down&&!P.ground&&!(e.held>0)&&!(e.boss&&(e.execCd||0)>0)){startExec(P.wp==='spear'?'sword':P.wp,e);P.t+=dt;return;}
-        hitEnemy(e,wp.dmg);wear(P.wp,1);if(P.down&&!P.bounced)bounce();
+        hitEnemy(e,wp.dmg+((P.mounted&&P.wp==='spear'&&Math.abs(P.vx)>200)?1:0));wear(P.wp,1);if(P.down&&!P.bounced)bounce();
       }
     }
     if(S.peace&&!S.alert){for(let i=0;i<S.civs.length;i++){if(overlap(hb,S.civs[i])){triggerAlert();break;}}}
@@ -1000,6 +1188,18 @@ function updatePlayer(dt){
         const s=S.spikes[i],r={x:s.c*T+4,y:s.r*T+14,w:24,h:18};
         if(overlap(hb,r)){bounce();sfx('hit');burst(s.c*T+16,s.r*T+16,6,'#cdd5e2',120);break;}
       }
+    }
+  }
+  // ram: a couched spear at full gallop
+  if(P.mounted&&P.wp==='spear'&&usable('spear')&&P.vx*P.face>0&&Math.abs(P.vx)>=215&&!P.exec){
+    const rb={x:P.face>0?P.x+P.w-8:P.x-30,y:P.y+4,w:38,h:P.h-4};
+    for(let i=0;i<S.enemies.length;i++){
+      const e=S.enemies[i];
+      if(e.state==='dead'||e.ally||(e.ramCd||0)>0||!overlap(rb,e))continue;
+      e.ramCd=e.boss?1.3:0.5;e.lastSwing=-1;
+      hitEnemy(e,e.boss?2:3);wear('spear',2);
+      if(e.state!=='dead'&&!e.boss){e.vx=P.face*340;e.vy=-220;e.state='stun';e.t=0.35;}
+      P.vx*=0.8;shake=Math.max(shake,0.16);burst(e.x+e.w/2,e.y+e.h/2,10,'#ffd68a',190);
     }
   }
   P.t+=dt;
@@ -1013,7 +1213,7 @@ function hitEnemy(e,dmg){
   if(e.boss){e.vx=P.down?0:P.face*45;e.engaged=true;if(e.state==='patrol'){e.state='chase';}}
   else{e.vx=P.down?0:P.face*170;e.vy=P.down?60:-120;}
   if(e.hp<=0){
-    e.state='dead';e.t=0;if(!e.noCount){kills++;loot();dropGear(e);}updateHud();saveGame();burst(e.x+e.w/2,e.y+14,e.boss?30:14,'#d8434b',e.boss?240:180);
+    unmountUnit(e);e.state='dead';e.t=0;if(!e.noCount){kills++;loot();dropGear(e);}updateHud();saveGame();burst(e.x+e.w/2,e.y+14,e.boss?30:14,'#d8434b',e.boss?240:180);
     if(e.boss){P.m.i++;P.m.b+=5;ebullets=[];shake=0.4;sfx('win');toast('Командир пал! Слиток серебра и 5 монет Бухары');updateHud();saveGame();}
   }
   else if(!e.boss){e.state='stun';e.t=0.2;}
@@ -1051,7 +1251,7 @@ function hurtUnit(u,dmg,dir){
   burst(u.x+u.w/2,u.y+12,7,u.ally?'#7fe0d4':'#ffd68a',120);
   u.vx=dir*150;u.vy=-110;
   if(u.hp<=0){
-    u.state='dead';u.t=0;
+    unmountUnit(u);u.state='dead';u.t=0;
     if(!u.noCount){kills++;updateHud();saveGame();}
     burst(u.x+u.w/2,u.y+14,12,'#d8434b',160);
   }else{u.state='stun';u.t=0.2;}
@@ -1079,8 +1279,8 @@ function fireArrow(e,tg){
 function firePlayerArrow(){
   sfx('arrow');P.atkCd=0.45;P.shootT=0.2;wear('bow',1);
   const a=P.aimA,sp=520;
-  arrows.push({x:P.x+P.w/2+P.face*18,y:P.y+10,vx:Math.cos(a)*sp*P.face,vy:Math.sin(a)*sp,l:1.4,ally:true,tj:false,p:true,d:2});
-  P.vx-=P.face*30;
+  arrows.push({x:P.x+P.w/2+P.face*18,y:P.y+(P.mounted?17:10),vx:Math.cos(a)*sp*P.face,vy:Math.sin(a)*sp,l:1.4,ally:true,tj:false,p:true,d:2});
+  if(!P.mounted)P.vx-=P.face*30;
 }
 function updateArrows(dt){
   for(let i=arrows.length-1;i>=0;i--){
@@ -1108,7 +1308,7 @@ function updateArrows(dt){
   }
 }
 function updateEnemy(e,dt){
-  e.anim+=dt;e.flash=Math.max(0,e.flash-dt);
+  e.anim+=dt;e.flash=Math.max(0,e.flash-dt);e.ramCd=Math.max(0,(e.ramCd||0)-dt);
   e.vy=Math.min(e.vy+GRAV*dt,700);
   if(e.state==='dead'){
     e.vx*=0.9;e.fade-=dt*0.7;
@@ -1117,11 +1317,12 @@ function updateEnemy(e,dt){
   if(e.held>0){e.held-=dt;e.vx=0;moveY(e,e.vy*dt);return;}
   if(e.boss){updateBoss(e,dt);return;}
   e.t-=dt;e.shotCd=Math.max(0,e.shotCd-dt);e.fireT=Math.max(0,e.fireT-dt);
-  const arch=e.kind==='archer',sw=e.kind==='sword';
+  e.chCd=Math.max(0,(e.chCd||0)-dt);
+  const rd=!!e.horse,arch=e.kind==='archer',sw=e.kind==='sword';
   const tg=acquire(e,e.state==='chase'||e.state==='aim');
   switch(e.state){
     case 'patrol':
-      e.vx=e.face*(arch?52:60);
+      e.vx=e.face*(rd?(arch?78:92):(arch?52:60));
       if(e.x<=e.a)e.face=1;else if(e.x+e.w>=e.b)e.face=-1;
       if(blockedAhead(e,e.face))e.face=-e.face;
       if(tg)e.state='chase';
@@ -1130,10 +1331,18 @@ function updateEnemy(e,dt){
       if(!tg){e.state='patrol';break;}
       e.face=tg.dx>0?1:-1;
       if(arch){
-        const close=tg.ad<110,cornered=close&&blockedAhead(e,-e.face);
-        if(e.shotCd<=0&&tg.ad>=60&&Math.abs(tg.dy)<56){e.state='aim';e.aimTot=cornered?0.4:0.7;e.t=e.aimTot;e.vx=0;break;}
-        if(close&&!cornered)e.vx=-e.face*95;
-        else if(tg.ad>330)e.vx=blockedAhead(e,e.face)?0:e.face*70;
+        const close=tg.ad<(rd?140:110),cornered=close&&blockedAhead(e,-e.face);
+        if(e.shotCd<=0&&tg.ad>=60&&Math.abs(tg.dy)<56){e.state='aim';e.aimTot=cornered?0.4:(rd?0.5:0.7);e.t=e.aimTot;e.vx=0;break;}
+        if(close&&!cornered)e.vx=-e.face*(rd?190:95);
+        else if(tg.ad>330)e.vx=blockedAhead(e,e.face)?0:e.face*(rd?160:70);
+        else e.vx=0;
+        break;
+      }
+      if(rd){
+        // cavalry: lance charge
+        if(e.chCd<=0&&tg.ad<=260&&tg.ad>=40&&Math.abs(tg.dy)<44&&!blockedAhead(e,e.face)){e.state='windup';e.t=0.42;e.vx=0;break;}
+        if(tg.ad>170)e.vx=blockedAhead(e,e.face)?0:e.face*200;
+        else if(tg.ad<70)e.vx=blockedAhead(e,-e.face)?0:-e.face*60;
         else e.vx=0;
         break;
       }
@@ -1150,9 +1359,16 @@ function updateEnemy(e,dt){
     case 'windup':
       e.vx=0;
       if(tg)e.face=tg.dx>0?1:-1;
-      if(e.t<=0){e.state='thrust';e.t=sw?0.2:0.16;e.hitDone=false;e.hitU=[];}
+      if(e.t<=0){e.state='thrust';e.t=rd?0.5:(sw?0.2:0.16);e.hitDone=false;e.hitU=[];}
       break;
     case 'thrust':{
+      if(rd){
+        const bl=blockedAhead(e,e.face);
+        e.vx=bl?0:e.face*(sw?290:310)*Math.min(1,e.t/0.25+0.4);
+        meleeHit(e,{x:e.face>0?e.x+e.w-6:e.x-60,y:e.y+14,w:66,h:24},2);
+        if(e.t<=0||bl){e.state='cool';e.t=0.9;e.chCd=1.6;}
+        break;
+      }
       e.vx=0;
       const hb=sw?{x:e.face>0?e.x+e.w-2:e.x-44,y:e.y+4,w:46,h:20}:{x:e.face>0?e.x+e.w:e.x-52,y:e.y+8,w:52,h:14};
       meleeHit(e,hb,sw?2:1);
@@ -1257,7 +1473,23 @@ function step(dt){
     return;
   }
   playTime+=dt;
+  if(P.whCd>0)P.whCd-=dt;
+  if(P.horse){
+    if(P.hHurt>0){P.hHurt-=dt;if(P.hHurt<=0){P.hh=2;toast('Конь отдохнул. Можно звать');updateHud();}}
+    else if(P.hh<3){P.hReg+=dt;if(P.hReg>=25){P.hReg=0;P.hh++;updateHud();}}
+  }
   updatePlayer(dt);
+  updateHZ(dt);
+  for(let i=0;i<S.tdoors.length;i++){
+    const td=S.tdoors[i];if(!td.open)continue;
+    td.t+=dt;
+    if(td.t>2.5){
+      const r={x:td.c*T-4,y:8*T-4,w:td.w*T+8,h:2*T+8};let busy=overlap(P,r);
+      for(let k=0;k<S.enemies.length&&!busy;k++){const e=S.enemies[k];if(e.state!=='dead'&&overlap(e,r))busy=true;}
+      if(!busy)setTD(S,td,false);
+    }
+  }
+  for(let i=loose.length-1;i>=0;i--){const l=loose[i];l.t-=dt;l.anim+=dt;l.x+=l.vx*dt;if(l.t<=0)loose.splice(i,1);}
   for(let i=0;i<S.enemies.length;i++)updateEnemy(S.enemies[i],dt);
   for(let i=0;i<S.civs.length;i++)updateCiv(S.civs[i],dt);
   updateBullets(dt);updateEBullets(dt);updateArrows(dt);
@@ -1286,7 +1518,7 @@ function step(dt){
     if(P.y>12*T+60){
       P.hp--;sfx('hurt');updateHud();
       if(P.hp<=0){sfx('die');showOverlay('dead');}
-      else{respawn(false);toast('Арык');}
+      else{respawn(false);toast(S.biome==='city'?'Колодец':'Арык');}
     }
     if(!P.splashed&&P.y+P.h>10*T+16&&P.vy>0&&!S.grid[10][clamp(Math.floor((P.x+P.w/2)/T),0,S.cols-1)]){
       P.splashed=true;burst(P.x+P.w/2,10*T+14,12,'#9fd8f0',170);sfx('hit');
@@ -1294,7 +1526,7 @@ function step(dt){
     if(S.goal&&overlap(P,S.goal)){if(S.id==='finale'){if(!flags.banner){flags.banner=true;sfx('win');toast('Знамя поднято. Отнеси его хану в скрытый город');saveGame();}}else{sfx('win');showOverlay('win');}}
   }
   hint=(state==='playing'&&!trans)?findUse():null;
-  const tx=clamp(P.x+P.w/2-W/2+P.face*30,0,Math.max(0,S.ww-W));
+  const tx=clamp(P.x+P.w/2-W/2+P.face*(P.mounted?70:30),0,Math.max(0,S.ww-W));
   cam.x+=(tx-cam.x)*Math.min(1,dt*6);
   const ty=clamp(P.y+P.h/2-H*0.55,0,12*T-H);
   cam.y+=(ty-cam.y)*Math.min(1,dt*5);
@@ -1419,7 +1651,7 @@ function findNearCp(){
 }
 function snapshot(){
   const any=settings.saveMode==='anywhere';
-  const d={ver:2,ts:Date.now(),cp:cpState,flags:Object.assign({},flags),time:Math.round(playTime),has:P.has,wp:P.wp,m:P.m,tea:P.tea,eq:P.eq,dur:P.dur,food:P.food,
+  const d={ver:2,ts:Date.now(),cp:cpState,flags:Object.assign({},flags),time:Math.round(playTime),has:P.has,wp:P.wp,m:P.m,tea:P.tea,eq:P.eq,dur:P.dur,food:P.food,horse:P.horse?1:0,
     diff:settings.diff,mode:settings.saveMode,seed:wildSeed,place:(any?S:(scenes[cpState.scene]||S)).name,sc:{}};
   if(any)d.pos={sc:S.id,x:Math.round(P.x),y:Math.round(P.y),face:P.face,hp:P.hp};
   Object.keys(scenes).forEach(function(k){
@@ -1466,7 +1698,7 @@ function loadGame(d){
     Object.keys(flags).forEach(function(k){flags[k]=!!(d.flags&&d.flags[k]);});playTime=d.time|0;
     P.has={dagger:true,sword:!!d.has.sword,musket:!!d.has.musket,spear:!!d.has.spear,bow:!!d.has.bow,shield:!!d.has.shield,helm:!!d.has.helm,armor:!!d.has.armor,boots:!!d.has.boots};
     P.eq=Object.assign({shield:true,helm:true,armor:true,boots:true},d.eq||{});P.dur=Object.assign({},MAXD,d.dur||{});P.food=Object.assign({baursak:0,kurt:0,kymyz:0},d.food||{});
-    P.wp=P.has[d.wp]?d.wp:'dagger';P.m=d.m||P.m;P.tea=d.tea|0;
+    P.wp=P.has[d.wp]?d.wp:'dagger';P.m=d.m||P.m;P.tea=d.tea|0;P.horse=!!d.horse;
     kills=0;
     Object.keys(d.sc).forEach(function(k){
       const s=scenes[k],v=d.sc[k];if(!s)return;
@@ -1497,6 +1729,7 @@ function questMark(c){
   if(c.quest==='son')return flags.letter&&!flags.delivered;
   if(c.quest==='khan')return !flags.spyOn||(flags.spyDone&&!flags.brief)||(flags.b1&&flags.b2&&flags.b3&&!flags.council)||(flags.banner&&!flags.act2);
   if(c.quest==='cap')return !flags.mcap;
+  if(c.quest==='trader')return !P.horse;
   if(c.quest==='caravan')return !flags.guide;
   if(MIS[c.quest])return !flags[MIS[c.quest].d];
   if(c.quest==='w1')return flags.spyOn&&!flags.c1;
@@ -1581,8 +1814,10 @@ function runQuest(c){
       function(){flags.smith=true;P.has.sword=true;P.has.armor=true;P.dur.sword=MAXD.sword;P.dur.armor=MAXD.armor;P.wp='sword';updateHud();sfx('win');saveGame();toast('Получены: қылыш и кольчуга');});
   }else if(c.quest==='armory'){
     openArmory();
+  }else if(c.quest==='trader'){
+    openShop('wild');
   }else if(c.quest==='ferry'){
-    openShop();
+    openShop('fare');
   }else if(MIS[c.quest]){
     const m=MIS[c.quest],dead=scenes[m.sc].enemies.filter(function(e){return e.state==='dead'&&!e.noCount;}).length;
     if(flags[m.d])startTalk([{who:m.n,text:'Спасибо, батыр. Дело сделано. Заходи, если понадобится серебро.'}]);
@@ -1724,9 +1959,13 @@ function openBag(){
     slot('<span class="dot t"></span> Тенге',P.m.t,'e','','1 ₸')+slot('<span class="dot b"></span> Бухара',P.m.b,'e','','монета · 10 ₸')+slot('<span class="dot i"></span> Слиток',P.m.i,'e','','серебро · 100 ₸')+'</div>'+
     '<div class="row"><button class="cta ghost" data-a="ei">Слиток → 10 монет</button><button class="cta ghost" data-a="eb">Монета → 10 ₸</button><button class="cta" data-a="x">Закрыть</button></div>');
 }
-function openShop(){
-  openPanel('<p class="eyebrow">Караван · берег Сырдарьи</p><h1>Караванщик</h1><p class="lead">Могу довезти до Туркестана, дорога стоит '+FARE+' ₸. У тебя '+total()+' ₸. Платить можно тенге, монетами Бухары и слитками.</p>'+
-    '<div class="row"><button class="cta" data-a="fare">Ехать в Туркестан · '+FARE+' ₸</button><button class="cta ghost" data-a="buytea">Чай · '+TEA+' ₸ (у тебя '+P.tea+')</button>'+Object.keys(FOOD).map(function(k){return '<button class="cta ghost" data-a="buyf:'+k+'">'+FOOD[k].n+' · '+FOOD[k].p+' ₸ (у тебя '+P.food[k]+')</button>';}).join('')+'<button class="cta ghost" data-a="x">Закрыть</button></div>');
+let shopMode='fare';
+function openShop(mode){
+  if(mode)shopMode=mode;
+  const fare=shopMode==='fare';
+  const horseBtn=P.horse?'<button class="cta ghost" type="button" disabled>Конь у тебя</button>':'<button class="cta" data-a="buyhorse">Конь · '+HORSE_PRICE+' ₸</button>';
+  openPanel('<p class="eyebrow">Караван · '+(fare?'берег Сырдарьи':'в степи')+'</p><h1>Караванщик</h1><p class="lead">'+(fare?'Могу довезти до Туркестана, дорога стоит '+FARE+' ₸. ':'Идём степью, торгуем в пути. ')+'Есть крепкие степные кони: в седле быстрее ветра, с коня бьют копьём и стреляют из лука. У тебя '+total()+' ₸. Платить можно тенге, монетами Бухары и слитками.</p>'+
+    '<div class="row">'+(fare?'<button class="cta" data-a="fare">Ехать в Туркестан · '+FARE+' ₸</button>':'')+horseBtn+'<button class="cta ghost" data-a="buytea">Чай · '+TEA+' ₸ (у тебя '+P.tea+')</button>'+Object.keys(FOOD).map(function(k){return '<button class="cta ghost" data-a="buyf:'+k+'">'+FOOD[k].n+' · '+FOOD[k].p+' ₸ (у тебя '+P.food[k]+')</button>';}).join('')+'<button class="cta ghost" data-a="x">Закрыть</button></div>');
 }
 let repairWhere='armory';
 function repairHtml(){
@@ -1785,6 +2024,12 @@ function panelAct(a){
   if(a==='tea'){if(P.tea>0&&P.hp<3){P.tea--;P.hp++;sfx('tea');updateHud();}else toast(P.tea?'Ты и так полон сил':'Чая нет');openBag();return;}
   if(a==='ei'&&P.m.i>0){P.m.i--;P.m.b+=10;sfx('cp');openBag();return;}
   if(a==='eb'&&P.m.b>0){P.m.b--;P.m.t+=10;sfx('cp');openBag();return;}
+  if(a==='buyhorse'){
+    if(P.horse)toast('Конь уже у тебя');
+    else if(pay(HORSE_PRICE)){P.horse=true;P.hh=3;P.hHurt=0;sfx('win');updateHud();saveGame(true);toast('Куплен конь! Свист: клавиша H или кнопка Свист');}
+    else toast('Не хватает денег');
+    openShop();return;
+  }
   if(a==='fare'){if(pay(FARE)){closePanel();sfx('win');goScene('gate',3,1);saveGame();}else toast('Не хватает денег');return;}
   if(a==='buytea'){if(pay(TEA)){P.tea++;sfx('cp');saveGame();}else toast('Не хватает денег');openShop();return;}
 }
@@ -1820,15 +2065,16 @@ $('snd').addEventListener('click',function(){muted=!muted;this.textContent=muted
 function togglePause(){if(state==='playing'&&!trans)openMenu();}
 
 const KEYS={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'jump',KeyW:'jump',Space:'jump',
-  KeyJ:'atk',KeyX:'atk',KeyK:'atk',ArrowDown:'down',KeyS:'down',KeyE:'use',KeyF:'use',KeyL:'dash',KeyC:'dash',KeyV:'parry',KeyU:'parry',KeyQ:'blend',ShiftLeft:'blend',ShiftRight:'blend'};
+  KeyJ:'atk',KeyX:'atk',KeyK:'atk',ArrowDown:'down',KeyS:'down',KeyE:'use',KeyF:'use',KeyL:'dash',KeyC:'dash',KeyV:'parry',KeyU:'parry',KeyQ:'blend',ShiftLeft:'blend',ShiftRight:'blend',KeyH:'whistle'};
 function press(k,down){
+  if(k==='whistle'){if(down&&!input.whistle&&state==='playing')whistle();input.whistle=down;return;}
   if(down){
     if(!input[k]){if(k==='jump')input.jumpPressed=true;if(k==='atk')input.atkPressed=true;if(k==='use')input.usePressed=true;if(k==='dash')input.dashPressed=true;if(k==='parry')input.parryPressed=true;}
     input[k]=true;
   }else input[k]=false;
 }
 function releaseAll(){
-  input.left=input.right=input.jump=input.atk=input.down=input.blend=input.use=input.dash=input.parry=false;
+  input.left=input.right=input.jump=input.atk=input.down=input.blend=input.use=input.dash=input.parry=input.whistle=false;
   input.jumpPressed=input.atkPressed=input.usePressed=input.dashPressed=input.parryPressed=false;
   document.querySelectorAll('.pb.on').forEach(function(b){b.classList.remove('on');});
 }
@@ -1978,6 +2224,7 @@ function drawPortals(t){
   const gy=10*T;
   for(let i=0;i<S.portals.length;i++){
     const p=S.portals[i],x=p.c*T,w=2*T,top=gy-4*T;
+    if(S.biome!=='city'){drawArrowPortal(p,t);continue;}
     if(x+w<cam.x-10||x>cam.x+W+10)continue;
     if(p.arch){plaque(p.label,x+43,gy-130,'#e8c46a');continue;}
     const g=ctx.createLinearGradient(0,top,0,gy);g.addColorStop(0,'#0c0814');g.addColorStop(1,'#1d1428');
@@ -2029,6 +2276,13 @@ function drawTiles(){
   for(let r=0;r<12;r++){for(let c=c0;c<=c1;c++){
     const v=S.grid[r][c];if(!v)continue;
     const x=c*T,y=r*T,top=!(r>0&&S.grid[r-1][c]),bot=r<11&&!S.grid[r+1][c],street=r>=10;
+    if(v===6)continue;
+    if(v===7){
+      ctx.fillStyle='#7d7468';ctx.fillRect(x,y,T,T);
+      ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(x,y+T/2,T,1);ctx.fillRect(x+((c%2)?8:20),y,1,T/2);ctx.fillRect(x+((c%2)?20:8),y+T/2,1,T/2);
+      ctx.fillStyle='#a39a8a';ctx.fillRect(x,y,T,4);
+      continue;
+    }
     if(v===4){ctx.fillStyle='#24141f';ctx.fillRect(x,y,T,T);ctx.fillStyle='rgba(255,255,255,.04)';ctx.fillRect(x,y+T-1,T,1);continue;}
     if(v===5){
       ctx.fillStyle='#5e3f30';ctx.fillRect(x,y,T,T);
@@ -2068,6 +2322,80 @@ function drawTiles(){
     }
     if(bot){ctx.fillStyle='rgba(30,12,16,.45)';ctx.fillRect(x,y+T-5,T,5);}
   }}
+}
+function drawRoofHouses(){
+  if(S.biome!=='city'||S.type!=='out')return;
+  const c0=Math.max(0,Math.floor(cam.x/T)-1),c1=Math.min(S.cols-1,Math.floor((cam.x+W)/T)+1);
+  for(let r=1;r<10;r++){
+    let c=c0;
+    while(c<=c1){
+      if(S.grid[r][c]!==3){c++;continue;}
+      let a=c,e=c;
+      while(a-1>=0&&S.grid[r][a-1]===3)a--;
+      while(e+1<S.cols&&S.grid[r][e+1]===3)e++;
+      const x=a*T+3,w=(e-a+1)*T-6,y=(r+1)*T,b=10*T,h=b-y;
+      ctx.fillStyle='#8a5f48';ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='rgba(20,10,22,.28)';ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='rgba(0,0,0,.22)';ctx.fillRect(x,y,w,4);
+      ctx.fillStyle='rgba(255,255,255,.05)';for(let yy=y+14;yy<b;yy+=14)ctx.fillRect(x,yy,w,1);
+      ctx.fillStyle='#5e3c2e';ctx.fillRect(x,b-6,w,6);
+      const cells=e-a+1;
+      for(let k=0;k<cells;k++){
+        const wx=x+k*T+(w-cells*T)/2+T/2,seed=(a+k+r)*7;
+        if(h>=70&&k%2===0){
+          ctx.fillStyle='#2a1a26';ctx.beginPath();ctx.moveTo(wx-9,b-6);ctx.lineTo(wx-9,b-34);ctx.arc(wx,b-34,9,Math.PI,0);ctx.lineTo(wx+9,b-6);ctx.closePath();ctx.fill();
+        }else if(h>=40){
+          const wy=y+Math.min(h*0.35,26);
+          ctx.fillStyle='#2a1a26';ctx.fillRect(wx-6,wy,12,16);
+          ctx.fillStyle=(seed%3)?'rgba(242,180,90,.65)':'rgba(70,50,60,.9)';ctx.fillRect(wx-4,wy+2,8,12);
+          ctx.fillStyle='#2f7aa0';ctx.fillRect(wx-7,wy-2,14,2);
+        }
+      }
+      c=e+1;
+    }
+  }
+}
+function drawWells(){
+  for(let i=0;i<S.wells.length;i++){
+    const q=S.wells[i],x=q.c*T,w=q.w*T,y=9*T;
+    if(x+w<cam.x-10||x>cam.x+W+10)continue;
+    ctx.fillStyle='#4b2e22';ctx.fillRect(x+12,y-52,5,52);ctx.fillRect(x+w-17,y-52,5,52);
+    ctx.fillRect(x+8,y-56,w-16,5);
+    ctx.fillStyle='#7c4a35';ctx.beginPath();ctx.moveTo(x+4,y-54);ctx.lineTo(x+w/2,y-76);ctx.lineTo(x+w-4,y-54);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#2fb5a8';ctx.fillRect(x+4,y-56,w-8,3);
+    ctx.strokeStyle='#c9a073';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+w/2,y-52);ctx.lineTo(x+w/2,y-22);ctx.stroke();
+    ctx.fillStyle='#6a4630';ctx.fillRect(x+w/2-5,y-22,10,9);
+  }
+}
+function drawTDoors(t){
+  for(let i=0;i<S.tdoors.length;i++){
+    const td=S.tdoors[i],x=td.c*T,y=8*T,w=td.w*T,h=2*T;
+    if(x+w<cam.x-10||x>cam.x+W+10)continue;
+    ctx.fillStyle='#2e1b12';ctx.fillRect(x-3,y-4,w+6,h+4);
+    if(td.open){
+      ctx.fillStyle='#140c14';ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='rgba(242,180,90,.18)';ctx.fillRect(x+4,y+4,w-8,h-8);
+      ctx.fillStyle='#6a4630';ctx.fillRect(td.side<0?x:x+w-9,y,9,h);
+    }else{
+      ctx.fillStyle='#6a4630';ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='rgba(0,0,0,.28)';for(let k=T/2;k<w;k+=T/2)ctx.fillRect(x+k,y,1,h);
+      ctx.fillStyle='#3a3743';ctx.fillRect(x,y+10,w,5);ctx.fillRect(x,y+h-16,w,5);
+      const hx=td.side<0?x+10:x+w-10;
+      ctx.strokeStyle='#d3dbe6';ctx.lineWidth=2;ctx.beginPath();ctx.arc(hx,y+h/2+2,4,0,7);ctx.stroke();
+    }
+  }
+}
+function drawArrowPortal(p,t){
+  const gy=10*T,x=(p.c+1)*T,dir=(p.c<S.cols/2)?-1:1,locked=!!(p.need&&!flags[p.need]);
+  if(x+70<cam.x||x-70>cam.x+W)return;
+  const bob=Math.sin(t*4+p.c)*3*dir;
+  ctx.fillStyle='#4b2e22';ctx.fillRect(x-2,gy-72,4,72);
+  ctx.save();ctx.translate(x+bob,gy-56);ctx.scale(dir,1);
+  ctx.fillStyle=locked?'#7a6a5a':'#e8c46a';
+  ctx.beginPath();ctx.moveTo(-26,-9);ctx.lineTo(8,-9);ctx.lineTo(8,-17);ctx.lineTo(30,0);ctx.lineTo(8,17);ctx.lineTo(8,9);ctx.lineTo(-26,9);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#3a2418';ctx.lineWidth=2;ctx.stroke();
+  ctx.restore();
+  plaque(p.label,x,gy-96,locked?'#a99fb8':'#e8c46a');
 }
 function drawLamps(t){
   const gy=10*T;
@@ -2273,6 +2601,32 @@ function drawExec(m,body){
   if(rf){ctx.strokeStyle=body;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(2,-21);ctx.lineTo(hx,hy);ctx.stroke();rifle(hx,hy,ang,flash);}
   else blade(hx,hy,ang,len,body);
 }
+function drawHorseShape(h,flash){
+  const pal=h.pal,body=flash?'#ffffff':pal.body,t=h.t||0,run=h.run,air=h.air,gal=h.gal;
+  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+  const mane=flash?'#ffffff':pal.mane;
+  ctx.strokeStyle=mane;ctx.lineWidth=3.2;
+  const tw=Math.sin(t*(run?9:3))*(run?4:1.6);
+  ctx.beginPath();ctx.moveTo(-15,-23);ctx.quadraticCurveTo(-22+tw,-22,-24+tw*1.4,-11);ctx.stroke();
+  const ph=t*(gal?17:11),legs=[[11,0],[8,Math.PI*0.6],[-9,Math.PI],[-12,Math.PI*1.5]];
+  ctx.strokeStyle=body;ctx.lineWidth=4.2;ctx.beginPath();
+  for(let i=0;i<legs.length;i++){
+    const x0=legs[i][0];let fx=0,lift=0;
+    if(air){fx=x0>0?9:-9;lift=7;}
+    else if(run){fx=Math.sin(ph+legs[i][1])*(gal?11:7);lift=Math.max(0,Math.cos(ph+legs[i][1]))*(gal?7:4);}
+    ctx.moveTo(x0,-15);ctx.lineTo(x0+fx*0.45,-8-lift*0.5);ctx.lineTo(x0+fx,-1.5-lift);
+  }
+  ctx.stroke();
+  ctx.fillStyle=body;ctx.beginPath();ctx.ellipse(0,-20,17,8.2,0,0,7);ctx.fill();
+  if(pal.edge&&!flash){ctx.strokeStyle=pal.edge;ctx.lineWidth=1;ctx.stroke();}
+  ctx.fillStyle=body;ctx.beginPath();
+  ctx.moveTo(9,-25);ctx.lineTo(14,-38);ctx.lineTo(19,-41);ctx.lineTo(21,-37.5);ctx.lineTo(30,-30);ctx.lineTo(29,-26.5);ctx.lineTo(21,-29);ctx.lineTo(15,-19);ctx.closePath();ctx.fill();
+  if(pal.edge&&!flash){ctx.strokeStyle=pal.edge;ctx.lineWidth=1;ctx.stroke();}
+  ctx.strokeStyle=mane;ctx.lineWidth=2.6;ctx.beginPath();ctx.moveTo(15,-40);ctx.quadraticCurveTo(8,-36,9,-26);ctx.stroke();
+  ctx.fillStyle=flash?'#ffffff':pal.trim;ctx.fillRect(-7,-27.5,12,3);
+  ctx.strokeStyle=flash?'#ffffff':pal.trim;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(22,-37);ctx.lineTo(27,-29);ctx.stroke();
+  ctx.restore();
+}
 function drawFigure(e,pal,m){
   const cx=Math.round(e.x+e.w/2),by=Math.round(e.y+e.h),sc=e.sc||1;
   ctx.save();ctx.translate(cx,by);
@@ -2281,6 +2635,11 @@ function drawFigure(e,pal,m){
   else if(e.rot){ctx.rotate(e.face*e.rot);}
   ctx.scale(e.face*sc,sc);if(m.crouch)ctx.scale(1,0.86);ctx.lineCap='round';ctx.lineJoin='round';
   const body=m.flash?'#ffffff':pal.body;
+  if(m.horse){
+    if(m.horse.rear){ctx.translate(-11,0);ctx.rotate(-0.34);ctx.translate(11,0);}
+    drawHorseShape(m.horse,m.flash);
+    ctx.translate(0,-15);
+  }
   if(pal.tail){
     const w=Math.sin(m.t*9)*2;
     ctx.strokeStyle=pal.tail;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-3,-21);
@@ -2290,8 +2649,10 @@ function drawFigure(e,pal,m){
   if(m.air){l1=4;l2=-3;y1=-2;y2=-5;}
   else if(m.run){const p=m.t*13;l1=Math.sin(p)*6;l2=-Math.sin(p)*6;y1=-Math.max(0,Math.cos(p))*3;y2=-Math.max(0,-Math.cos(p))*3;}
   ctx.strokeStyle=body;ctx.lineWidth=5;
-  ctx.beginPath();ctx.moveTo(-3,-11);ctx.lineTo(-3+l1,-1+y1);ctx.moveTo(3,-11);ctx.lineTo(3+l2,-1+y2);ctx.stroke();
-  if(m.boots&&!m.flash){ctx.strokeStyle='#4a2f1e';ctx.lineWidth=5.6;ctx.beginPath();ctx.moveTo(-3+l1*0.8,-6+y1*0.8);ctx.lineTo(-3+l1,-1+y1);ctx.moveTo(3+l2*0.8,-6+y2*0.8);ctx.lineTo(3+l2,-1+y2);ctx.stroke();}
+  if(m.sit){ctx.beginPath();ctx.moveTo(-3,-11);ctx.lineTo(6,-8);ctx.lineTo(5,-1);ctx.moveTo(1,-11);ctx.lineTo(9,-9);ctx.lineTo(9,-1);ctx.stroke();
+    if(m.boots&&!m.flash){ctx.strokeStyle='#4a2f1e';ctx.lineWidth=5.6;ctx.beginPath();ctx.moveTo(5.6,-5);ctx.lineTo(5,-1);ctx.moveTo(9,-5);ctx.lineTo(9,-1);ctx.stroke();}}
+  else{ctx.beginPath();ctx.moveTo(-3,-11);ctx.lineTo(-3+l1,-1+y1);ctx.moveTo(3,-11);ctx.lineTo(3+l2,-1+y2);ctx.stroke();}
+  if(m.boots&&!m.flash&&!m.sit){ctx.strokeStyle='#4a2f1e';ctx.lineWidth=5.6;ctx.beginPath();ctx.moveTo(-3+l1*0.8,-6+y1*0.8);ctx.lineTo(-3+l1,-1+y1);ctx.moveTo(3+l2*0.8,-6+y2*0.8);ctx.lineTo(3+l2,-1+y2);ctx.stroke();}
   if(m.quiver){
     ctx.save();ctx.translate(-7,-19);ctx.rotate(-0.35);
     ctx.fillStyle=m.flash?'#ffffff':'#6a4630';ctx.fillRect(-2.5,-8,5,15);
@@ -2398,7 +2759,8 @@ function drawFigure(e,pal,m){
     ctx.restore();
   }else if(m.weapon==='spear'){
     let hx=6,hy=-17,len=40,ang=-0.55;
-    if(m.pose==='windup'){hx=-2;ang=0;len=34;}
+    if(m.sit&&(m.pose==='chase'||m.pose==='thrust')){hx=12;hy=-17;ang=-0.03;len=m.pose==='thrust'?58:50;}
+    else if(m.pose==='windup'){hx=-2;ang=0;len=34;}
     else if(m.pose==='thrust'){hx=14;ang=0;len=44;}
     else if(m.pose==='chase'){hx=7;ang=-0.15;len=40;}
     else if(m.pose==='down'){hx=7;hy=-14;ang=1.2;len=38;}
@@ -2422,7 +2784,7 @@ function drawFigure(e,pal,m){
   }
   ctx.restore();
   if(m.pips){
-    for(let i=0;i<m.pips.max;i++){ctx.fillStyle=i<m.pips.hp?'#d8434b':'rgba(241,230,210,.3)';ctx.fillRect(cx-m.pips.max*3.5+i*7,by-48,5,3);}
+    for(let i=0;i<m.pips.max;i++){ctx.fillStyle=i<m.pips.hp?'#d8434b':'rgba(241,230,210,.3)';ctx.fillRect(cx-m.pips.max*3.5+i*7,by-(m.horse?66:48),5,3);}
   }
 }
 function bubble(text,cx,y,col,txt){
@@ -2453,6 +2815,10 @@ function drawUnit(e){
     m.atkP=e.state==='thrust'?clamp(1-e.t/0.2,0,1):-1;
   }else{m.weapon='spear';m.hat='helm';m.shield=!!e.sh;}
   if(kz&&!e.ally)pal={body:pal.body,edge:'rgba(216,67,75,.7)',plume:'#d8434b',trim:pal.trim};
+  if(e.horse&&e.state!=='dead'){
+    m.horse={pal:e.horse.pal,t:e.anim,run:Math.abs(e.vx)>20,air:m.air,rear:e.state==='windup',gal:Math.abs(e.vx)>150};
+    m.sit=true;
+  }
   drawFigure(e,pal,m);
 }
 
@@ -2465,7 +2831,7 @@ function render(now){
   const sx=shake>0?(Math.random()-0.5)*5:0,sy=shake>0?(Math.random()-0.5)*5:0;
   ctx.translate(-Math.round(cam.x)+sx,-Math.round(cam.y)+sy);
   if(S.type==='out'){drawCity(t);drawStalls();drawWater(t);if(S.biome==='steppe')drawSteppeDecor(t);}else{drawInterior(t);drawChest(t);}
-  drawDecor();if(S.maus){ctx.save();ctx.translate(S.maus*T,10*T);ctx.scale(1.7,1.7);drawMausoleum(0,0);ctx.restore();}drawTiles();drawPortals(t);drawDoors(t);drawLamps(t);drawSpikes();drawSigns();drawCheckpoints(t);drawGoal(t);
+  drawDecor();if(S.maus){ctx.save();ctx.translate(S.maus*T,10*T);ctx.scale(1.7,1.7);drawMausoleum(0,0);ctx.restore();}drawRoofHouses();drawTiles();drawWells();drawTDoors(t);drawPortals(t);drawDoors(t);drawLamps(t);drawSpikes();drawSigns();drawCheckpoints(t);drawGoal(t);
   for(let i=0;i<S.civs.length;i++){
     const c=S.civs[i];
     drawFigure(c,c.pal,{t:c.t,run:Math.abs(c.vx)>8,air:false,weapon:'none',hat:c.hat||'skull'});
@@ -2486,14 +2852,22 @@ function render(now){
     drawUnit(e);
   }
   if(S.drops)for(let i=0;i<S.drops.length;i++)drawDrop(S.drops[i]);
+  for(let i=0;i<loose.length;i++){
+    const l=loose[i];ctx.save();ctx.globalAlpha=clamp(l.t/0.8,0,1);ctx.translate(Math.round(l.x),Math.round(l.y));ctx.scale(l.face||1,1);
+    drawHorseShape({pal:l.pal,t:(l.anim||0),run:true,air:false,gal:true},false);ctx.restore();
+  }
+  if(HZ&&P){
+    const h=HZ;ctx.save();ctx.translate(Math.round(h.x+h.w/2),Math.round(h.y+h.h));ctx.scale(h.face||1,1);
+    drawHorseShape({pal:HCOAT.player,t:h.anim,run:Math.abs(h.vx)>30,air:!boxHits(h.x,h.y+1,h.w,h.h),gal:Math.abs(h.vx)>200},false);ctx.restore();
+  }
   if(P&&!(P.inv>0&&Math.floor(P.inv*14)%2===0&&state==='playing')){
     const air=!(P.vy>=0&&boxHits(P.x,P.y+1,P.w,P.h));
     if(P.blend)drawFigure(P,HERO_BLEND,{t:P.t,run:Math.abs(P.vx)>15&&!air,air:false,weapon:'none',hat:'skull',alpha:0.88});
-    else drawFigure(P,HERO,{t:P.t,run:Math.abs(P.vx)>30&&!air&&!P.exec,air:P.exec?false:air,weapon:P.wp,hat:eqd('helm')?'dulyga':'hood',shield:eqd('shield'),mail:eqd('armor'),boots:eqd('boots'),quiver:P.wp==='bow',aimP:(P.wp==='bow'&&P.aiming)?clamp(P.aimT/0.35,0,1):-1,shoot:(P.shootT||0)>0,aimA:P.aimA||0,pose:(P.wp==='spear'&&P.atk>0)?(P.down?'down':'thrust'):(Math.abs(P.vx)>30?'chase':'patrol'),atkP:P.atk>0?1-P.atk/P.atkDur:-1,down:P.down,
+    else drawFigure(P,HERO,{horse:P.mounted?{pal:HCOAT.player,t:P.t,run:Math.abs(P.vx)>30&&!air,air:air,gal:Math.abs(P.vx)>200}:null,sit:P.mounted,pips:(P.mounted&&P.hh<3)?{hp:P.hh,max:3}:null,t:P.t,run:Math.abs(P.vx)>30&&!air&&!P.exec,air:P.exec?false:air,weapon:P.wp,hat:eqd('helm')?'dulyga':'hood',shield:eqd('shield'),mail:eqd('armor'),boots:eqd('boots'),quiver:P.wp==='bow',aimP:(P.wp==='bow'&&P.aiming)?clamp(P.aimT/0.35,0,1):-1,shoot:(P.shootT||0)>0,aimA:P.aimA||0,pose:(P.wp==='spear'&&P.atk>0)?(P.down?'down':'thrust'):(Math.abs(P.vx)>30?'chase':'patrol'),atkP:P.atk>0?1-P.atk/P.atkDur:-1,down:P.down,
       ex:P.exec?{kind:P.exec.kind,u:Math.min(1,P.exec.t/P.exec.dur)}:null,guard:P.parryT>0&&P.wp!=='dagger',crouch:!!(P.exec&&((P.exec.kind==='dagger'&&P.exec.t/P.exec.dur>0.4)||((P.exec.kind==='sword'||P.exec.kind==='musket')&&P.exec.t/P.exec.dur>0.3&&P.exec.t/P.exec.dur<0.7)))});
   }
   if(P&&P.aiming&&P.aimT>0.1){
-    let x=P.x+P.w/2+P.face*18,y=P.y+10,vx=Math.cos(P.aimA)*520*P.face,vy=Math.sin(P.aimA)*520;
+    let x=P.x+P.w/2+P.face*18,y=P.y+(P.mounted?17:10),vx=Math.cos(P.aimA)*520*P.face,vy=Math.sin(P.aimA)*520;
     ctx.fillStyle='rgba(255,224,138,.85)';
     for(let k=0;k<8;k++){for(let j=0;j<4;j++){x+=vx/60;y+=vy/60;vy+=0.5;}ctx.fillRect(x-1,y-1,2.5,2.5);}
   }
@@ -2524,7 +2898,7 @@ function render(now){
   }
   if(P&&state==='playing'&&!trans){
     if(P.blend)bubble('Слит с толпой',P.x+P.w/2,P.y-26,'#e8c46a','#2a1a26');
-    else if(hint)bubble((KBD?'E · ':'')+hint.label,P.x+P.w/2,P.y-26,'#2fb5a8','#06201d');
+    else if(hint&&!hint.quiet)bubble((KBD?'E · ':'')+hint.label,P.x+P.w/2,P.y-26,'#2fb5a8','#06201d');
   }
   ctx.restore();
   if(state==='playing'||state==='paused'){
