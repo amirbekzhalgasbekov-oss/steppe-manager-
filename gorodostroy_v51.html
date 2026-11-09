@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>Градострой — онлайн</title>
+<title>Градострой v52 — онлайн</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 :root{--p:rgba(255,255,255,.92);--t:#1c1c1c;--b:rgba(0,0,0,.2);--a:#2e7d32;--bg:#243324;color-scheme:light dark}
@@ -64,6 +64,30 @@ html[data-mode=phone] #phmenu #ovb{display:block}
 html[data-mode=phone] #phmenu #ov{width:100%;box-sizing:border-box}
 @media (orientation:landscape){html[data-mode=phone] #tb{grid-template-rows:auto}html[data-mode=phone] #tb button{min-height:46px}}
 #pn .gp{margin-top:6px}#pn .gp button{min-width:78px}#pn .off{opacity:.45}
+
+/* ===== ОБУЧЕНИЕ ===== */
+@keyframes tglow{0%,100%{box-shadow:0 0 0 2px var(--g),0 0 6px var(--g)}50%{box-shadow:0 0 0 3px var(--g),0 0 20px 6px var(--g)}}
+.tg{animation:tglow 1.1s ease-in-out infinite;border-color:var(--g)!important;position:relative;z-index:31}
+.tg[data-c=gray]{--g:#cfcfcf}.tg[data-c=blue]{--g:#2f9bff}.tg[data-c=yellow]{--g:#ffd600}.tg[data-c=purple]{--g:#b05cff}.tg[data-c=orange]{--g:#ff7a00}.tg[data-c=green]{--g:#00e676}.tg[data-c=teal]{--g:#26c6da}
+#adv{display:none;position:fixed;z-index:25;left:8px;right:8px;top:96px;bottom:auto;max-width:360px;margin:0 auto;padding:6px 9px;max-height:30vh;overflow:auto;box-shadow:0 3px 14px rgba(0,0,0,.45);border-left:5px solid var(--a);touch-action:pan-y;line-height:1.3;font-size:12px;opacity:.96}
+html[data-mode=pc] #adv{left:8px;right:auto;width:380px;margin:0}
+html.tuton #mn{padding-top:var(--ah,170px)!important}
+#adv .ah{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+#adv .av{font-size:18px;line-height:1}
+#adv .at{font-weight:700;font-size:13px;flex:1}
+#adv .an{font-size:10px;opacity:.7;white-space:nowrap}
+#adv .mb2{font:inherit;font-size:12px;color:var(--t);background:transparent;border:1px solid var(--b);border-radius:6px;padding:1px 7px;cursor:pointer}
+#adv.mini>:not(.ah){display:none}
+#adv p{margin:3px 0}
+#adv small{font-size:11px}
+#adv .pr{height:4px;background:rgba(128,128,128,.3);border-radius:2px;margin:3px 0;overflow:hidden}
+#adv .pr i{display:block;height:100%;width:0;background:var(--a);transition:width .3s}
+#adv .st{font-weight:600;margin:3px 0}
+#adv .ok{color:#2e7d32;font-weight:700}
+#adv .bt{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+#adv .bt button{font:inherit;font-size:12px;color:var(--t);background:var(--p);border:1px solid var(--b);border-radius:7px;padding:4px 9px;cursor:pointer}
+#adv .bt button.m{background:var(--a);color:#fff;border-color:var(--a)}
+#adv .lg{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:3px;border:1px solid rgba(0,0,0,.35)}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="top">
@@ -78,9 +102,11 @@ html[data-mode=phone] #phmenu #ov{width:100%;box-sizing:border-box}
 <div id="vspanel" class="c" style="display:none;position:fixed;z-index:4;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 96px);max-width:440px;max-height:70vh;overflow:auto;margin:0 auto;padding:12px"></div>
 <div id="mn" class="c" style="display:none;position:fixed;inset:0;z-index:5;overflow:auto;border-radius:0;padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 20px"><div id="mb"></div></div>
 <div id="bot"><div id="pn" class="c"></div><div id="ofr" class="c"></div><div id="tcat"></div><div id="tb"></div></div>
+<div id="adv" class="c"></div>
 <div id="phmenu" class="c"></div><div id="phfab"><button id="phm" class="c" title="Меню">☰</button><button id="phzi" class="c" title="Приблизить">＋</button><button id="phzo" class="c" title="Отдалить">－</button></div>
 <script>
-let S=innerWidth>=1500?4:innerWidth>700?3:2;const N=56,DS=4,DW=Math.ceil(N/DS),cv=document.getElementById('c'),$=id=>document.getElementById(id);let X=cv.getContext('2d');
+const GS_VER="v52";
+let S=innerWidth>=1500?3:innerWidth>700?2:1.5;const N=56,DS=4,DW=Math.ceil(N/DS),cv=document.getElementById('c'),$=id=>document.getElementById(id);let X=cv.getContext('2d');
 let W,H;function rs(){W=Math.ceil(innerWidth/S);H=Math.ceil(innerHeight/S);cv.width=W;cv.height=H}
 rs();addEventListener('resize',rs);
 const T={
@@ -128,6 +154,11 @@ pipe:{n:'Труба (под землёй)',e:'🚰',c:5},
 school:{n:'Школа',e:'🏫',c:600,h:14,col:['#f2c14e','#c79a35','#a67e2a']},
 univ:{n:'Университет',e:'🎓',c:2500,h:26,col:['#c9a0dc','#9d74b3','#7d5a92']},
 police:{n:'Полиция',e:'🚓',c:700,h:12,col:['#4a6fd0','#3550a0','#2a4080']},
+fire:{n:'Пожарная станция',e:'🚒',c:900,h:12,col:['#e8574a','#c0392b','#9b2c20']},
+bank:{n:'Банк',e:'💵',c:1600,h:24,jobs:16,wg:2.4,rent:70,col:['#d8c690','#b6a46a','#928250']},
+parking:{n:'Парковка',e:'🅿',c:300,h:2,col:['#4a4d52','#3b3e43','#2e3033']},
+busstop:{n:'Автобусная остановка',e:'🚏',c:80,h:6,col:['#2f9e8f','#237a6e','#1b5f56']},
+metro:{n:'Станция метро',e:'🚇',c:2500,h:8,col:['#5c6bc0','#3f4fa3','#2f3d82']},
 hosp:{n:'Больница',e:'🏥',c:1800,h:22,col:['#f4f4f4','#d0d0d0','#b0b0b0']},
 cemM:{n:'Мусульманское кладбище',e:'☪',c:300},
 cemS:{n:'Светское кладбище',e:'🪦',c:300},
@@ -140,7 +171,7 @@ zC:{n:'Зона: коммерция',e:'🛍',c:20},
 zR:{n:'Зона: жильё',e:'🏘',c:20},
 ext:{n:'Часть здания',e:'▫',c:0,col:['#999','#888','#777']},
 bull:{n:'Снос',e:'🧨',c:0}};
-const isRes=t=>t=='house'||t=='apt'||t=='soc'||t=='cottage',isCom=t=>t=='shop'||t=='office'||t=='mall'||t=='factory'||t=='ffood'||t=='fauto'||t=='ftoy';
+const isRes=t=>t=='house'||t=='apt'||t=='soc'||t=='cottage',isCom=t=>t=='bank'||t=='shop'||t=='office'||t=='mall'||t=='factory'||t=='ffood'||t=='fauto'||t=='ftoy';
 let hist=[],g,money,pop,day,eco,happy,lo,hi,lvl,prot,net,jf,tool='sel',sel=null,hov=null,hovM=false,cam,acc=0,agents=[],RL=[],tm=0,bn=0,EL=0,WU=0,GH=0,UX=0,BDI=0,RK=0,DST=[];
 let socialTrust=55,socialLog=[],lastSocialClass=[0,0,0,0],lastSocialDay=0;const newSD=()=>({tax:1,pet:[],ok:0,bad:0,elN:0,elDay:0,rate:0,res:'',opp:0,un:0,gs:0,px:100,dl:0,vl:0,cv:0,lg:[],dc:{},dd:{},ep:0,em:0,ec:0,on:0,ei:0,co:10,hid:0,of:null,lk:0,nw:0,auto:0,gas:1,fuel:0});let SD=newSD();const DXK=['rt','inf'];function migrateSD(o){const d=newSD();return o&&o.pet?Object.assign(d,o):d}const sdAI=()=>vs&&cur!=0,sdT=()=>sdAI()?1:[.85,1,1.2][SD.tax]*(SD.opp>0?.92:1)*(1-SD.un/400)*(SD.gs>0?.6:1)*dcM();
 let vs=0,cur=0,CITY=[null,null],vsLand={p:12,a:12},vsOff=0,vsMig={out:0,inn:0,pout:0,pinn:0,log:[]},aiSty=0,aiN=0,aiLast={},HCAP=0,quiet=0,aiLvl=1,vsDiff=1;
@@ -167,7 +198,7 @@ const owned=(x,y)=>{if(vs)return vsIn(0,x,y);if(netRole==='solo')return x>=lo&&x
 const isRoad=(x,y)=>x>=0&&y>=0&&x<N&&y<N&&g[y][x]&&g[y][x].t=='road';
 const nearRoad=(x,y)=>isRoad(x+1,y)||isRoad(x-1,y)||isRoad(x,y+1)||isRoad(x,y-1);
 let tt;function toast(s){if(quiet)return;const e=$('ts');e.textContent=s;e.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>e.style.opacity=0,2800)}
-const fm=n=>Math.floor(n).toLocaleString('ru')+' ₽';
+const fm=n=>Math.floor(n).toLocaleString('ru')+' €';
 function hud(){vsHud();$('m').textContent=fm(money)+(net?(net>0?' +':' ')+Math.round(net):'');$('p').textContent=Math.floor(pop);
 $('hp').textContent=Math.round(happy)+'%';$('ec').style.width=eco+'%';$('ec').style.background=eco>60?'#e53935':eco>35?'#fbc02d':'#8bc34a';
 $('tr').textContent=jf<.6?'пробки':jf<.85?'плотно':'свободно';$('dy').textContent='день '+day;$('wk').textContent=Math.round(WU)+'%';$('el').textContent=Math.round(EL)+'%';$('bdh').textContent=Math.round(BDI)+'%';$('ut').textContent='⚡'+Math.round(PW*100)+'% 💧'+Math.round(WT*100)+'%'+(SD.nw&&!sdAI()?' 🔥'+Math.round(HT*100)+'%':'')+' 🎓'+Math.round(ED*100)+'% 🏥'+Math.round(MD*100)+'%';
@@ -182,7 +213,7 @@ $('sty').textContent='🎨 '+SN[0];$('sty').onclick=()=>{sty=(sty+1)%SN.length;$
 $('chb').onclick=()=>{const o=$('ch'),k=$('cc').getContext('2d'),L=hist.length,cl=['#ef5350','#fb8c00','#66bb6a','#42a5f5'],sm=h=>(h[0]||0)+(h[1]||0)+(h[2]||0)+(h[3]||0);o.style.display='block';k.clearRect(0,0,300,150);
 if(L>1){const mx=Math.max(1,...hist.map(sm));for(let i=0;i<L;i++){let y=150;for(let j=0;j<4;j++){const hh=(hist[i][j]||0)/mx*140;k.fillStyle=cl[j];k.fillRect(i*300/L,y-hh,300/L+1,hh);y-=hh}}}
 const l=hist[L-1]||[0,0,0,0],t=sm(l)||1,nm=['Бедные','Рабочий класс','Средний класс','Высший класс'],gn=DST.filter(d=>d.gf).length;
-$('cl').innerHTML='<b>Классы жителей</b> (динамика по дням)<br>'+nm.map((n,j)=>'<span style="color:'+cl[j]+'">■</span> '+n+': '+(l[j]||0)+' ('+Math.round((l[j]||0)/t*100)+'%)').join('<br>')+'<br>✊ Недовольство рабочих: '+Math.round(WU)+'% · 🎩 Элиты: '+Math.round(EL)+'% · ⚠ Гетто: '+gn+'<br>🔫 Бандитизм: '+Math.round(BDI)+'% · дань бандитам: '+Math.round(RK)+' ₽/день<br><small>Достаток растёт медленно: зависит от работы рядом, зарплат, образования (копится годами) и частного бизнеса поблизости. В каждом доме живут люди разных классов. Парки лишь немного помогают, и только работающим. Нажмите на любую клетку, чтобы увидеть район.</small>'};
+$('cl').innerHTML='<b>Классы жителей</b> (динамика по дням)<br>'+nm.map((n,j)=>'<span style="color:'+cl[j]+'">■</span> '+n+': '+(l[j]||0)+' ('+Math.round((l[j]||0)/t*100)+'%)').join('<br>')+'<br>✊ Недовольство рабочих: '+Math.round(WU)+'% · 🎩 Элиты: '+Math.round(EL)+'% · ⚠ Гетто: '+gn+'<br>🔫 Бандитизм: '+Math.round(BDI)+'% · дань бандитам: '+Math.round(RK)+' €/день<br><small>Достаток растёт медленно: зависит от работы рядом, зарплат, образования (копится годами) и частного бизнеса поблизости. В каждом доме живут люди разных классов. Парки лишь немного помогают, и только работающим. Нажмите на любую клетку, чтобы увидеть район.</small>'};
 $('ch').onclick=()=>$('ch').style.display='none';
 const BN=['нет','низкие','средние','высокие'];function bnl(){$('bnb').textContent='💶 Пособия: '+BN[bn]}bnl();
 $('bnb').onclick=()=>{bn=(bn+1)%4;bnl();toast(['Пособия отменены: беднота и рабочие недовольны, элиты довольны','Низкие пособия: небольшая поддержка бедных','Средние пособия: ощутимая нагрузка на бюджет','Высокие пособия: бедные довольны, элиты возмущены налогами'][bn])};
@@ -242,19 +273,19 @@ for(const t of list){let done=false;for(let y=lo+1;y<hi&&!done;y++)for(let x=lo+
 }
 function newGame(i){vs=0;cur=0;CITY=[null,null];init();rstSim();SD.nw=1;UN=0;CR=0;evs=[];riots=[];setMap(i);eco=M.e0;agents=[];RL=[];sel=null;hov=null;started=1;sty=i==10?10:0;$('sty').textContent='🎨 '+SN[sty];if(MAPS[i].preset)presetCity(i);{const c=(lo+hi)/2,r=R(c,c);setc(r[0],r[1])}bnl();closeMenu();hud();panel();save();toast(MAPS[i].n+': '+MAPS[i].d)}
 function cont(){try{apply(JSON.parse(ls('gs1')));started=1;agents=[];closeMenu();hud();panel()}catch(e){toast('Ошибка загрузки')}}
-function sv(i){if(netRole==='guest')return toast('Сохранение доступно только хосту');try{localStorage.setItem('gsS'+i,snap());toast('Игра сохранена в слот '+i)}catch(e){toast('Не удалось сохранить')}menu('slots')}
-function ld(i){try{apply(JSON.parse(ls('gsS'+i)));started=1;agents=[];closeMenu();hud();panel();toast('Игра загружена')}catch(e){toast('Ошибка загрузки')}}
-function pickSty(i){sty=i;$('sty').textContent='🎨 '+SN[i];menu('styles')}
+function sv(i){if(netRole==='guest')return toast('Сохранение доступно только хосту');try{localStorage.setItem('gsS'+i,snap());toast('Игра сохранена в слот '+i);tutEv('save')}catch(e){toast('Не удалось сохранить')}menu('slots')}
+function ld(i){try{apply(JSON.parse(ls('gsS'+i)));started=1;agents=[];closeMenu();hud();panel();toast('Игра загружена');tutEv('load')}catch(e){toast('Ошибка загрузки')}}
+function pickSty(i){tutEv('style');sty=i;$('sty').textContent='🎨 '+SN[i];menu('styles')}
 function mbtn(t,f){return `<button class="mb" onclick="${f}">${t}</button>`}
 function menu(p){mo=1;$('mn').style.display='block';let h='';
-if(p=='main'){h='<h2 onclick="dbgTap()" style="cursor:pointer">🏙 Градострой <small>v5</small></h2>';if(started)h+=mbtn('▶ Продолжить',`closeMenu()`);else if(ls('gs1'))h+=mbtn('▶ Продолжить',`cont()`);
-h+=mbtn('🆕 Новая игра',`menu('maps')`)+mbtn('⚔ Соревнование с ИИ (2 города)',`menu('vsmaps')`)+mbtn('🌐 Онлайн по коду',`menu('online')`)+mbtn('💾 Сохранить / загрузить',`menu('slots')`)+mbtn('🎨 Стиль зданий',`menu('styles')`)+mbtn('🖥/📱 Интерфейс: '+(UIM=='phone'?'📱 телефон':'🖥 ПК')+' (нажмите, чтобы сменить)',`setUIMode()`)}
+if(p=='main'){h='<h2 onclick="dbgTap()" style="cursor:pointer">🏙 Градострой <small>v52</small></h2>';if(started)h+=mbtn('▶ Продолжить',`closeMenu()`);else if(ls('gs1'))h+=mbtn('▶ Продолжить',`cont()`);
+h+=mbtn('🆕 Новая игра',`menu('maps')`)+mbtn('⚔ Соревнование с ИИ (2 города)',`menu('vsmaps')`)+mbtn('🌐 Онлайн по коду',`menu('online')`)+mbtn('💾 Сохранить / загрузить',`menu('slots')`)+mbtn('🎨 Стиль зданий',`menu('styles')`)+mbtn('📖 Обучение',`tutAsk()`)+mbtn('🖥/📱 Интерфейс: '+(UIM=='phone'?'📱 телефон':'🖥 ПК')+' (нажмите, чтобы сменить)',`setUIMode()`)}
 else if(p=='online'){h='<h2>🌐 Онлайн-режим</h2><p style="text-align:center">Хост запускает комнату. Гость вводит код. После соединения состояние карты передаётся напрямую между телефонами.</p><div class="mc" style="cursor:default"><b>Статус</b><div id="netstatus">'+(netReady?(netRole==='host'?'Хост · гость подключён':'Подключено к хосту'):'Не подключено')+'</div>'+(netRole!=='solo'?'<p>Ваш район: '+netCityStats(netRole).buildings+' построек, '+netCityStats(netRole).homes+' жилых зданий, вместимость '+netCityStats(netRole).capacity+'.</p><p>Район второго игрока: '+netCityStats(netRole==='host'?'guest':'host').buildings+' построек, '+netCityStats(netRole==='host'?'guest':'host').homes+' жилых зданий.</p>':'')+'<small>Экономика и население пока общие для карты.</small></div><div id="netroombox" class="mc" style="display:'+(netRoom&&netRole==='host'?'block':'none')+';cursor:default;text-align:center"><b>Код комнаты</b><div id="netcode" style="font-size:32px;letter-spacing:5px;margin:10px">'+(netRoom||'------')+'</div><small>Передайте код гостю. Не закрывайте игру у хоста.</small></div>'+mbtn('Создать комнату (хост)',`netCreate()`)+ '<div class="mc" style="cursor:default"><label for="netcodein">Код комнаты</label><input id="netcodein" inputmode="numeric" maxlength="6" placeholder="123456" style="display:block;width:100%;box-sizing:border-box;padding:12px;font:inherit;margin-top:6px" value=""><button class="mb" onclick="netJoin()">Подключиться как гость</button></div>'+mbtn('Отключиться',`netCleanup();menu('online')`)+mbtn('← Назад',`menu('main')`)}
 else if(p=='vsmaps'){h='<h2>⚔ Соревнование с ИИ</h2><p style="text-align:center"><small>Два автономных города на одной карте: ваш — в левом верхнем углу, ИИ — в правом нижнем. У каждого свои казна, жители, экология и политика. Недовольные жители переезжают в более привлекательный город.</small></p><div style="text-align:center"><b>Сложность ИИ</b></div><div class="sg">'+['Лёгкий','Обычный','Сложный','Эксперт'].map((n,i)=>`<div class="mc sc${i==vsDiff?' on':''}" onclick="vsDiff=${i};menu('vsmaps')"><small>${n}</small></div>`).join('')+'</div><div style="text-align:center"><small>Чем выше сложность, тем быстрее, точнее и расчётливее строит ИИ. Правила для всех одинаковые, ИИ не получает бонусов к деньгам.</small></div>'+MAPS.slice(0,5).map((a,i)=>`<div class="mc" onclick="newVs(${i})" style="border-left-color:${['#76b552','#53964a','#c4b672','#68a650','#c4ced5'][i]}"><b>${a.e} ${a.n}</b><br><small>${a.d}</small></div>`).join('')+mbtn('← Назад',`menu('main')`)}
 else if(p=='maps'){h='<h2>Выбор карты</h2>'+MAPS.map((a,i)=>`<div class="mc" onclick="newGame(${i})" style="border-left-color:${['#76b552','#53964a','#c4b672','#68a650','#c4ced5','#d8c6a4','#858585','#6ea85b','#2e9e8a','#c23a2b'][i]}"><b>${a.e} ${a.n}</b><br><small>${a.d}</small></div>`).join('')+mbtn('← Назад',`menu('main')`)}
-else if(p=='slots'){h='<h2>Сохранения</h2>'+(netRole==='guest'?'<p style="text-align:center">Сохранять игру может только хост. Его сохранение остаётся на его устройстве.</p>':'');for(let i=1;i<=3;i++){let s=null;try{s=JSON.parse(ls('gsS'+i))}catch(x){}h+=`<div class="mc" style="cursor:default"><b>Слот ${i}</b> — ${s?((s.vs?'⚔ ':'')+'день '+(s.vs?s.p:s).day+', жителей '+Math.floor((s.vs?s.p:s).pop)+', '+MAPS[(s.vs?s.p:s).mp||0].n):'пусто'}`+(started?`<button class="mb" onclick="sv(${i})">Сохранить</button>`:'')+(s?`<button class="mb" onclick="ld(${i})">Загрузить</button>`:'')+'</div>'}h+=mbtn('← Назад',`menu('main')`)}
-else if(p=='styles'){h='<h2>Стиль зданий</h2><div style="text-align:center"><small>Так будут выглядеть новые дома, магазины и офисы</small></div><div class="sg">'+SN.map((n,i)=>`<div class="mc sc${i==sty?' on':''}" onclick="pickSty(${i})"><canvas id="sp${i}" width="64" height="64"></canvas><br><small>${n}</small></div>`).join('')+'</div>'+mbtn('← Назад',`menu('main')`)}
-$('mb').innerHTML=h;
+else if(p=='slots'){h='<h2>Сохранения</h2><p style="text-align:center"><small>3 слота. «Сохранить» записывает текущий город (кнопка видна, когда игра запущена). «Загрузить» открывает сохранённый.</small></p>'+(netRole==='guest'?'<p style="text-align:center">Сохранять игру может только хост. Его сохранение остаётся на его устройстве.</p>':'');for(let i=1;i<=3;i++){let s=null;try{s=JSON.parse(ls('gsS'+i))}catch(x){}h+=`<div class="mc" style="cursor:default"><b>Слот ${i}</b> — ${s?((s.vs?'⚔ ':'')+'день '+(s.vs?s.p:s).day+', жителей '+Math.floor((s.vs?s.p:s).pop)+', '+MAPS[(s.vs?s.p:s).mp||0].n):'пусто'}`+(started?`<button class="mb" onclick="sv(${i})">Сохранить</button>`:'')+(s?`<button class="mb" onclick="ld(${i})">Загрузить</button>`:'')+'</div>'}h+=mbtn('← Назад',`menu('main')`)}
+else if(p=='styles'){h='<h2>Стиль зданий</h2><div style="text-align:center"><small>Так будут выглядеть новые дома, магазины и офисы. Коснитесь карточки — вокруг появится рамка. Потом «← Назад» и стройте.</small></div><div class="sg">'+SN.map((n,i)=>`<div class="mc sc${i==sty?' on':''}" onclick="pickSty(${i})"><canvas id="sp${i}" width="64" height="64"></canvas><br><small>${n}</small></div>`).join('')+'</div>'+mbtn('← Назад',`menu('main')`)}
+$('mb').innerHTML=h;TS_menu=p;
 if(p=='styles')SN.forEach((n,i)=>{const o=X;X=$('sp'+i).getContext('2d');const z=ST[i],hh=Math.round(22*z.m);D(32,46,'#76b552');cube(32,54,hh,z.c,.88);deco(32,54,hh,z);X=o})}
 const OM=['Обычная','Религиозная','Образовательная','Классовая','Пробки','Рождаемость','Смертность','Районы','Недовольство','Бандитизм','Эпидемия','Сети'],OL=['','🟩 мусульмане · 🟦 христиане · ⬜ светские','красный — слабое, зелёный — сильное образование','🟥 бедные · 🟧 рабочие · 🟩 средний · 🟦 высший','🟩 свободно · 🟨 плотно · 🟥 пробка','ярче зелёный — выше рождаемость','ярче красный — больше смертей','цвет района — его достаток: 🟥 бедный · 🟧 рабочий · 🟩 средний · 🟦 состоятельный · 🟪 гетто','ярче красный — сильнее недовольство рабочих (митинги, забастовки)','ярче фиолетовый — сильнее банды · чёрная метка на здании — платит дань (рэкет)','ярче зелёный — выше заражение (видны только районы с больными)','🟨 ЛЭП / провод · 🟦 труба под землёй · 🟩 оба · 🟥 здание без сети · 🟧 сеть перегружена · ⬜ станция/башня'];
 let ovPrev=null;
@@ -279,17 +310,35 @@ let evs=[],riots=[];
 function adjRoad(x,y){for(const d of [[1,0],[-1,0],[0,1],[0,-1]])if(isRoad(x+d[0],y+d[1]))return[x+d[0],y+d[1]];return null}
 function nrRoad(x,y){if(isRoad(x,y))return[x,y];for(let r=1;r<=3;r++)for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++)if(isRoad(x+i,y+j))return[x+i,y+j];return null}
 function bfs(a,b){const k=(x,y)=>y*N+x,pv={},q=[a];pv[k(a[0],a[1])]=-1;for(let h=0;h<q.length;h++){const c=q[h];if(c[0]==b[0]&&c[1]==b[1]){const p=[];let s=k(c[0],c[1]);while(s!=-1){p.push([s%N,Math.floor(s/N)]);s=pv[s]}return p.reverse()}for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=c[0]+d[0],ny=c[1]+d[1];if(isRoad(nx,ny)&&pv[k(nx,ny)]===undefined){pv[k(nx,ny)]=k(c[0],c[1]);q.push([nx,ny])}}}return null}
-function disp(kind,x,y){if(evs.length>=16)return;const ty=kind=='p'?['police']:kind=='m'?['hosp']:['cemM','cemS','cemC'];let best=null,bd=1e9;for(let yy=0;yy<N;yy++)for(let xx=0;xx<N;xx++){const b=g[yy][xx];if(b&&ty.includes(b.t)){const d=Math.abs(xx-x)+Math.abs(yy-y);if(d<bd){const r=adjRoad(xx,yy);if(r){bd=d;best=r}}}}if(!best)return;const t=nrRoad(x,y);if(!t)return;const p=bfs(best,t);if(!p)return;evs.push({ev:1,kind,x:p[0][0],y:p[0][1],path:p,i:1,wait:0,sp:3.2,col:kind=='p'?'#3b5bdb':kind=='m'?'#f5f5f5':'#555',tx:t[0],ty:t[1],fin:0})}
-function arrive(e){const b=g[e.ty]&&g[e.ty][e.tx];if(b&&b.ac>0&&(e.kind=='p'||e.kind=='m'))b.ac=Math.max(0,b.ac-1);if(e.kind=='p')for(const r of riots)if(Math.abs(r.x-e.tx)+Math.abs(r.y-e.ty)<=4)r.t-=2}
-function evMove(dt){for(const e of evs){if(e.wait>0){e.wait-=dt;if(e.wait<=0){e.path.reverse();e.i=1;e.fin=1}continue}const t=e.path[e.i];if(!t){if(e.fin)e.dead=1;else{e.wait=3;arrive(e)}continue}if(!isRoad(t[0],t[1])){e.dead=1;continue}const dx=t[0]-e.x,dy=t[1]-e.y,d=Math.hypot(dx,dy),s=e.sp*dt;if(s>=d){e.x=t[0];e.y=t[1];e.i++}else{e.x+=dx/d*s;e.y+=dy/d*s}}evs=evs.filter(e=>!e.dead)}
+function disp(kind,x,y){if(evs.filter(e=>e.kind!='b').length>=(kind=='f'?22:16))return;const ty=kind=='p'?['police']:kind=='m'?['hosp']:kind=='f'?['fire']:['cemM','cemS','cemC'];let best=null,bd=1e9;for(let yy=0;yy<N;yy++)for(let xx=0;xx<N;xx++){const b=g[yy][xx];if(b&&ty.includes(b.t)){const d=Math.abs(xx-x)+Math.abs(yy-y);if(d<bd){const r=adjRoad(xx,yy);if(r){bd=d;best=r}}}}if(!best)return;const t=nrRoad(x,y);if(!t)return;const p=bfs(best,t);if(!p)return;evs.push({ev:1,kind,x:p[0][0],y:p[0][1],path:p,i:1,wait:0,sp:3.2,col:kind=='p'?'#3b5bdb':kind=='m'?'#f5f5f5':kind=='f'?'#e53935':'#555',tx:t[0],ty:t[1],fin:0})}
+function extFire(tx,ty){let n=0;for(let j=-3;j<=3;j++)for(let i=-3;i<=3;i++){const q=g[ty+j]&&g[ty+j][tx+i];if(q&&q.fire>0){q.fire=0;n++}}if(n)toast('🚒 Пожар потушен')}
+function arrive(e){if(e.kind=='f')extFire(e.tx,e.ty);const b=g[e.ty]&&g[e.ty][e.tx];if(b&&b.ac>0&&(e.kind=='p'||e.kind=='m'))b.ac=Math.max(0,b.ac-1);if(e.kind=='p')for(const r of riots)if(Math.abs(r.x-e.tx)+Math.abs(r.y-e.ty)<=4)r.t-=2}
+
+// ═══ v52: ПОЖАРНЫЕ, ОБЩЕСТВЕННЫЙ ТРАНСПОРТ, БАНКИ ═══
+let TRN={bs:0,mt:0,cov:0,relief:0};
+function transitCalc(){let bs=0,mt=0,pk=0;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=g[y][x];if(!b||!nearRoad(x,y))continue;if(b.t=='busstop')bs++;else if(b.t=='metro')mt++;else if(b.t=='parking')pk++}const mm=mt>=2?mt:0,need=Math.max(4,pop/12),sc=(bs+mm*3.5)/need;const pkr=Math.min(.15,pk/Math.max(3,pop/25)*.15);TRN={bs,mt,pk,cov:Math.min(.5,sc*.5),relief:Math.min(.5,Math.min(.4,sc*.4)+pkr)}}
+function fireSys(){if(sdAI())return;const fs=[];for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=g[y][x];if(b&&b.t=='fire'&&nearRoad(x,y))fs.push([x,y])}
+for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=g[y][x];if(!b||b.t=='ext'||SZ(b)>1)continue;const t=b.t;
+if(b.fire>0){b.fire--;if(b.fire<=0){g[y][x]=null;happy=Math.max(0,happy-6);toast('🔥 '+T[t].n+' сгорел дотла'+(fs.length?'':': постройте пожарную станцию'));continue}
+const rr=nrRoad(x,y);if(rr&&!evs.some(e=>e.kind=='f'&&Math.abs(e.tx-rr[0])+Math.abs(e.ty-rr[1])<=3))disp('f',rr[0],rr[1]);continue}
+const ind=!!(T[t]&&T[t].pol),oldH=(t=='house'||t=='cottage'||t=='soc')&&(b.bd==null||day-b.bd>=40);if(!ind&&!oldH)continue;if(day<10)continue;
+let p=ind?.0035:.0007;if(fs.some(f=>Math.abs(f[0]-x)+Math.abs(f[1]-y)<=10))p*=.45;
+if(Math.random()<p){b.fire=5;const rr=nrRoad(x,y);toast('🔥 Пожар: '+T[t].n+(ind?' (завод)':' (старый дом)'));if(rr)disp('f',rr[0],rr[1])}}}
+function transitSys(){if(sdAI())return;transitCalc();const bs=[];for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=g[y][x];if(b&&b.t=='busstop'&&adjRoad(x,y))bs.push([x,y])}
+const cost=TRN.bs*2+(TRN.pk||0)+(TRN.mt>=2?TRN.mt*22:0);if(cost&&money>=cost)money-=cost;
+const want=Math.min(8,Math.floor(bs.length/2)),have=evs.filter(e=>e.kind=='b');
+if(have.length>want&&have[0])have[0].dead=1;
+else if(have.length<want&&bs.length>=2){const A=bs[Math.random()*bs.length|0];let B=bs[Math.random()*bs.length|0],k=0;while(B===A&&k++<6)B=bs[Math.random()*bs.length|0];if(B!==A){const ra=adjRoad(A[0],A[1]),rb=adjRoad(B[0],B[1]);if(ra&&rb){const p=bfs(ra,rb);if(p&&p.length>=3)evs.push({ev:1,kind:'b',x:p[0][0],y:p[0][1],path:p,i:1,wait:0,sp:2.2,col:'#2ea043',tx:rb[0],ty:rb[1],fin:0})}}}}
+function bankSys(){if(sdAI())return;let nb=0;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=g[y][x];if(b&&b.t=='bank'&&nearRoad(x,y))nb++}if(nb&&money>0)money+=Math.min(80*nb,Math.round(money*.0015*nb))}
+function evMove(dt){for(const e of evs){if(e.wait>0){e.wait-=dt;if(e.wait<=0){e.path.reverse();e.i=1;e.fin=e.kind=='b'?0:1}continue}const t=e.path[e.i];if(!t){if(e.fin)e.dead=1;else{e.wait=e.kind=='b'?1.5:3;arrive(e)}continue}if(!isRoad(t[0],t[1])){e.dead=1;continue}const dx=t[0]-e.x,dy=t[1]-e.y,d=Math.hypot(dx,dy),s=e.sp*dt;if(s>=d){e.x=t[0];e.y=t[1];e.i++}else{e.x+=dx/d*s;e.y+=dy/d*s}}evs=evs.filter(e=>!e.dead)}
 function socialEvent(title,detail,kind='info'){socialLog.unshift({day:day||1,title,detail,kind});if(socialLog.length>12)socialLog.length=12}
 function startRiot(x,y,why,sz,k){if(riots.some(r=>Math.abs(r.x-x)+Math.abs(r.y-y)<=4)||riots.length>=6)return 0;riots.push({x,y,t:5,z:sz||1,k:k||''});prot=Math.min(100,prot+(k=='c'?8:15));toast((k=='c'?'🚩 ':'✊ ')+why);socialEvent(k=='c'?'Коммунистический митинг':'Общественный протест',why,k=='c'?'protest':'warning');const r=nrRoad(x,y);if(r)disp('p',r[0],r[1]);return 1}
 function cemI(sx,sy,t){D(sx,sy,'#5f9a52',.95);[[-7,6],[0,4],[6,7],[-3,11],[4,12]].forEach(p=>{if(t=='cemC'){X.fillStyle='#fff';X.fillRect(sx+p[0],sy+p[1]-3,1,4);X.fillRect(sx+p[0]-1,sy+p[1]-2,3,1)}else if(t=='cemM'){X.fillStyle='#d8d8d8';X.fillRect(sx+p[0],sy+p[1]-2,3,3);X.fillStyle='#1fae8f';X.fillRect(sx+p[0],sy+p[1]-3,3,1)}else{X.fillStyle='#bdbdbd';X.fillRect(sx+p[0],sy+p[1]-3,3,4)}})}
 // tools UI
 for(const k in T){if(k=='pline'||k=='ext')continue;const b=document.createElement('button');b.className='c'+(k=='sel'?' on':'');b.dataset.k=k;
-b.title=T[k].n;b.innerHTML='<b>'+T[k].e+'</b><small>'+(T[k].c?T[k].c+'₽':T[k].n)+'</small>';
-b.onclick=()=>{tool=k;document.querySelectorAll('#tb button').forEach(x=>x.classList.toggle('on',x==b));if(k!='sel'){sel=null;panel()}else toast('Нажмите на здание');if(T[k].c&&k!='sel')toast(T[k].n+': '+T[k].c+' ₽');ovAuto(k)};$('tb').appendChild(b)}
-const CATS=[['🏠','Жильё',['house','cottage','apt','soc','zR']],['🏪','Бизнес',['shop','office','mall','zC']],['🛣','Дороги',['road','alley','lane','light','limit']],['🏭','Промышленность',['factory','zI','ffood','fauto','ftoy']],['⚡','Энергия и вода',['power','gtes','solar','water','wtower','wire','pipe','pline','ext']],['🏥','Службы',['school','univ','police','hosp','cemM','cemS','cemC']],['🕌','Религия',['mosque','madrasa','bigmosque','parish','church','cathedral']],['🌳','Парки и спорт',['park','fountain','bench','treeObj','playground','monument','parkDubai','parkMunich','parkNY','parkSuburb','parkSoviet','parkJp','field','stad']]],PIN=['sel','bull'];
+b.title=T[k].n;b.innerHTML='<b>'+T[k].e+'</b><small>'+(T[k].c?T[k].c+'€':T[k].n)+'</small>';
+b.onclick=()=>{tool=k;document.querySelectorAll('#tb button').forEach(x=>x.classList.toggle('on',x==b));if(k!='sel'){sel=null;panel()}else toast('Нажмите на здание');if(T[k].c&&k!='sel')toast(T[k].n+': '+T[k].c+' €');ovAuto(k)};$('tb').appendChild(b)}
+const CATS=[['🏠','Жильё',['house','cottage','apt','soc','zR']],['🏪','Бизнес',['shop','office','bank','mall','zC']],['🛣','Дороги',['road','alley','lane','light','limit']],['🚌','Транспорт',['busstop','metro','parking']],['🏭','Промышленность',['factory','zI','ffood','fauto','ftoy']],['⚡','Энергия и вода',['power','gtes','solar','water','wtower','wire','pipe','pline','ext']],['🏥','Службы',['school','univ','police','fire','hosp','cemM','cemS','cemC']],['🕌','Религия',['mosque','madrasa','bigmosque','parish','church','cathedral']],['🌳','Парки и спорт',['park','fountain','bench','treeObj','playground','monument','parkDubai','parkMunich','parkNY','parkSuburb','parkSoviet','parkJp','field','stad']]],PIN=['sel','bull'];
 {const used=new Set(PIN.concat(...CATS.map(c=>c[2]))),rest=Object.keys(T).filter(k=>!used.has(k));if(rest.length)CATS.push(['📦','Прочее',rest])}
 function setCat(i){document.querySelectorAll('#tb button').forEach(b=>{b.style.display=(PIN.includes(b.dataset.k)||CATS[i][2].includes(b.dataset.k))?'':'none'});document.querySelectorAll('#tcat button').forEach((x,j)=>x.classList.toggle('on',j==i));$('tb').scrollLeft=0}
 CATS.forEach((c,i)=>{const b=document.createElement('button');b.textContent=c[0]+' '+c[1];b.onclick=()=>setCat(i);$('tcat').appendChild(b)});setCat(0);
@@ -308,7 +357,7 @@ if(k=='pipe'){if(!owned(x,y))return toast('Сначала купите эту з
 if(k=='bull')return demo(x,y);
 if(!owned(x,y))return toast('Сначала купите эту землю');
 if(k=='mall')return placeMall(x,y);const d=T[k],b=g[y][x];if(b)return;const tv=tr[y][x];if(tv==2||(tv==1&&k!='road'))return toast(tv==2?'Скалы: строить нельзя':'Вода: тут можно только мост (дорога)');const ex=tv==1?50:0;if(money<d.c+ex)return toast('Не хватает денег');money-=ex;
-money-=d.c;g[y][x]={t:k,own:'city',res:0,rent:0,w:k=='soc'?.3:.55,sd:Math.random()*.8,sty:(k=='house'||k=='cottage'||k=='apt'||k=='shop'||k=='office'||k=='zC'||k=='zR'||PARK_PIECES.has(k))?sty:null,att:.1+Math.random()*.9,tm:2+(Math.random()*4|0)};
+money-=d.c;g[y][x]={t:k,own:'city',res:0,rent:0,w:k=='soc'?.3:.55,sd:Math.random()*.8,sty:(k=='house'||k=='cottage'||k=='apt'||k=='shop'||k=='office'||k=='zC'||k=='zR'||PARK_PIECES.has(k))?sty:null,att:.1+Math.random()*.9,tm:2+(Math.random()*4|0),bd:day};
 if(k=='alley'){const q=g[y][x];q.t='road';q.al=1;q.ln=1;q.sl=40;q.sty=null;q.att=.5}if(k=='road'||k=='alley')RL.push([x,y]);
 if((k=='road'||k=='alley')&&SD.nw&&SD.auto&&money>=T.wire.c+T.pipe.c){money-=T.wire.c+T.pipe.c;g[y][x].wr=1;PIPES[y][x]=1}
 if((isRes(k)||isCom(k))&&!nearRoad(x,y))toast('Нужна дорога рядом — без неё здание не работает');hud();if(netRole==='host'&&!netApplying)netBroadcast()}
@@ -318,7 +367,7 @@ if((isRes(k)||isCom(k))&&!nearRoad(x,y))toast('Нужна дорога рядо�
 const FW=b=>(b.fw|0)||(b.sz|0)||1,FH=b=>(b.fh|0)||(b.sz|0)||1;
 const SZ=b=>b?FW(b)*FH(b):1;
 const isBig=b=>!!b&&b.t!='ext'&&(FW(b)>1||FH(b)>1);
-const GROWT=new Set(['house','cottage','apt','soc','shop','office','factory','ffood','fauto','ftoy','school','univ','police','hosp','cemM','cemS','cemC','mosque','madrasa','bigmosque','parish','church','cathedral']);
+const GROWT=new Set(['house','cottage','apt','soc','shop','office','factory','ffood','fauto','ftoy','school','univ','police','fire','bank','hosp','cemM','cemS','cemC','mosque','madrasa','bigmosque','parish','church','cathedral']);
 const GMAX=4;
 let BIGP=0,GP=null;
 function nearRoadB(b,x,y){const w=FW(b),h=FH(b);for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(nearRoad(x+i,y+j))return true;return false}
@@ -416,6 +465,7 @@ if(t=='office'||t=='univ')P([B0,R0,Rh,Bh],'rgba(190,225,255,.15)');
 const band=(p0,p1,k0,k1,c)=>P([[p0[0],p0[1]-k0],[p1[0],p1[1]-k0],[p1[0],p1[1]-k1],[p0[0],p0[1]-k1]],c);
 if(t=='hosp'){band(L0,B0,h-6,h-4,'#e53935');band(B0,R0,h-6,h-4,'#c62828')}
 if(t=='police'){band(L0,B0,h-5,h-2,'#1e4fa8');band(B0,R0,h-5,h-2,'#173d85')}
+if(t=='fire'){band(L0,B0,h-5,h-2,'#ffd54f');band(B0,R0,h-5,h-2,'#f9a825')}
 if(t=='school'){band(L0,B0,h-5,h-3,'#f2c230');band(B0,R0,h-5,h-3,'#d4a51f')}
 // вход
 const door=(s0,wd,hd)=>{const q=lerp(B0,R0,s0);X.fillStyle='#3b2a22';X.fillRect(Math.round(q[0]-wd/2),Math.round(q[1]-hd),wd,hd);X.fillStyle='#cfc7b4';X.fillRect(Math.round(q[0]-wd/2-1),Math.round(q[1]),wd+2,1)};
@@ -481,10 +531,10 @@ if(isRes(b.t)){h+=' · жителей '+b.res+'/'+(d.cap*sa)+' · класс: '+
 if(isCom(b.t)){h+=' · рабочих мест '+(d.jobs*sa);if(b.shut>0)h+='<br>🔒 Закрыт ещё '+b.shut+' дн.';else if((b.rk||0)>=25)h+='<br>💸 Рэкет: платит дань бандитам ('+Math.round(b.rk)+'%)'}
 if((isRes(b.t)||isCom(b.t))&&!nearRoadB(b,sel.x,sel.y))h+='<br>⚠ Нет дороги — не работает';
 if(b.t=='road')h+=(b.al?' · 🏮 узкая улочка':'')+' · полос '+(b.ln||1)+' · '+(b.sl||60)+' км/ч'+(b.tl?' · светофор':'')+(b.wr?' · ⚡ провод над дорогой':'')+(PIPES[sel.y][sel.x]?' · 🚰 труба под дорогой':'');
-if(b.rent)h+='<br>Сдаётся: +'+d.rent+' ₽/день';
+if(b.rent)h+='<br>Сдаётся: +'+d.rent+' €/день';
 if(sa>1)h+='<br>📐 Участок '+FW(b)+'×'+FH(b)+': вместимость, доходы и расходы ×'+sa;h+='<br>';
-if(b.own=='city'&&(d.rent)&&!b.rent)h+='<button onclick="act(\'rent\')">Сдать +'+d.rent+'₽/день</button>';
-if((b.own=='city'&&d.cap&&b.t!='soc')||b.own=='city'&&isCom(b.t))h+='<button onclick="act(\'sell\')">Продать +'+Math.round(d.c*sa*1.35)+'₽</button>';
+if(b.own=='city'&&(d.rent)&&!b.rent)h+='<button onclick="act(\'rent\')">Сдать +'+d.rent+'€/день</button>';
+if((b.own=='city'&&d.cap&&b.t!='soc')||b.own=='city'&&isCom(b.t))h+='<button onclick="act(\'sell\')">Продать +'+Math.round(d.c*sa*1.35)+'€</button>';
 if(b.own=='city'&&GROWT.has(b.t))h+=growPad(b);
 h+=utilInfo(b)+mkBtns(b,sel.x,sel.y);h+='<button onclick="act(\'del\')">Снести</button>'}else h='<b>Пустой участок</b>'+(PIPES[sel.y][sel.x]?' · 🚰 труба под землёй':'');
 h+=dInfo(sel.x,sel.y);e.innerHTML=h;e.style.display='block'}
@@ -504,11 +554,11 @@ else if(isRes(t)){b.res=0;b.ec=0;if(nr){b.ec=(t=='soc'||b.own=='priv')?d.cap:Mat
 else if(isCom(t)){if(b.shut>0){b.shut--;b.rk=0}else if(nr){const skr=d.pol&&DST[di(x,y)].str>0;if(!skr){J+=d.jobs;fac+=d.pol||0;if(d.pol)fp.push([x,y]);jb.push({x,y,j:d.jobs,wg:d.wg||1,own:b.own=='priv'?1:0});if(b.rent)inc+=d.rent;if(b.own=='priv')inc+=8;const rr=rkAt(x,y);b.rk=rr[0];if(rr[0]>=25){const trb=(d.jobs*.5+(b.own=='priv'?6:2))*rr[0]/100*.6;inc-=trb;rkt+=trb;DST[rr[1]].gi+=trb}if(b.rk>=55&&b.own=='priv'){b.rkd=(b.rkd||0)+1;if(b.rkd>=10){b.rkd=0;b.shut=8;shutN++}}else b.rkd=Math.max(0,(b.rkd||0)-1)}}}
 else if(t=='park'||t.startsWith('park')){pk++;up+=2;greenAir+=t=='park'?3.5:5.5}
 else if(t=='fountain'||t=='bench'||t=='treeObj'||t=='playground'||t=='monument'){up+=t=='treeObj'?0.5:1;greenAir+=t=='treeObj'?1.15:t=='fountain'?.45:t=='playground'?.25:.1}else if(t=='field'){fl++;up+=3}else if(t=='stad'){st++;up+=25}else if(d.rel){rl+=d.rel;up+=4;rb.push([x,y,t=='mosque'||t=='bigmosque'||t=='madrasa'?1:2])}else if(t=='power'){sup+=130;fac+=10;up+=15}else if(t=='gtes'){sup+=170;fac+=3;up+=12;gt++}else if(t=='solar'){sup+=45*M.sun;up+=3}else if(t=='water'){wsup+=90*wEff(x,y)*M.wf;up+=6}else if(t=='wtower'){wsup+=40;up+=5}else if(t=='school'){edc+=150;up+=8;sch.push([x,y,6])}else if(t=='univ'){edc+=450;up+=25;sch.push([x,y,10])}else if(t=='police'){pl.push([x,y]);up+=12}else if(t=='hosp'){hcap+=150;up+=30}else if(t=='cemM'){capM+=8;up+=3}else if(t=='cemC'){capC+=8;up+=3}else if(t=='cemS'){capS+=8;up+=3}
-else if(t[0]=='z'){b.tm--;if(b.tm<=0){if(nr&&happy>25){const big=Math.random()<(pop>70?.4:0),nt=t=='zI'?['factory','ffood','fauto','ftoy'][Math.random()*4|0]:t=='zC'?(big?'office':'shop'):(big?'apt':Math.random()<.4?'cottage':'house'),pr=Math.round(T[nt].c*.8);g[y][x]={t:nt,own:'priv',res:0,rent:0,w:.55,sd:Math.random()*.8,sty:b.sty};money+=pr;toast('Горожане купили участок и построили: '+T[nt].n+' +'+pr+' ₽')}else b.tm=2}}
+else if(t[0]=='z'){b.tm--;if(b.tm<=0){if(nr&&happy>25){const big=Math.random()<(pop>70?.4:0),nt=t=='zI'?['factory','ffood','fauto','ftoy'][Math.random()*4|0]:t=='zC'?(big?'office':'shop'):(big?'apt':Math.random()<.4?'cottage':'house'),pr=Math.round(T[nt].c*.8);g[y][x]={t:nt,own:'priv',res:0,rent:0,w:.55,sd:Math.random()*.8,sty:b.sty,bd:day};money+=pr;toast('Горожане купили участок и построили: '+T[nt].n+' +'+pr+' €')}else b.tm=2}}
 if(s0){const f=mm-1;Hs+=(Hs-s0[0])*f;J+=(J-s0[1])*f;edc+=(edc-s0[2])*f;hcap+=(hcap-s0[3])*f;rl+=(rl-s0[4])*f;up+=(up-s0[5])*f;fac+=(fac-s0[6])*f;socCap+=(socCap-s0[7])*f;socUp+=(socUp-s0[8])*f;greenAir+=(greenAir-s0[9])*f;pk+=(pk-s0[10])*f;inc+=(inc-s0[11])*f;capM+=(capM-s0[12])*f;capC+=(capC-s0[13])*f;capS+=(capS-s0[14])*f;if(b.ec)b.ec*=mm;if(jb.length>s0[15])jb[jb.length-1].j*=mm;const fw=FW(b),fh=FH(b);if(pl.length>s0[16])for(const q of [[x+fw-1,y],[x,y+fh-1],[x+fw-1,y+fh-1]])pl.push(q);if(sch.length>s0[17])sch[sch.length-1][2]+=(Math.max(fw,fh)-1)*2}}
-const ct=Math.min(70,Math.floor(pop/4));let ac=0,adth=0,nw=0;for(const r of RL){const q=g[r[1]][r[0]];if(q.ac>0){q.ac--;ac++;continue}const cv=pl.some(p=>Math.abs(p[0]-r[0])+Math.abs(p[1]-r[1])<=8),pr=ct/(RL.length+1)*.004*(q.sl==90?2.5:q.sl==40?.6:1)*(cv?.4:1.6)*(q.tl?.7:1);if(Math.random()<pr){q.ac=cv?2:4;ac++;nw++;disp('p',r[0],r[1]);disp('m',r[0],r[1]);if(Math.random()<.2){adth++;disp('c',r[0],r[1])}}}cap=Math.max(0,cap-ac*1.5);
+transitCalc();const ct=Math.round(Math.min(70,Math.floor(pop/4))*(1-TRN.relief));let ac=0,adth=0,nw=0;for(const r of RL){const q=g[r[1]][r[0]];if(q.ac>0){q.ac--;ac++;continue}const cv=pl.some(p=>Math.abs(p[0]-r[0])+Math.abs(p[1]-r[1])<=8),pr=ct/(RL.length+1)*.004*(q.sl==90?2.5:q.sl==40?.6:1)*(cv?.4:1.6)*(q.tl?.7:1);if(Math.random()<pr){q.ac=cv?2:4;ac++;nw++;disp('p',r[0],r[1]);disp('m',r[0],r[1]);if(Math.random()<.2){adth++;disp('c',r[0],r[1])}}}cap=Math.max(0,cap-ac*1.5);
 for(const r of riots){r.t--;if(r.k!='c')adth+=.4*r.z;const rr=nrRoad(r.x,r.y);if(rr){const q=g[rr[1]][rr[0]];q.ac=Math.max(q.ac||0,3);if(r.t%2==0)disp('p',rr[0],rr[1])}if(r.k!='c'&&Math.random()<.08*r.z){const bx=r.x+((Math.random()*5|0)-2),by=r.y+((Math.random()*5|0)-2),q=g[by]&&g[by][bx];if(q&&q.own=='city'&&!isRes(q.t)&&q.t!='road'){g[by][bx]=null;toast('Толпа разгромила: '+T[q.t].n)}}}
-riots=riots.filter(r=>r.t>0);jf=Math.min(1,(cap+4)/(ct+1));
+riots=riots.filter(r=>r.t>0);fireSys();transitSys();bankSys();jf=Math.min(1,(cap+4)/(ct+1));
 if(!sdAI()){SD.gas=Math.max(.6,Math.min(2,SD.gas+(1-SD.gas)*.03+(Math.random()-.5)*.08));if(gt){const fuel=Math.round(gt*16*SD.gas);SD.fuel=fuel;if(money>=fuel){money-=fuel;GOFF=0}else{GOFF=1;sup-=gt*170;fac-=gt*3;if(day%5==0)toast('🔥 ГТЭС остановлены: нет денег на газ')}}else{SD.fuel=0;GOFF=0}}
 const nwM=!sdAI()&&SD.nw;let dem=pop*.5+J*1.2+(nwM?0:pop*M.ht*.8),pw=dem>0?Math.min(1,sup/dem):1,wdem=pop*.5+J*.3,wt=wdem>0?Math.min(1,wsup/wdem):1,edu=Math.min(1,edc/Math.max(1,pop));PW=pw;WT=wt;ED=edu;if(nwM){const u=utilTick();pw=u.pw;wt=u.wt;PW=pw;WT=wt;adth+=u.dead}
 // Connected landscaping forms a coherent park and improves local air more efficiently.
@@ -518,7 +568,7 @@ happy=72+pk*2.5+fl*3+st*8+Math.min(10,rl*1.5)-(1-pw)*25-(1-wt)*30-(nwM?(1-HT)*M.
 let tg=Math.min(Hs,J*(.5+.5*pw)*1.6+10+socCap*.8)*(.4+.6*wt)*(nwM?1-(1-HT)*M.ht*.5:1);if(happy<35)tg*=.5;if(!Hs)tg=0;
 pop=pop<tg?pop+Math.ceil((tg-pop)*.2):Math.max(0,pop-Math.ceil((pop-tg)*.25));pop=Math.min(pop,Hs);HCAP=Hs;
 hs=sc_.concat(hp,hc);let rem=Math.floor(pop);for(const b of hs){b.res=Math.min(b.ec,rem);rem-=b.res}
-const cls=[0,0,0,0],rs_=[0,0,0],rad=9*(.5+.5*jf),dsa=[];for(let i=0;i<DW*DW;i++)dsa.push({p:0,c:[0,0,0,0],w:0,e:0,s:0,pv:0,l:[]});
+const cls=[0,0,0,0],rs_=[0,0,0],rad=9*(.5+.5*jf)*(1+TRN.cov),dsa=[];for(let i=0;i<DW*DW;i++)dsa.push({p:0,c:[0,0,0,0],w:0,e:0,s:0,pv:0,l:[]});
 for(const b of hs){if(b.w==null)b.w=b.cl==2?2.1:b.cl==1?1.4:.55;
 let el=0;for(const s of sch)el+=Math.max(0,1-Math.hypot(s[0]-b.x,s[1]-b.y)/s[2]);el=Math.min(1,el);b.el=el;
 b.ed=b.ed==null?el:b.ed+(el-b.ed)*.03;const skl=.2+.55*b.ed+.25*edu;let tot=0,wn=0,dm_=0;
@@ -612,13 +662,13 @@ function sysElections(c){const S=SD,cls=c.cls;
 if(day>=30&&day-S.elDay>=30&&pop>=15){S.elDay=day;S.elN++;const t=Math.max(1,cls[0]+cls[1]+cls[2]+cls[3]),tx=S.tax-1;
 const dc=S.dc,vl=socialTrust+bn*6-tx*7-WU*.3+(dc.rentcap?6:0)+(dc.mortgage?4:0)+(dc.edufree?4:0)-(dc.sixday?8:0)-(dc.curfew?5:0),vm=happy*.6+socialTrust*.4-tx*4+(dc.mortgage?5:0)+(dc.edufree?3:0)+(dc.curfew?3:0)-(dc.sixday?4:0),vh=72-EL*.85-tx*8-(dc.rentcap?8:0)+(dc.curfew?4:0)+(dc.sixday?3:0)-(dc.ecolaw?4:0);
 S.rate=Math.round(Math.max(0,Math.min(100,((cls[0]+cls[1])*vl+cls[2]*vm+cls[3]*vh)/t+Math.max(-10,Math.min(8,(S.ok-S.bad)*2))+(Math.random()*8-4))));
-if(S.rate>=50){const bon=Math.round(150+pop*3);money+=bon;socialTrust=Math.min(100,socialTrust+8);S.res='День '+day+': переизбран ('+S.rate+'%)';toast('🗳 Выборы: вы переизбраны ('+S.rate+'%). Бонус '+bon+' ₽');socialEvent('Выборы мэра','Вы набрали '+S.rate+'% и сохранили пост. Бюджет пополнен на '+bon+' ₽.','positive')}
+if(S.rate>=50){const bon=Math.round(150+pop*3);money+=bon;socialTrust=Math.min(100,socialTrust+8);S.res='День '+day+': переизбран ('+S.rate+'%)';toast('🗳 Выборы: вы переизбраны ('+S.rate+'%). Бонус '+bon+' €');socialEvent('Выборы мэра','Вы набрали '+S.rate+'% и сохранили пост. Бюджет пополнен на '+bon+' €.','positive')}
 else{S.opp=15;socialTrust=Math.max(0,socialTrust-10);prot=Math.min(100,prot+20);S.res='День '+day+': провал ('+S.rate+'%)';toast('🗳 Выборы проиграны ('+S.rate+'%): оппозиционный совет саботирует бюджет');socialEvent('Выборы мэра','Рейтинг '+S.rate+'%. Оппозиционный совет на 15 дней урезает доходы города и разжигает протесты.','warning')}}}
 sysReg('tension',sysTension);sysReg('unions',sysUnions);sysReg('policy',sysPolicy);sysReg('petitions',sysPetitions);sysReg('elections',sysElections);
 sysReg('market',c=>market(c.hs,c.Hs));sysReg('decrees',c=>decrees(c.hs));sysReg('epidemic',c=>epidemic(c.hs));sysReg('corruption',c=>corrupt(c.hs));
 // ═══ UI панели «Общество» ═══
 function socDeepHtml(){const S=SD,tn=['Низкие','Средние','Высокие'],nxE=Math.max(0,S.elDay+30-day),el=S.elN||day>=30?'Следующие выборы через '+(S.elDay?nxE:Math.max(0,30-day))+' дн.':'Первые выборы на 30-й день';
-return '<hr style="border:0;border-top:1px solid var(--b)"><b>🏛 Политика</b><br><button class="c" onclick="SD.tax=(SD.tax+1)%3;toast([\'Низкие налоги: меньше дохода, элиты довольны\',\'Средние налоги\',\'Высокие налоги: больше дохода, элиты возмущены, люди недовольны\'][SD.tax]);renderSociety();hud()">💼 Налоги: '+tn[S.tax]+'</button> <small>доход ×'+[.85,1,1.2][S.tax]+'</small><br><small>'+el+(S.rate?' · последний рейтинг '+S.rate+'% ('+S.res+')':'')+(S.opp>0?' · <b>оппозиция саботирует бюджет ещё '+S.opp+' дн.</b>':'')+'<br>Выполнено петиций: '+S.ok+' · проигнорировано: '+S.bad+'</small><br>🛠 Профсоюзы: '+Math.round(S.un)+'%'+(S.gs>0?' · <b>ОБЩАЯ ЗАБАСТОВКА ещё '+S.gs+' дн.</b>':'')+'<br>⛪🕌 Напряжённые районы: '+(DST.map((d,i)=>(d.rt||0)>=30?dnm(i)+' '+Math.round(d.rt)+'%':'').filter(Boolean).join(', ')||'нет')+utilHtml()+'<br>🕵 <b>Коррупция</b>: '+Math.round(S.co)+'% · утечка бюджета ≈'+Math.round(S.lk)+' ₽/день'+'<br>🦠 <b>Эпидемии</b>: '+(S.on?'<b>ВСПЫШКА</b>, заражено в среднем '+Math.round(S.ei)+'%, районов '+DST.filter(d=>(d.inf||0)>0).length:'вспышек нет')+(S.ep?' · всего вспышек '+S.ep+', умерших ≈'+Math.round(S.em):'')+(S.on&&!S.dc.quarantine?'<br><small>Стройте больницы; помогут карантин и вакцинация (указы).</small>':'')+'<br>📜 <b>Указы</b> (включение 150 ₽, менять не чаще раза в неделю)'+DCS.map(d=>'<div style="padding:3px 0"><button class="c" onclick="toggleDc(\''+d[0]+'\')">'+d[1]+' '+d[2]+': '+(S.dc[d[0]]?'<b>ВКЛ</b>':'выкл')+'</button><br><small>'+d[3]+'</small></div>').join('')+'<br>🏘 <b>Рынок жилья и помещений</b>: индекс цен '+S.px+' · сделок '+S.dl+' на '+fm(S.vl)+' · переоборудований '+S.cv+(S.lg.length?'<br><small>'+S.lg.join('<br>')+'</small>':'')+'<br><b>📜 Петиции районов</b>'+(S.pet.length?S.pet.map(p=>'<div style="padding:4px 0"><small><b>'+dnm(p.d)+'</b>: '+PK[p.k][0]+' · осталось '+Math.max(0,p.t)+' дн. · '+Math.round((p.v||0)*100)+'% из '+Math.round(p.g*100)+'%</small></div>').join(''):'<br><small>Сейчас жалоб нет.</small>')}
+return '<hr style="border:0;border-top:1px solid var(--b)"><b>🏛 Политика</b><br><button class="c" onclick="SD.tax=(SD.tax+1)%3;toast([\'Низкие налоги: меньше дохода, элиты довольны\',\'Средние налоги\',\'Высокие налоги: больше дохода, элиты возмущены, люди недовольны\'][SD.tax]);renderSociety();hud()">💼 Налоги: '+tn[S.tax]+'</button> <small>доход ×'+[.85,1,1.2][S.tax]+'</small><br><small>'+el+(S.rate?' · последний рейтинг '+S.rate+'% ('+S.res+')':'')+(S.opp>0?' · <b>оппозиция саботирует бюджет ещё '+S.opp+' дн.</b>':'')+'<br>Выполнено петиций: '+S.ok+' · проигнорировано: '+S.bad+'</small><br>🛠 Профсоюзы: '+Math.round(S.un)+'%'+(S.gs>0?' · <b>ОБЩАЯ ЗАБАСТОВКА ещё '+S.gs+' дн.</b>':'')+'<br>⛪🕌 Напряжённые районы: '+(DST.map((d,i)=>(d.rt||0)>=30?dnm(i)+' '+Math.round(d.rt)+'%':'').filter(Boolean).join(', ')||'нет')+utilHtml()+'<br>🕵 <b>Коррупция</b>: '+Math.round(S.co)+'% · утечка бюджета ≈'+Math.round(S.lk)+' €/день'+'<br>🦠 <b>Эпидемии</b>: '+(S.on?'<b>ВСПЫШКА</b>, заражено в среднем '+Math.round(S.ei)+'%, районов '+DST.filter(d=>(d.inf||0)>0).length:'вспышек нет')+(S.ep?' · всего вспышек '+S.ep+', умерших ≈'+Math.round(S.em):'')+(S.on&&!S.dc.quarantine?'<br><small>Стройте больницы; помогут карантин и вакцинация (указы).</small>':'')+'<br>📜 <b>Указы</b> (включение 150 €, менять не чаще раза в неделю)'+DCS.map(d=>'<div style="padding:3px 0"><button class="c" onclick="toggleDc(\''+d[0]+'\')">'+d[1]+' '+d[2]+': '+(S.dc[d[0]]?'<b>ВКЛ</b>':'выкл')+'</button><br><small>'+d[3]+'</small></div>').join('')+'<br>🏘 <b>Рынок жилья и помещений</b>: индекс цен '+S.px+' · сделок '+S.dl+' на '+fm(S.vl)+' · переоборудований '+S.cv+(S.lg.length?'<br><small>'+S.lg.join('<br>')+'</small>':'')+'<br><b>📜 Петиции районов</b>'+(S.pet.length?S.pet.map(p=>'<div style="padding:4px 0"><small><b>'+dnm(p.d)+'</b>: '+PK[p.k][0]+' · осталось '+Math.max(0,p.t)+' дн. · '+Math.round((p.v||0)*100)+'% из '+Math.round(p.g*100)+'%</small></div>').join(''):'<br><small>Сейчас жалоб нет.</small>')}
 
 const CV={cottage:'shop',house:'shop',apt:'office',shop:'house',office:'apt'},CVN={shop:'магазин',office:'офис',house:'дом',apt:'многоэтажку'};
 function mkNote(t){SD.lg.unshift('День '+day+': '+t);if(SD.lg.length>5)SD.lg.length=5;toast(t)}
@@ -649,18 +699,18 @@ h+='<button onclick="act(\'conv\')">🔁 В '+CVN[CV[b.t]]+' ('+fm(Math.round(T[
 return h}
 
 const DCS=[['curfew','🚫','Комендантский час','Банды слабеют, но растут недовольство и ропот, счастье −2. Нравится среднему классу и элитам.'],
-['mortgage','🏦','Льготная ипотека','−0.15 ₽ на жителя в день. Жильё покупают в 1.6× быстрее, растёт доверие. Нравится бедным и среднему классу.'],
+['mortgage','🏦','Льготная ипотека','−0.15 € на жителя в день. Жильё покупают в 1.6× быстрее, растёт доверие. Нравится бедным и среднему классу.'],
 ['rentcap','🏷','Потолок аренды','Доход от аренды −30%. Бедные довольны, элиты и владельцы возмущены.'],
-['edufree','🎓','Бесплатное образование','−0.12 ₽ на жителя в день. Образование растёт быстрее, счастье +2. Элиты недовольны расходами.'],
+['edufree','🎓','Бесплатное образование','−0.12 € на жителя в день. Образование растёт быстрее, счастье +2. Элиты недовольны расходами.'],
 ['ecolaw','🌿','Экологический закон','Экология очищается на 0.4/день, но доход −5% и элиты недовольны.'],
 ['sixday','🛠','Шестидневная рабочая неделя','Доход +10%, но счастье −3, недовольство рабочих и профсоюзы растут.'],
 ['quarantine','😷','Карантин','Только во время вспышки: заражение ×0.4, но счастье −4, доход −8%, недовольство растёт.'],
-['vaccine','💉','Вакцинация','−0.2 ₽ на жителя в день. Заражение ×0.5 и смертность ×0.5 во время вспышек.'],
-['anticor','🕵','Антикоррупционный отдел','−0.1 ₽ на жителя в день. Коррупция падает на 25 пунктов от равновесия и заметно медленнее растёт.'],
+['vaccine','💉','Вакцинация','−0.2 € на жителя в день. Заражение ×0.5 и смертность ×0.5 во время вспышек.'],
+['anticor','🕵','Антикоррупционный отдел','−0.1 € на жителя в день. Коррупция падает на 25 пунктов от равновесия и заметно медленнее растёт.'],
 ['press','📰','Свободная пресса','Скандалы вскрываются вдвое чаще и сильнее чистят власть, доверие слегка растёт. Элиты недовольны.']];
 function dcM(){if(sdAI())return 1;const c=SD.dc;return(c.ecolaw?.95:1)*(c.sixday?1.1:1)*(c.curfew?.98:1)*(c.quarantine&&SD.on?.92:1)*(1-Math.min(.25,(SD.ei||0)*.004))}
 function toggleDc(k){const S=SD,d=DCS.find(x=>x[0]==k);if(!d)return;if(S.dd[k]&&day>=S.dd[k]&&day-S.dd[k]<7)return toast('Указ нельзя менять чаще раза в неделю');
-if(!S.dc[k]){if(money<150)return toast('Оформление указа стоит 150 ₽');money-=150;S.dc[k]=1;socialEvent('Указ принят',d[2]+': '+d[3],'info')}else{delete S.dc[k];socialEvent('Указ отменён',d[2]+' больше не действует.','info')}
+if(!S.dc[k]){if(money<150)return toast('Оформление указа стоит 150 €');money-=150;S.dc[k]=1;socialEvent('Указ принят',d[2]+': '+d[3],'info')}else{delete S.dc[k];socialEvent('Указ отменён',d[2]+' больше не действует.','info')}
 S.dd[k]=day;toast(d[1]+' '+d[2]+': '+(S.dc[k]?'вступил в силу':'отменён'));renderSociety();hud()}
 function decrees(hs){if(sdAI())return;const c=SD.dc;
 if(c.curfew){for(const D of DST){D.bd*=.96;D.u=Math.min(100,D.u+.6)}happy-=2;socialTrust=Math.max(0,socialTrust-.15)}
@@ -687,13 +737,13 @@ if(S.on){happy=Math.max(0,happy-Math.min(14,S.ei*.25));socialTrust=Math.max(0,so
 if(!DST.some(d=>(d.inf||0)>0)){S.on=0;toast('🦠 Эпидемия закончилась');socialEvent('Эпидемия закончилась','Вспышка угасла. Всего умерших за время эпидемий ≈'+Math.round(S.em)+'.','positive')}}
 return dead}
 
-const SCN=['Газета: «Подрядчики завысили смету дорог: откаты в мэрии»','Газета: «Чиновники продавали разрешения на застройку»','Газета: «Расследование: бандиты платили полиции за молчание»'],OFS=[['Застройщик предлагает {x} ₽ за «ускоренное согласование» участков.',0],['Подрядчик предлагает откат {x} ₽ за контракт на дороги.',0],['Бандиты предлагают {x} ₽, чтобы вы не замечали их «бизнес».',1]];
-function renderOffer(){const e=$('ofr'),o=SD.of;if(!e)return;if(!o||sdAI()){e.style.display='none';return}e.innerHTML='<b>💼 Предложение</b> <small>(ещё '+o.t+' дн.)</small><br>'+o.txt+'<br><button onclick="offerAns(1)">Принять +'+o.x+' ₽</button><button onclick="offerAns(0)">Отклонить</button>';e.style.display='block'}
-function offerAns(y){const S=SD,o=S.of;if(!o)return;S.of=null;if(y){money+=o.x;S.co=Math.min(100,S.co+10);S.hid++;if(o.b)for(const D of DST)D.bd=Math.min(100,D.bd+4);toast('💼 Вы взяли '+o.x+' ₽. Это может всплыть');socialEvent('Взятка принята','Вы приняли '+o.x+' ₽. Коррупция выросла, риск скандала тоже.','warning')}else{socialTrust=Math.min(100,socialTrust+2);S.co=Math.max(0,S.co-1);toast('Вы отклонили предложение: доверие растёт');socialEvent('Предложение отклонено','Вы отказались от выгодной, но сомнительной сделки.','positive')}renderOffer();hud()}
+const SCN=['Газета: «Подрядчики завысили смету дорог: откаты в мэрии»','Газета: «Чиновники продавали разрешения на застройку»','Газета: «Расследование: бандиты платили полиции за молчание»'],OFS=[['Застройщик предлагает {x} € за «ускоренное согласование» участков.',0],['Подрядчик предлагает откат {x} € за контракт на дороги.',0],['Бандиты предлагают {x} €, чтобы вы не замечали их «бизнес».',1]];
+function renderOffer(){const e=$('ofr'),o=SD.of;if(!e)return;if(!o||sdAI()){e.style.display='none';return}e.innerHTML='<b>💼 Предложение</b> <small>(ещё '+o.t+' дн.)</small><br>'+o.txt+'<br><button onclick="offerAns(1)">Принять +'+o.x+' €</button><button onclick="offerAns(0)">Отклонить</button>';e.style.display='block'}
+function offerAns(y){const S=SD,o=S.of;if(!o)return;S.of=null;if(y){money+=o.x;S.co=Math.min(100,S.co+10);S.hid++;if(o.b)for(const D of DST)D.bd=Math.min(100,D.bd+4);toast('💼 Вы взяли '+o.x+' €. Это может всплыть');socialEvent('Взятка принята','Вы приняли '+o.x+' €. Коррупция выросла, риск скандала тоже.','warning')}else{socialTrust=Math.min(100,socialTrust+2);S.co=Math.max(0,S.co-1);toast('Вы отклонили предложение: доверие растёт');socialEvent('Предложение отклонено','Вы отказались от выгодной, но сомнительной сделки.','positive')}renderOffer();hud()}
 function corrupt(hs){if(sdAI()){return}const S=SD,c=S.dc;
 let tg=8+Math.min(25,pop/12)+BDI*.35+(100-socialTrust)*.15+S.hid*2;if(c.anticor)tg-=25;tg=Math.max(0,Math.min(100,tg));S.co=Math.max(0,Math.min(100,S.co+(tg-S.co)*.04-(c.anticor?.4:0)));
 S.lk=pop*.08*S.co/100+(S.co>50?(S.co-50)*.2:0);money-=S.lk;
-if(S.co>=25&&Math.random()<S.co/100*.05*(c.press?2:1)){const pen=Math.round(30+S.co*2);money-=pen;socialTrust=Math.max(0,socialTrust-(6+S.co*.06));prot=Math.min(100,prot+8);const t=SCN[Math.random()*SCN.length|0];S.co=Math.max(0,S.co-(c.press?25:15));S.hid=0;toast('📰 '+t);socialEvent('Коррупционный скандал',t+'. Расследование обошлось в '+pen+' ₽, доверие упало.','warning')}
+if(S.co>=25&&Math.random()<S.co/100*.05*(c.press?2:1)){const pen=Math.round(30+S.co*2);money-=pen;socialTrust=Math.max(0,socialTrust-(6+S.co*.06));prot=Math.min(100,prot+8);const t=SCN[Math.random()*SCN.length|0];S.co=Math.max(0,S.co-(c.press?25:15));S.hid=0;toast('📰 '+t);socialEvent('Коррупционный скандал',t+'. Расследование обошлось в '+pen+' €, доверие упало.','warning')}
 if(day%10==7&&(c.press||Math.random()<.5)){let h=null,g_=-1;if(S.on){h='Больницы переполнены, горожане боятся вспышки'}else if(GH>.2)h='Гетто растут: власти не замечают бедных кварталов';else if(WU>40)h='Рабочие грозят забастовкой';else if(BDI>35)h='Банды берут город под контроль';else if(S.co>45)h='Горожане шепчутся о взятках в мэрии';else if(happy>75){h='Город живёт хорошо: рекордное счастье';g_=1}
 if(h){socialTrust=Math.max(0,Math.min(100,socialTrust+g_*1.5));toast('📰 «'+h+'»');socialEvent('Пресса','Газета: «'+h+'».',g_>0?'positive':'info')}}
 if(S.of){S.of.t--;if(S.of.t<=0){S.of=null;toast('Предложение сорвалось')}}
@@ -756,18 +806,18 @@ for(let i=0;i<du.length;i++)if(dt[i]>0)DST[i].u=Math.min(100,DST[i].u+du[i]/dt[i
 let sE=0,sW=0;for(const v of eS)sE+=v;for(const v of wS)sW+=v;UTS={es:sE,ed:TE,ws:sW,wd:TW};
 HT=TH>0?SH/TH:1;if(bad>0&&day%6==1)toast('⚡ Есть здания без тока или воды: смотрите слой «Сети»');
 return{pw:TE>0?SE/TE:1,wt:TW>0?SW/TW:1,dead:pop>0?(1-HT)*M.ht*pop*.002:0}}
-function utilInfo(b){if(!SD.nw)return b.t=='gtes'?'<br><small>Газ: '+Math.round(16*SD.gas)+' ₽/день</small>':'';const t=b.t;
-if(t=='pline')return '<br><small>Опора ЛЭП: передаёт ток соседним линиям и зданиям.</small>';
-if(t=='power'||t=='gtes'||t=='solar'||t=='water'||t=='wtower'){const o={power:'⚡130 🔥120',gtes:'⚡170 🔥100',solar:'⚡'+Math.round(45*M.sun),water:'💧'+Math.round(90*wEff(sel.x,sel.y)*M.wf),wtower:'💧40 (работает везде)'}[t];return '<br><small>Выработка: '+o+(t=='power'?' · дешёвая, но грязная':'')+(t=='gtes'?' · чище, газ '+Math.round(16*SD.gas)+' ₽/день (цена ×'+SD.gas.toFixed(2)+')'+(GOFF?' · <b>остановлена: нет денег на газ</b>':''):'')+(t=='solar'?'':'<br>Вода и тепло уходят в трубу в радиусе 1 клетки.')+(t=='water'||t=='wtower'?'':'<br>Ток уходит в ЛЭП и соседние здания.')+'</small>'}
+function utilInfo(b){if(!SD.nw)return b.t=='gtes'?'<br><small>Газ: '+Math.round(16*SD.gas)+' €/день</small>':'';const t=b.t;
+if(t=='parking')return '<br><small>🅿 Машины стоят здесь, а не на улицах — трафик снижается. Нужно примерно 1 парковка на 25 жителей. Содержание 1 €/день. Работает рядом с дорогой.</small>';if(t=='pline')return '<br><small>Опора ЛЭП: передаёт ток соседним линиям и зданиям.</small>';
+if(t=='power'||t=='gtes'||t=='solar'||t=='water'||t=='wtower'){const o={power:'⚡130 🔥120',gtes:'⚡170 🔥100',solar:'⚡'+Math.round(45*M.sun),water:'💧'+Math.round(90*wEff(sel.x,sel.y)*M.wf),wtower:'💧40 (работает везде)'}[t];return '<br><small>Выработка: '+o+(t=='power'?' · дешёвая, но грязная':'')+(t=='gtes'?' · чище, газ '+Math.round(16*SD.gas)+' €/день (цена ×'+SD.gas.toFixed(2)+')'+(GOFF?' · <b>остановлена: нет денег на газ</b>':''):'')+(t=='solar'?'':'<br>Вода и тепло уходят в трубу в радиусе 1 клетки.')+(t=='water'||t=='wtower'?'':'<br>Ток уходит в ЛЭП и соседние здания.')+'</small>'}
 if(b.cvE!=null){const f=v=>v==null?'—':v>=.99?'✅':v>0?'⚠'+Math.round(v*100)+'%':'❌';return '<br><small>⚡ '+f(b.cvE)+' · 💧 '+f(b.cvW)+(b.cvH!=null&&M.ht>=.3?' · 🔥 '+f(b.cvH):'')+(b.cvE===0?' — нет тока: проведите ЛЭП до станции или поставьте здание вплотную к запитанному':'')+(b.cvW===0?' — нет трубы в радиусе 2 клеток':'')+'</small>'}return ''}
 function utilMissing(){let a=0,p=0;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=g[y][x];if(b&&b.t=='road'&&owned(x,y)){if(!b.wr)a++;if(!PIPES[y][x])p++}}return[a,p]}
 function utilWireAll(){const m=utilMissing(),c=m[0]*T.wire.c+m[1]*T.pipe.c;if(!c)return toast('Все дороги уже с проводами и трубами');if(money<c)return toast('Нужно '+fm(c));money-=c;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=g[y][x];if(b&&b.t=='road'&&owned(x,y)){b.wr=1;PIPES[y][x]=1}}toast('Провода и трубы проложены по дорогам: '+fm(c));hud();renderSociety()}
-function utilEnable(){SD.nw=1;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=g[y][x];if(b&&b.t=='road'){b.wr=1;PIPES[y][x]=1}}toast('Сети как в SimCity 4: провода и трубы по текущим дорогам проложены бесплатно');hud();renderSociety()}
+function utilEnable(){SD.nw=1;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=g[y][x];if(b&&b.t=='road'){b.wr=1;PIPES[y][x]=1}}toast('Сети включены: провода и трубы по текущим дорогам проложены бесплатно');hud();renderSociety()}
 function utilAuto(){SD.auto=SD.auto?0:1;toast('Автопроводка '+(SD.auto?'включена':'выключена'));renderSociety()}
 function utilHtml(){const S=SD,pc=v=>Math.round(v*100)+'%',hr='<hr style="border:0;border-top:1px solid var(--b)">';if(sdAI())return '';
-if(!S.nw)return hr+'<b>⚡ Сети</b><br><small>Сейчас электричество, вода и тепло считаются общими на весь город.</small><br><button class="c" onclick="utilEnable()">Включить сети как в SimCity 4 (дороги получат провода и трубы бесплатно)</button>';
+if(!S.nw)return hr+'<b>⚡ Сети</b><br><small>Сейчас электричество, вода и тепло считаются общими на весь город.</small><br><button class="c" onclick="utilEnable()">Включить сети (дороги получат провода и трубы бесплатно)</button>';
 const m=utilMissing(),c=m[0]*T.wire.c+m[1]*T.pipe.c,u=UTS;
-return hr+'<b>⚡ Сети (как в SimCity 4)</b><br><small>⚡ '+pc(PW)+' · 💧 '+pc(WT)+' · 🔥 '+pc(HT)+' · газ ×'+S.gas.toFixed(2)+(S.fuel?' ('+S.fuel+' ₽/день)':'')+'<br>Ток: выработка '+Math.round(u.es)+' / нужно '+Math.round(u.ed)+' · Вода: подача '+Math.round(u.ws)+' / нужно '+Math.round(u.wd)+'</small><br><button class="c" onclick="utilAuto()">🔌 Автопроводка дорог: '+(S.auto?'<b>ВКЛ</b>':'выкл')+'</button> <button class="c" onclick="utilWireAll()">Провода и трубы по всем дорогам'+(c?' ('+fm(c)+')':'')+'</button><br><small><b>Как это работает.</b> ⚡ Ток идёт по ЛЭП (🔌 на пустой земле или над дорогой) и передаётся через здания, стоящие вплотную друг к другу; дорога без провода ток не проводит. Все станции одной сети делят нагрузку: если выработки не хватает, дома сети получают лишь часть. 💧 Трубы 🚰 прокладываются под землёй где угодно, даже под зданиями, и видны в слое «Сети» (он включается сам с инструментом). Здание получает воду, если труба есть в радиусе 2 клеток; насос, башня, ТЭЦ и ГТЭС подключаются к трубе в радиусе 1 клетки. Чтобы убрать трубу, включите слой «Сети» и используйте снос. Водозабор у реки даёт больше воды, водонапорная башня работает везде, но слабее. ТЭЦ дешевле, но грязнее; ГТЭС чище и мощнее, но платит за газ.</small>'}
+return hr+'<b>⚡ Сети</b><br><small>⚡ '+pc(PW)+' · 💧 '+pc(WT)+' · 🔥 '+pc(HT)+' · газ ×'+S.gas.toFixed(2)+(S.fuel?' ('+S.fuel+' €/день)':'')+'<br>Ток: выработка '+Math.round(u.es)+' / нужно '+Math.round(u.ed)+' · Вода: подача '+Math.round(u.ws)+' / нужно '+Math.round(u.wd)+'</small><br><button class="c" onclick="utilAuto()">🔌 Автопроводка дорог: '+(S.auto?'<b>ВКЛ</b>':'выкл')+'</button> <button class="c" onclick="utilWireAll()">Провода и трубы по всем дорогам'+(c?' ('+fm(c)+')':'')+'</button><br><small><b>Как это работает.</b> ⚡ Ток идёт по ЛЭП (🔌 на пустой земле или над дорогой) и передаётся через здания, стоящие вплотную друг к другу; дорога без провода ток не проводит. Все станции одной сети делят нагрузку: если выработки не хватает, дома сети получают лишь часть. 💧 Трубы 🚰 прокладываются под землёй где угодно, даже под зданиями, и видны в слое «Сети» (он включается сам с инструментом). Здание получает воду, если труба есть в радиусе 2 клеток; насос, башня, ТЭЦ и ГТЭС подключаются к трубе в радиусе 1 клетки. Чтобы убрать трубу, включите слой «Сети» и используйте снос. Водозабор у реки даёт больше воды, водонапорная башня работает везде, но слабее. ТЭЦ дешевле, но грязнее; ГТЭС чище и мощнее, но платит за газ.</small>'}
 function showSociety(){const el=$('socpanel');if(el.style.display=='block'){el.style.display='none';return}renderSociety();el.style.display='block'}
 function renderSociety(){const el=$('socpanel'),classes=hist[hist.length-1]||[0,0,0,0],total=classes.reduce((a,b)=>a+(b||0),0)||1,gn=DST.filter(d=>d.gf).length,strikes=DST.filter(d=>d.str>0).length;const trustLabel=socialTrust>=70?'высокое':socialTrust>=45?'среднее':socialTrust>=25?'низкое':'критически низкое';const logs=socialLog.length?socialLog.map(e=>`<div style="padding:7px 0;border-bottom:1px solid var(--b)"><b>День ${e.day} · ${e.title}</b><br><small>${e.detail}</small></div>`).join(''):'<small>Пока нет зарегистрированных социальных событий. Они появятся по мере развития города.</small>';el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:17px">👥 Общество</b><span><button class="c" onclick="$('chb').click()">📊 График</button> <button class="c" onclick="$('socpanel').style.display='none'">Закрыть ✕</button></span></div><p><b>Доверие к городскому устройству:</b> ${Math.round(socialTrust)}% — ${trustLabel}<br><b>Недовольство рабочих:</b> ${Math.round(WU)}% · <b>Недовольство элит:</b> ${Math.round(EL)}%<br><b>Бедные:</b> ${Math.round(classes[0]||0)} (${Math.round((classes[0]||0)/total*100)}%) · <b>Рабочие:</b> ${Math.round(classes[1]||0)} (${Math.round((classes[1]||0)/total*100)}%)<br><b>Средний класс:</b> ${Math.round(classes[2]||0)} · <b>Высший класс:</b> ${Math.round(classes[3]||0)}<br><b>Гетто:</b> ${gn} районов · <b>Забастовки:</b> ${strikes} районов · <b>Митинги сейчас:</b> ${riots.length}</p><hr style="border:0;border-top:1px solid var(--b)">${socDeepHtml()}<hr style="border:0;border-top:1px solid var(--b)"><b>История общественных событий</b><div style="max-height:34vh;overflow:auto">${logs}</div><small style="opacity:.75">Доверие — сводный показатель модели, рассчитанный по благополучию, недовольству, социальным проблемам и пособиям. Это игровая абстракция, не опрос жителей.</small>`}
 $('socb').onclick=showSociety;
@@ -1070,7 +1120,7 @@ function dbgToggle(){let el=$('dbg');
   const hd=document.createElement('div');hd.innerHTML='<b>🛠 Дебаг-меню</b>';el.appendChild(hd);
   const info=document.createElement('div');info.id='dbgi';info.style.cssText='margin:6px 0;opacity:.85';el.appendChild(info);
   const acts=[
-   ['+10 000 ₽',()=>{money+=10000}],
+   ['+10 000 €',()=>{money+=10000}],
    ['+1000 жителей',()=>{pop+=1000}],
    ['Пропустить 10 дней',()=>{for(let i=0;i<10;i++)dayAll();toast('Прошло 10 дней')}],
    ['Счастье 100%',()=>{happy=100}],
@@ -1145,7 +1195,7 @@ if(b.sl&&b.sl!=60){X.fillStyle=b.sl==40?'#42a5f5':'#ef5350';X.fillRect(sx+2,sy+Q
 else if(['park','fountain','bench','treeObj','playground','monument','parkDubai','parkMunich','parkNY','parkSuburb','parkSoviet','parkJp'].includes(t)){parkArt(c,m,b.sty==null?sty:b.sty,t,true,x,y)}
 else if(t=='field'){X.fillStyle='#3fa34d';X.fillRect(sx+1,sy+1,Q-2,Q-2);X.strokeStyle='#fff';X.strokeRect(sx+2.5,sy+2.5,Q-5,Q-5);X.beginPath();X.moveTo(c,sy+3);X.lineTo(c,sy+Q-3);X.stroke()}
 else if(t.slice(0,3)=='cem'){X.fillStyle='#5f9a52';X.fillRect(sx+1,sy+1,Q-2,Q-2);X.fillStyle=t=='cemC'?'#fff':t=='cemM'?'#1fae8f':'#bdbdbd';X.fillRect(sx+4,sy+5,3,5);X.fillRect(sx+11,sy+4,3,5);X.fillRect(sx+7,sy+12,3,5)}
-else if(t=='stad'){X.fillStyle='#b5b5b5';X.fillRect(sx+1,sy+1,Q-2,Q-2);X.fillStyle='#3fa34d';X.fillRect(sx+5,sy+5,Q-10,Q-10)}
+else if(t=='parking')parkingTop(sx,sy,x,y);else if(t=='stad'){X.fillStyle='#b5b5b5';X.fillRect(sx+1,sy+1,Q-2,Q-2);X.fillStyle='#3fa34d';X.fillRect(sx+5,sy+5,Q-10,Q-10)}
 else if(t[0]=='z'){X.fillStyle={zC:'#5b7fd0',zR:'#e0a64a',zI:'#a8743c'}[t];X.fillRect(sx+2,sy+2,Q-4,Q-4);X.fillStyle='#fff';X.fillRect(c-1,m-1,3,3);if(!nearRoad(x,y)){X.fillStyle='#e53935';X.fillRect(sx+2,sy+2,3,3)}}
 else if(t=='cottage')cottageTop(sx,sy,b,x,y);else if(t=='pline')plineTop(sx,sy,x,y,o);else{const rf={mosque:['#f4f1e8','#2e9e8a',5],bigmosque:['#f4f1e8','#2e9e8a',8],madrasa:['#e9d3a3','#e0b43a',4],church:['#8a4a3a','#fff',0],parish:['#8a4a3a','#fff',0],cathedral:['#c8c2b4','#555',0]}[t],z=(t=='factory'||b.sty==null)?null:ST[b.sty],zc=isV(z)?sCol(z,b,t):(z?z.c:d.col),col=rf?rf[0]:((z&&z.k=='wn'&&t=='house')?WNR[wnVi(b)]:zc[0]),ed=rf?'#777':zc[2];
 X.fillStyle=ed;X.fillRect(sx+1,sy+1,Q-2,Q-2);X.fillStyle=col;X.fillRect(sx+2,sy+2,Q-5,Q-5);
@@ -1160,6 +1210,7 @@ else if(z&&(z.k=='ny'||z.k=='mc')){X.fillStyle=z.c[1];X.fillRect(sx+6,sy+6,Q-12,
 else if(d.h>25){X.fillStyle=d.col[1];X.fillRect(sx+6,sy+6,Q-12,Q-12)}
 if(isRes(t)||isCom(t)){X.fillStyle=!nearRoad(x,y)?'#e53935':b.rent?'#ffd600':b.own=='priv'?'#7e57c2':'#fff';X.fillRect(sx+Q-6,sy+Q-6,3,3);if(b.rk>=40||b.shut>0){X.fillStyle='#000';X.fillRect(sx+2,sy+Q-6,4,4);X.fillStyle='#ff1744';X.fillRect(sx+3,sy+Q-5,2,2)}}}}
 if(BIGP)return;
+if(b&&b.fire>0){const fh=(T[b.t]&&T[b.t].h)||12;for(let i=0;i<5;i++){X.fillStyle=i%2?'#ff9800':'#ff5722';X.fillRect(Math.round(sx-5+i*3),Math.round(sy+6-fh-((tm*14+i*5)%7|0)),2,4)}X.fillStyle='rgba(60,60,60,.6)';X.fillRect(Math.round(sx+2),Math.round(sy-fh-8-((tm*8)%6|0)),4,4)}
 for(const r of riots)if(r.x==x&&r.y==y){X.fillStyle='#d32f2f';for(let i=0;i<9;i++)X.fillRect(sx+1+((i*5+tm*8)%16|0),sy+2+((i*7)%14),2,2);if(r.k=='c'){X.fillStyle='#eee';X.fillRect(sx+3,sy+1,1,10);X.fillStyle='#ff1744';X.fillRect(sx+4,sy+1,6,4)}}
 if(ov&&ov[y][x]){X.globalAlpha=.5;X.fillStyle=ov[y][x];X.fillRect(sx,sy,Q,Q);X.globalAlpha=1}
 if(GP)for(const q of GP)if(q[0]==x&&q[1]==y){X.globalAlpha=.5+.2*Math.sin(tm*6);X.fillStyle=q[2]?'#66e07a':'#ff5252';X.fillRect(sx,sy,Q,Q);X.globalAlpha=1;break}
@@ -1180,18 +1231,39 @@ if(t=='road'){if(b.al)alleyBase(sx,sy,x,y,o);else D(sx,sy,tr[y][x]==1?'#a8452f':
 for(const n of [[1,0],[-1,0],[0,1],[0,-1]])if(isRoad(x+n[0],y+n[1])){const a=R(x+n[0],y+n[1]);X.moveTo(sx,sy+8);X.lineTo(sx+(a[0]-o[0]-a[1]+o[1])*8,sy+8+(a[0]-o[0]+a[1]-o[1])*4)}X.stroke();condArt(sx,sy,b,o,x,y);if(b.tl){X.fillStyle='#222';X.fillRect(sx+5,sy+4,2,6);X.fillStyle=(tm|0)%2?'#e53935':'#4caf50';X.fillRect(sx+5,sy+2,2,2)}if(b.sl&&b.sl!=60){X.fillStyle=b.sl==40?'#42a5f5':'#ef5350';X.fillRect(sx-6,sy+9,2,2)}if(b.ac>0){X.fillStyle='#e53935';X.fillRect(sx-4,sy+6,4,3);X.fillStyle='#fdd835';X.fillRect(sx+1,sy+8,4,3);X.fillStyle=(tm*3|0)%2?'#fff':'#e53935';X.fillRect(sx-1,sy+3,3,2)}}
 else if(['park','fountain','bench','treeObj','playground','monument','parkDubai','parkMunich','parkNY','parkSuburb','parkSoviet','parkJp'].includes(t)){parkArt(sx,sy,b.sty==null?sty:b.sty,t,false,x,y)}
 else if(t=='field'){D(sx,sy,'#3fa34d',.9);X.strokeStyle='#fff';X.beginPath();X.moveTo(sx-8,sy+4);X.lineTo(sx+8,sy+12);X.moveTo(sx+8,sy+4);X.lineTo(sx-8,sy+12);X.stroke()}
-else if(t=='stad'){cube(sx,sy+8,9,['#c9c9c9','#9a9a9a','#7c7c7c'],.95);P([[sx,sy+3],[sx+10,sy+8-0],[sx,sy+13],[sx-10,sy+8]].map(p=>[p[0],p[1]-9]),'#3fa34d')}
+else if(t=='parking')parkingIso(sx,sy,x,y);else if(t=='stad'){cube(sx,sy+8,9,['#c9c9c9','#9a9a9a','#7c7c7c'],.95);P([[sx,sy+3],[sx+10,sy+8-0],[sx,sy+13],[sx-10,sy+8]].map(p=>[p[0],p[1]-9]),'#3fa34d')}
 else if(t[0]=='z'){D(sx,sy,{zC:'#5b7fd0',zR:'#e0a64a',zI:'#a8743c'}[t],.85);X.fillStyle='#fff';X.fillRect(sx-1,sy+7,3,3);if(!nearRoad(x,y)){X.fillStyle='#e53935';X.fillRect(sx-1,sy+1,3,3)}}
 else if(t.slice(0,3)=='cem')cemI(sx,sy,t);else if(t=='cottage')cottageIso(sx,sy,b,x,y);else if(t=='pline')plineIso(sx,sy,x,y,o);else if(d.rel)relb(sx,sy+8,t);else{const z=(t=='factory'||b.sty==null)?null:ST[b.sty],hh=z?Math.round(d.h*z.m):d.h;bshadow(sx,sy,hh);const mcS=!!z&&(z.k=='mc'||z.k=='ny'),wnk=isV(z)||mcS;cube(sx,sy+8,hh,isV(z)?sCol(z,b,t):z?stCol(z,b,t):d.col,.88,wnk);if(z)deco(sx,sy+8,hh,z,b);if(!wnk)bdetail(sx,sy,t,hh,b);if(t=='gtes')gtesArt(sx,sy,hh);if(t=='wtower')wtowerArt(sx,sy,hh);
 if(d.pol||t=='power'){X.fillStyle='#6a4a3a';X.fillRect(sx+3,sy-8,5,14);for(let i=0;i<3;i++){X.fillStyle='rgba(210,210,210,'+(.7-i*.2)+')';X.fillRect(Math.round(sx+4+Math.sin(tm*2+i)*2),Math.round(sy-12-i*5-(tm*6%5)),5,4)}}
-if(t=='police'){X.fillStyle=(tm*2|0)%2?'#e53935':'#42a5f5';X.fillRect(sx-1,sy+8-hh-4,3,3)}if(t=='hosp'){X.fillStyle='#e53935';X.fillRect(sx+6,sy-3,5,1);X.fillRect(sx+8,sy-5,1,5)}const fl=hh+8;X.fillStyle=nearRoad(x,y)?(b.rent?'#ffd600':b.own=='priv'?'#7e57c2':'#fff'):'#e53935';X.fillRect(sx-1,sy+8-fl-3,3,3);if(b.rk>=40||b.shut>0){X.fillStyle='#000';X.fillRect(sx+3,sy+8-fl-3,4,4);X.fillStyle='#ff1744';X.fillRect(sx+4,sy+8-fl-2,2,2)}}}
+if(t=='police'){X.fillStyle=(tm*2|0)%2?'#e53935':'#42a5f5';X.fillRect(sx-1,sy+8-hh-4,3,3)}if(t=='fire'){X.fillStyle=(tm*2|0)%2?'#ff5252':'#ffd54f';X.fillRect(sx-1,sy+8-hh-4,3,3);X.fillStyle='#ffd54f';X.fillRect(sx-5,sy+8-3,10,3)}if(t=='bank'){X.fillStyle='#ffd600';X.fillRect(sx-4,sy+8-hh-2,8,2)}if(t=='busstop'){X.fillStyle='#ffd600';X.fillRect(sx,sy+8-hh-5,1,5);X.fillRect(sx-2,sy+8-hh-7,5,3)}if(t=='metro'){X.fillStyle='#ff5252';X.fillRect(sx-3,sy+8-hh-6,7,5);X.fillStyle='#fff';X.fillRect(sx-1,sy+8-hh-5,3,3)}if(t=='hosp'){X.fillStyle='#e53935';X.fillRect(sx+6,sy-3,5,1);X.fillRect(sx+8,sy-5,1,5)}const fl=hh+8;X.fillStyle=nearRoad(x,y)?(b.rent?'#ffd600':b.own=='priv'?'#7e57c2':'#fff'):'#e53935';X.fillRect(sx-1,sy+8-fl-3,3,3);if(b.rk>=40||b.shut>0){X.fillStyle='#000';X.fillRect(sx+3,sy+8-fl-3,4,4);X.fillStyle='#ff1744';X.fillRect(sx+4,sy+8-fl-2,2,2)}}}
 if(BIGP)return;
+if(b&&b.fire>0){const fh=(T[b.t]&&T[b.t].h)||12;for(let i=0;i<5;i++){X.fillStyle=i%2?'#ff9800':'#ff5722';X.fillRect(Math.round(sx-5+i*3),Math.round(sy+6-fh-((tm*14+i*5)%7|0)),2,4)}X.fillStyle='rgba(60,60,60,.6)';X.fillRect(Math.round(sx+2),Math.round(sy-fh-8-((tm*8)%6|0)),4,4)}
 for(const r of riots)if(r.x==x&&r.y==y){X.fillStyle='#d32f2f';for(let i=0;i<9;i++)X.fillRect(sx-9+((i*5+tm*8)%18|0),sy+3+((i*7)%10),2,3);if(r.k=='c'){X.fillStyle='#eee';X.fillRect(sx,sy-8,1,12);X.fillStyle='#ff1744';X.fillRect(sx+1,sy-8,7,4)}}
 if(ov&&ov[y][x]){X.globalAlpha=.5;D(sx,sy,ov[y][x]);X.globalAlpha=1}
 if(GP)for(const q of GP)if(q[0]==x&&q[1]==y){X.globalAlpha=.5+.2*Math.sin(tm*6);D(sx,sy,q[2]?'#66e07a':'#ff5252');X.globalAlpha=1;break}
 if(sel&&sel.x==x&&sel.y==y||hov&&hov.x==x&&hov.y==y&&(tool!='sel'||hovM)){X.strokeStyle='#fff';X.lineWidth=1;X.beginPath();X.moveTo(sx,sy+.5);X.lineTo(sx+15.5,sy+8);X.lineTo(sx,sy+15.5);X.lineTo(sx-15.5,sy+8);X.closePath();X.stroke()}}
 
 // ═══ ВИД ЗДАНИЙ: тени, детали, частные дома ═══
+
+/* ===== Модель парковки (канвас): асфальт, разметка, машины, знак P ===== */
+const PKC=[['#e5584b','#b8443a','#933630'],['#4a86e8','#386bbd','#2c5594'],['#f2f2f2','#c9c9c9','#a3a3a3'],['#f2c14e','#c79a35','#a67e2a'],['#3d3d3d','#2c2c2c','#222222'],['#43a047','#2f7d34','#256328']];
+const pkH=(x,y,i)=>Math.abs((x*31+y*17+i*13)*2654435761>>>0)%100;
+function parkingIso(sx,sy,x,y){
+D(sx,sy,'#3b3e43',.97);
+const pt=(a,b)=>[sx+(a-b)*16,sy+(a+b)*8];
+X.strokeStyle='#8f9297';X.lineWidth=1;X.beginPath();[[0,0],[1,0],[1,1],[0,1],[0,0]].forEach((q,i)=>{const p=pt(q[0],q[1]);i?X.lineTo(p[0],p[1]):X.moveTo(p[0],p[1])});X.stroke();
+X.strokeStyle='rgba(255,255,255,.85)';X.beginPath();
+for(const b of [.1,.3,.5,.7,.9])for(const c of [[.08,.42],[.58,.92]]){const p=pt(c[0],b),q=pt(c[1],b);X.moveTo(p[0],p[1]);X.lineTo(q[0],q[1])}
+X.stroke();
+X.strokeStyle='rgba(255,214,0,.7)';X.beginPath();for(let b=.06;b<.95;b+=.16){const p=pt(.5,b),q=pt(.5,b+.08);X.moveTo(p[0],p[1]);X.lineTo(q[0],q[1])}X.stroke();
+const sp=pt(.5,.02);X.fillStyle='#8a8d92';X.fillRect(Math.round(sp[0]),Math.round(sp[1]-9),1,10);X.fillStyle='#1e6bd6';X.fillRect(Math.round(sp[0]-3),Math.round(sp[1]-15),7,7);X.fillStyle='#fff';X.font='bold 6px system-ui,sans-serif';X.textAlign='center';X.fillText('P',Math.round(sp[0]+.5),Math.round(sp[1]-9));
+let n=0;for(let bi=0;bi<4;bi++){const b=.2+bi*.2;for(let ci=0;ci<2;ci++){const a=ci?.75:.25,h=pkH(x,y,n++);if(h<68){const p=pt(a,b);cube(Math.round(p[0]),Math.round(p[1]+2),3,PKC[h%6],.19);X.fillStyle='rgba(180,220,255,.8)';X.fillRect(Math.round(p[0]-1),Math.round(p[1]-3),2,1)}}}
+}
+function parkingTop(sx,sy,x,y){
+X.fillStyle='#3b3e43';X.fillRect(sx+1,sy+1,Q-2,Q-2);
+X.fillStyle='rgba(255,255,255,.8)';for(let i=0;i<5;i++){X.fillRect(sx+2,sy+3+i*3.5|0,6,1);X.fillRect(sx+Q-8,sy+3+i*3.5|0,6,1)}
+let n=0;for(let bi=0;bi<4;bi++)for(let ci=0;ci<2;ci++){const h=pkH(x,y,n++);if(h<68){X.fillStyle=PKC[h%6][0];X.fillRect(ci?sx+Q-7:sx+3,sy+4+bi*3.5|0,4,2)}}
+X.fillStyle='#1e6bd6';X.fillRect(sx+Q/2-2,sy+2,4,4);X.fillStyle='#fff';X.fillRect(sx+Q/2-1,sy+3,1,2)}
 function bshadow(sx,sy,h){P([[sx+14,sy+8],[sx+14+h*.45,sy+8+h*.22],[sx+h*.45,sy+15+h*.22],[sx,sy+15]],'rgba(0,0,0,.17)')}
 function bdetail(sx,sy,t,hh,b){const cx=sx,cy=sy+8,a=14,bb=7;if(t=='road')return;
 X.strokeStyle='rgba(255,255,255,.28)';X.lineWidth=1;X.beginPath();X.moveTo(cx,cy-bb-hh);X.lineTo(cx+a,cy-hh);X.lineTo(cx,cy+bb-hh);X.lineTo(cx-a,cy-hh);X.closePath();X.stroke();
@@ -1558,13 +1630,13 @@ function draw(){X.fillStyle='#243324';X.fillRect(0,0,W,H);const B={};
 const oc=vs&&CITY[1]?CITY[1]:null;let g0,r0;for(const a of agents.concat(evs,oc?oc.agents.concat(oc.evs):[])){const r=R(a.x,a.y),k=tp?2*N:Math.round(r[0]+r[1]);a.u=r[0];a.v=r[1];(B[k]=B[k]||[]).push(a)}
 for(let d=0;d<2*N;d++){for(let u=Math.max(0,d-N+1);u<=Math.min(N-1,d);u++){const q=RI(u,d-u),ai=oc&&vsIn(1,q[0],q[1]);if(ai){g0=g;r0=riots;g=oc.g;riots=oc.riots}tile(q[0],q[1]);if(ai){g=g0;riots=r0}}
 if(B[d])for(const a of B[d]){const px=tp?Math.round((a.u+.5)*Q+cam.x):Math.round((a.u-a.v)*16+cam.x),py=tp?Math.round((a.v+.5)*Q+cam.y):Math.round((a.u+a.v)*8+8+cam.y);
-if(a.ev){X.fillStyle=a.col;X.fillRect(px-4,py-4,8,4);X.fillStyle=(tm*4|0)%2?'#e53935':'#42a5f5';X.fillRect(px-1,py-6,3,2)}else if(a.car){X.fillStyle=a.col;X.fillRect(px-3,py-3,6,3);X.fillStyle='#222';X.fillRect(px-1,py-4,3,1)}else{X.fillStyle=a.col;X.fillRect(px,py-3,1,3);X.fillStyle='#f1c27d';X.fillRect(px,py-4,1,1)}}}vsDraw()}
+if(a.kind=='b'){X.fillStyle=a.col;X.fillRect(px-5,py-4,10,4);X.fillStyle='#d6f5dd';X.fillRect(px-4,py-3,2,1);X.fillRect(px-1,py-3,2,1);X.fillRect(px+2,py-3,2,1)}else if(a.ev){X.fillStyle=a.col;X.fillRect(px-4,py-4,8,4);X.fillStyle=(tm*4|0)%2?'#e53935':'#42a5f5';X.fillRect(px-1,py-6,3,2)}else if(a.car){X.fillStyle=a.col;X.fillRect(px-3,py-3,6,3);X.fillStyle='#222';X.fillRect(px-1,py-4,3,1)}else{X.fillStyle=a.col;X.fillRect(px,py-3,1,3);X.fillStyle='#f1c27d';X.fillRect(px,py-4,1,1)}}}vsDraw();tutDraw()}
 let last=performance.now();
 function loop(n){const dt=Math.min(.1,(n-last)/1000);last=n;tm+=dt;ovt+=dt;if(om&&ovt>.4&&!mo){ovt=0;buildOv()}if(!mo)acc+=dt;if(acc>4){acc=0;dayAll()}
 if(!mo){for(const a of agents)mv(a,dt);evMove(dt);if(vs){sw(1);for(const a of agents)mv(a,dt);evMove(dt);sw(0)}}draw();requestAnimationFrame(loop)}
 // input
 function pick(cx,cy){const dx=(cx/S-cam.x)/16,dy=(cy/S-cam.y)/8;const q=tp?RI(Math.floor((cx/S-cam.x)/Q),Math.floor((cy/S-cam.y)/Q)):RI(Math.floor((dx+dy)/2),Math.floor((dy-dx)/2));return{x:q[0],y:q[1]}}
-let ptr=null;const paint=()=>tool=='road'||tool=='bull'||tool=='lane'||tool=='limit'||tool=='wire'||tool=='pipe';
+let ptr=null;const paint=()=>tool=='zR'||tool=='zC'||tool=='zI'||tool=='road'||tool=='bull'||tool=='lane'||tool=='limit'||tool=='wire'||tool=='pipe';
 cv.addEventListener('pointerdown',e=>{if(ptr)return;if(e.button==1||e.button==2){e.preventDefault();ptr={id:e.pointerId,x:e.clientX,y:e.clientY,mv:99,l:null,pan:1};cv.setPointerCapture(e.pointerId);return}ptr={id:e.pointerId,x:e.clientX,y:e.clientY,mv:0,l:null};cv.setPointerCapture(e.pointerId);
 if(paint()){const p=pick(e.clientX,e.clientY);ptr.l=p.x+','+p.y;place(p.x,p.y,tool)}});
 cv.addEventListener('pointermove',e=>{if(!ptr||e.pointerId!=ptr.id)return;
@@ -1578,15 +1650,23 @@ ptr=null;hud()});
 cv.addEventListener('pointercancel',()=>{ptr=null});
 
 // ═══ ПК: колесо — зум, WASD/стрелки, ПКМ/СКМ — перетаскивание, горячие клавиши, подсказки ═══
-function setZoom(n,cx,cy){n=Math.max(2,Math.min(6,n));if(n==S)return;const wx=cx/S-cam.x,wy=cy/S-cam.y;S=n;rs();cam.x=cx/S-wx;cam.y=cy/S-wy}
-cv.addEventListener('wheel',e=>{e.preventDefault();const t=Date.now();if(t-(setZoom.t||0)<90)return;setZoom.t=t;setZoom(S+(e.deltaY<0?1:-1),e.clientX,e.clientY)},{passive:false});
+const ZL=[1.5,2,3,4,5,6];function zn(s0,d){let i=ZL.findIndex(v=>v>=s0-1e-6);if(i<0)i=ZL.length-1;return ZL[Math.max(0,Math.min(ZL.length-1,i+d))]}
+function setZoom(n,cx,cy){n=Math.max(1.5,Math.min(6,n));if(n==S)return;const wx=cx/S-cam.x,wy=cy/S-cam.y;S=n;rs();cam.x=cx/S-wx;cam.y=cy/S-wy}
+// ═══ v52: зум двумя пальцами (щипок) + перетаскивание двумя пальцами ═══
+const tpts=new Map();let pinch=null;
+const tpd=()=>{const a=[...tpts.values()],A=a[0],B=a[1];return{d:Math.hypot(A.x-B.x,A.y-B.y)||1,mx:(A.x+B.x)/2,my:(A.y+B.y)/2}};
+cv.addEventListener('pointerdown',e=>{if(e.pointerType=='mouse')return;tpts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(tpts.size==2){ptr=null;const t=tpd();pinch={d:t.d,S0:S,mx:t.mx,my:t.my}}});
+cv.addEventListener('pointermove',e=>{if(!tpts.has(e.pointerId))return;tpts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!pinch||tpts.size<2)return;const t=tpd();cam.x+=(t.mx-pinch.mx)/S;cam.y+=(t.my-pinch.my)/S;pinch.mx=t.mx;pinch.my=t.my;setZoom(Math.round(pinch.S0*t.d/pinch.d*20)/20,t.mx,t.my)});
+const tpEnd=e=>{tpts.delete(e.pointerId);if(tpts.size<2)pinch=null};
+cv.addEventListener('pointerup',tpEnd);cv.addEventListener('pointercancel',tpEnd);
+cv.addEventListener('wheel',e=>{e.preventDefault();const t=Date.now();if(t-(setZoom.t||0)<90)return;setZoom.t=t;setZoom(zn(S,e.deltaY<0?1:-1),e.clientX,e.clientY)},{passive:false});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 const tipEl=$('tip');
 cv.addEventListener('pointermove',e=>{if(e.pointerType!='mouse')return;hovM=true;if(ptr)return;const p=pick(e.clientX,e.clientY);if(p.x<0||p.y<0||p.x>=N||p.y>=N){hov=null;tipEl.style.display='none';return}hov=p;
 const b=g&&g[p.y]&&g[p.y][p.x];let t='';if(b&&T[b.t]){const d=T[b.t];t=d.e+' '+d.n+(b.res>0?' · жителей '+Math.round(b.res):'')+(b.own=='priv'?' · частное':'')+(b.mv&&CV[b.t]?' · цена '+fm(b.mv):'')}else if(!b&&tool!='sel'&&tool!='bull'&&T[tool]&&T[tool].c)t=T[tool].e+' '+T[tool].n+' — '+fm(T[tool].c);
 if(t){tipEl.textContent=t;tipEl.style.display='block';tipEl.style.left=Math.min(innerWidth-tipEl.offsetWidth-8,e.clientX+14)+'px';tipEl.style.top=(e.clientY+16)+'px'}else tipEl.style.display='none'});
 cv.addEventListener('pointerleave',()=>{hov=null;tipEl.style.display='none'});
-document.querySelectorAll('#tb button').forEach(b=>{const d=T[b.dataset.k];if(d)b.title=d.n+(d.c?' — '+d.c+' ₽':'')});
+document.querySelectorAll('#tb button').forEach(b=>{const d=T[b.dataset.k];if(d)b.title=d.n+(d.c?' — '+d.c+' €':'')});
 const KEYS={};
 const KBH=[['W A S D / стрелки','двигать камеру'],['Колесо мыши','приблизить / отдалить'],['ПКМ или СКМ + тащить','двигать камеру'],['+ / −','зум'],['1 – 8','разделы строительства'],['Q / E','повернуть вид'],['T','вид сверху / изометрия'],['X / Delete','снос'],['Esc','выбор, закрыть окна'],['C','общество'],['H','эта подсказка']];
 function kbToggle(f){const p=$('kbp');const on=f===undefined?p.style.display=='none':f;if(on)p.innerHTML='<b>⌨ Горячие клавиши</b><br>'+KBH.map(r=>'<span style="display:inline-block;min-width:170px"><b>'+r[0]+'</b></span> '+r[1]).join('<br>');p.style.display=on?'block':'none'}
@@ -1603,8 +1683,8 @@ else if(k=='x'||k=='delete')clk('#tb button[data-k="bull"]');
 else if(k=='escape'){clk('#tb button[data-k="sel"]');kbToggle(false);for(const id of ['socpanel','vspanel','ch'])$(id).style.display='none'}
 else if(k=='c')$('socb').click();
 else if(k=='h'||k=='?')kbToggle();
-else if(k=='+'||k=='=')setZoom(S+1,innerWidth/2,innerHeight/2);
-else if(k=='-'||k=='_')setZoom(S-1,innerWidth/2,innerHeight/2)});
+else if(k=='+'||k=='=')setZoom(zn(S,1),innerWidth/2,innerHeight/2);
+else if(k=='-'||k=='_')setZoom(zn(S,-1),innerWidth/2,innerHeight/2)});
 addEventListener('keyup',e=>{delete KEYS[e.key.toLowerCase()]});addEventListener('blur',()=>{for(const k in KEYS)delete KEYS[k]});
 setInterval(()=>{if(!started||uiOpen())return;let dx=0,dy=0;if(KEYS.a||KEYS.arrowleft)dx++;if(KEYS.d||KEYS.arrowright)dx--;if(KEYS.w||KEYS.arrowup)dy++;if(KEYS.s||KEYS.arrowdown)dy--;if(dx||dy){const sp=14/S;cam.x+=dx*sp;cam.y+=dy*sp}},16);
 
@@ -1674,7 +1754,7 @@ const aiPick=fn=>{let best=null,bv=-1e9;for(const s of fr){if(g[s[1]][s[0]]||!ne
 const rec=(k,n)=>day-(aiLast[k]||-99)<n;
 const build=(k,fn)=>{const d=T[k];if(money<d.c+60)return 0;const s=aiPick(Math.random()<[.3,.12,.04,0][aiLvl]?(()=>0):(fn||((lx,ly)=>-Math.abs(lx+ly-sz*.9))));if(!s)return 0;money-=d.c;
 const st=(k=='house'||k=='apt'||k=='shop'||k=='office'||PARK_PIECES.has(k))?aiSty:null;
-g[s[1]][s[0]]={t:k,own:'city',res:0,rent:(d.rent&&Math.random()<.6)?1:0,w:k=='soc'?.3:.55,sd:Math.random()*.8,sty:st,att:.1+Math.random()*.9,tm:2+(Math.random()*4|0)};
+g[s[1]][s[0]]={t:k,own:'city',res:0,rent:(d.rent&&Math.random()<.6)?1:0,w:k=='soc'?.3:.55,sd:Math.random()*.8,sty:st,att:.1+Math.random()*.9,tm:2+(Math.random()*4|0),bd:day};
 cnt[k]=(cnt[k]||0)+1;aiLast[k]=day;if(d.jobs)J+=d.jobs;if(isRes(k))Hc+=d.cap;return 1};
 const cf=(lx,ly,x,y)=>rn?-Math.hypot(x-rx/rn,y-ry/rn):-Math.abs(lx+ly-sz*.8);const wf=(lx,ly,x,y)=>wEff(x,y)*14-(lx+ly)*.1,ff=(lx,ly)=>-(lx+ly),sf=(lx,ly)=>-Math.abs(lx+ly-sz*.8);
 const hf=(lx,ly,x,y)=>{let v=-Math.abs(lx+ly-sz*.95);for(let j=-3;j<=3;j++)for(let i=-3;i<=3;i++){const q=g[y+j]&&g[y+j][x+i];if(q&&T[q.t]&&(T[q.t].pol||q.t=='power'))v-=2}return v};
@@ -1684,7 +1764,7 @@ else if(J>0&&WT<.98&&!rec('water',3))ok=build('water',wf);
 else if(pop>14*dl&&ED<.85&&!rec('school',3)&&srv)ok=build('school',cf);
 else if(pop>[200,120,100,70][aiLvl]&&ED<.95&&c('school')>=2&&c('univ')<1+pop/400&&money>4500&&!rec('univ',6))ok=build('univ',sf);
 else if(pop>16*dl&&MD<.85&&!rec('hosp',3)&&srv)ok=build('hosp',cf);
-else if(pop>12*dl&&(CR>.1||c('police')<Math.ceil(pop/60))&&!rec('police',4)&&srv)ok=build('police',cf);
+else if(pop>12*dl&&(CR>.1||c('police')<Math.ceil(pop/60))&&!rec('police',4)&&srv)ok=build('police',cf);else if(pop>20*dl&&c('fire')<Math.ceil(pop/80)&&!rec('fire',4)&&srv)ok=build('fire',cf);
 else if(UN>1&&!rec('cemS',4))ok=build('cemS',ff);
 else if(Hc<=J*1.6+10&&Hc<pop*1.6+14){let k='house';if(pop>[200,70,50,35][aiLvl]&&money>1800&&Math.random()<.5)k='apt';ok=build(k,hf)}
 else if(J<=Hc/1.4+6){const m=aiN++%5;let k='shop',fn=sf;if((m==2||(aiLvl>=2&&m==4))&&ED>.5&&pop>30)k='office';else if(m==3&&eco<28&&money>1800){k='factory';fn=ff;if(PW<.99||money<3000)k='shop'}ok=build(k,fn)}
@@ -1708,7 +1788,7 @@ const nb=c=>{let n=0;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const b=c.g[y][x];
 sc=c=>Math.round(c.pop*4+c.happy*3+c.ED*60+Math.max(0,c.money)/150-c.eco*.8),
 gh=c=>c.DST.filter(d=>d.gf).length,cl=c=>(c.hist[c.hist.length-1]||[0,0,0,0]).map(v=>Math.round(v)).join(' / '),
 pc=v=>Math.round(v)+'%',p100=v=>Math.round(v*100)+'%',id=v=>String(v);
-const rows=[['🏆 Очки развития',sc(PA),sc(A),1,id],['💰 Казна',PA.money,A.money,1,fm],['📈 Доход в день',PA.net,A.net,1,v=>(v>0?'+':'')+Math.round(v)+' ₽'],['👥 Население',Math.floor(PA.pop),Math.floor(A.pop),1,id],['😊 Счастье',PA.happy,A.happy,1,pc],['🌫 Загрязнение',PA.eco,A.eco,-1,pc],['⚡ Электричество',PA.PW,A.PW,1,p100],['💧 Вода',PA.WT,A.WT,1,p100],['🎓 Образование',PA.ED,A.ED,1,p100],['🏥 Медицина',PA.MD,A.MD,1,p100],['✊ Недовольство рабочих',PA.WU,A.WU,-1,pc],['🎩 Недовольство элит',PA.EL,A.EL,-1,pc],['🔫 Бандитизм',PA.BDI,A.BDI,-1,pc],['⚠ Гетто (районов)',gh(PA),gh(A),-1,id],['🏗 Зданий',nb(PA),nb(A),1,id],['🗺 Участок',vsLand.p,vsLand.a,1,v=>v+'×'+v],['💶 Пособия',PA.bn,A.bn,0,v=>BN[v]]];
+const rows=[['🏆 Очки развития',sc(PA),sc(A),1,id],['💰 Казна',PA.money,A.money,1,fm],['📈 Доход в день',PA.net,A.net,1,v=>(v>0?'+':'')+Math.round(v)+' €'],['👥 Население',Math.floor(PA.pop),Math.floor(A.pop),1,id],['😊 Счастье',PA.happy,A.happy,1,pc],['🌫 Загрязнение',PA.eco,A.eco,-1,pc],['⚡ Электричество',PA.PW,A.PW,1,p100],['💧 Вода',PA.WT,A.WT,1,p100],['🎓 Образование',PA.ED,A.ED,1,p100],['🏥 Медицина',PA.MD,A.MD,1,p100],['✊ Недовольство рабочих',PA.WU,A.WU,-1,pc],['🎩 Недовольство элит',PA.EL,A.EL,-1,pc],['🔫 Бандитизм',PA.BDI,A.BDI,-1,pc],['⚠ Гетто (районов)',gh(PA),gh(A),-1,id],['🏗 Зданий',nb(PA),nb(A),1,id],['🗺 Участок',vsLand.p,vsLand.a,1,v=>v+'×'+v],['💶 Пособия',PA.bn,A.bn,0,v=>BN[v]]];
 const cell=(r,i)=>{const a=r[1],b=r[2],w=r[3]&&Math.abs(a-b)>1e-9&&((r[3]>0?a>b:a<b)==(i==0));return'<td style="padding:3px 4px;border-bottom:1px solid var(--b);text-align:right'+(w?';font-weight:700;color:var(--a)':'')+'">'+r[4](i?b:a)+'</td>'};
 const lead=sc(PA)>sc(A)?'Вы лидируете':sc(PA)<sc(A)?'ИИ лидирует':'Ничья';
 el.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:17px">🏆 Соревнование</b><button class="c" onclick="$(\'vspanel\').style.display=\'none\'">Закрыть ✕</button></div><p style="margin:6px 0"><b>'+lead+'</b> · ИИ: '+['Лёгкий','Обычный','Сложный','Эксперт'][aiLvl]+' · очки: '+sc(PA)+' : '+sc(A)+'</p><table style="width:100%;border-collapse:collapse;font-size:12px"><tr><th></th><th>👤 Вы</th><th>🤖 ИИ</th></tr>'+rows.map(r=>'<tr><td style="padding:3px 4px;border-bottom:1px solid var(--b)">'+r[0]+'</td>'+cell(r,0)+cell(r,1)+'</tr>').join('')+'<tr><td style="padding:3px 4px">Классы (бедн./раб./сред./выс.)</td><td style="text-align:right;font-size:11px">'+cl(PA)+'</td><td style="text-align:right;font-size:11px">'+cl(A)+'</td></tr></table><p style="margin:8px 0 2px"><b>Переезды жителей</b><br>к ИИ от вас: '+vsMig.out+' · от ИИ к вам: '+vsMig.inn+'</p>'+(vsMig.log.length?vsMig.log.map(t=>'<small>'+t+'</small>').join('<br>'):'<small>Пока никто не переезжал.</small>')+'<br><small style="opacity:.75">Города автономны: у каждого свои казна, экология, классы и политика. Недовольные жители уезжают туда, где жить лучше (если есть жильё и работа). Очки — игровая оценка: население, счастье, образование, казна минус загрязнение.</small>'}
@@ -1723,13 +1803,82 @@ for(const id of UIA){const e=$(id);if(!e)continue;if(UIM=='phone'&&id!='kb')ph.a
 ph.style.display='';$('ovm').style.display='none';if(UIM=='phone')kbToggle(false);
 if(ICOok==1)applyIcons(UIM=='pc');setBH()}
 function setBH(){document.documentElement.style.setProperty('--bh',$('bot').offsetHeight+'px')}
-function setUIMode(){UIM=UIM=='phone'?'pc':'phone';try{localStorage.setItem('gsUI',UIM)}catch(e){}applyUI();setZoom(UIM=='phone'?(innerWidth<700?2:3):(innerWidth>=1500?4:3),innerWidth/2,innerHeight/2);menu('main');toast(UIM=='phone'?'Режим: телефон (вертикальный экран)':'Режим: ПК')}
+function setUIMode(){UIM=UIM=='phone'?'pc':'phone';try{localStorage.setItem('gsUI',UIM)}catch(e){}applyUI();setZoom(UIM=='phone'?(innerWidth<700?1.5:2):(innerWidth>=1500?3:2),innerWidth/2,innerHeight/2);menu('main');toast(UIM=='phone'?'Режим: телефон (вертикальный экран)':'Режим: ПК')}
 $('phm').onclick=()=>{const m=$('phmenu');$('ovm').style.display='none';m.style.display=m.style.display=='grid'?'none':'grid'};
-$('phzi').onclick=()=>setZoom(S+1,innerWidth/2,innerHeight/2);
-$('phzo').onclick=()=>setZoom(S-1,innerWidth/2,innerHeight/2);
+$('phzi').onclick=()=>setZoom(zn(S,1),innerWidth/2,innerHeight/2);
+$('phzo').onclick=()=>setZoom(zn(S,-1),innerWidth/2,innerHeight/2);
 $('phmenu').addEventListener('click',e=>{const b=e.target.closest('button');if((b&&!b.closest('#ovb'))||e.target.closest('#ovm'))setTimeout(()=>{$('phmenu').style.display=''},0)});
 if(window.ResizeObserver)new ResizeObserver(setBH).observe($('bot'));addEventListener('resize',setBH);
 applyUI();
-acc=0;menu('main');
+/* ===== ОБУЧЕНИЕ: советник, задания, подсветка на карте ===== */
+const TC={gray:'#cfcfcf',yellow:'#ffd600',blue:'#2f9bff',purple:'#b05cff',orange:'#ff7a00',white:'#ffffff',green:'#00e676',teal:'#26c6da'};
+var TS={on:0,i:0,ev:{},ok:0,hl:[],Z:{},key:''},TS_menu='main';
+function tutEv(n){if(TS.on)TS.ev[n]=1}
+const tcells=(x0,x1,y0,y1)=>{const a=[];for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)a.push([x,y]);return a};
+const tcnt=(cs,ty)=>{let n=0;for(const q of cs){const b=g[q[1]]&&g[q[1]][q[0]];if(b&&ty.includes(b.t))n++}return n};
+const tmenuBtn=()=>{if(UIM=='phone'){const m=$('phmenu');return m.style.display=='grid'?$('rs'):$('phm')}return $('rs')};
+function thlCat(name,col,keys){const i=CATS.findIndex(c=>c[1]==name),out=[];const cb=$('tcat').children[i];if(cb)out.push([cb,col]);const bs=[...document.querySelectorAll('#tb button')];for(const k of keys){const b=bs.find(x=>x.dataset.k==k);if(b&&b.style.display!='none')out.push([b,col])}return out}
+function tcat(name){const i=CATS.findIndex(c=>c[1]==name);if(i>=0)setCat(i)}
+const RES=['house','cottage','apt','soc','zR'],COM=['shop','office','bank','mall','zC'],IND=['factory','zI','ffood','fauto','ftoy'];
+const TST=[
+{t:'Добро пожаловать, мэр!',m:1,h:()=>'<p>Я ваш <b>советник</b>. Построим первый город вместе — шаг за шагом.</p><p>Как это работает:</p><p>• <b>Мигающие цветные клетки на карте</b> — куда строить.<br>• <b>Мигающие кнопки</b> — на что нажимать.<br>• Следующий шаг откроется, когда вы сделаете задание.</p><p>Учимся строить правильно: <b>дороги → зоны</b>. Готовые здания ставить не придётся — зоны вырастут сами.</p><p><span class="lg" style="background:#fff"></span>Белая рамка — <b>ваша земля</b>. За ней строить нельзя. Казна: <b>7 000 €</b> (обучающий бюджет).</p>',z:()=>[{c:TS.Z.land,k:'white',f:0,l:'ВАША ЗЕМЛЯ'}]},
+{t:'🎨 Выберите стиль зданий',h:()=>'<p>Сначала решим, как будут выглядеть дома, магазины и офисы.</p>'+(TS.ev.style?'<p class="st">✅ Стиль выбран! Теперь нажмите <b>← Назад</b>, затем <b>▶ Продолжить</b>.</p>':'<p class="st">1. Нажмите мигающую кнопку <b>'+(UIM=='phone'?'☰, затем ⚙':'⚙')+'</b><br>2. <b>🎨 Стиль зданий</b><br>3. Коснитесь любой <b>мигающей карточки</b></p>')+'<p><small>Стиль применяется только к новым зданиям — потом его можно менять.</small></p>',done:()=>TS.ev.style&&!mo,hl:()=>mo?[]:[[tmenuBtn(),'green']],mh:p=>p=='main'?(TS.ev.style?{txt:'Продолжить'}:{txt:'Стиль зданий'}):p=='styles'?(TS.ev.style?{txt:'Назад'}:{sel:'.sc',all:1}):{txt:'Назад'}},
+{t:'🛣 Главная улица',h:()=>'<p><span class="lg" style="background:#cfcfcf"></span><b>Серые клетки</b> — главная улица. Город строят так: <b>сначала дороги, потом зоны</b>. Без дороги рядом здание не работает.</p><p class="st">Внизу <b>🛣 Дорога</b> (мигает) → проведите пальцем (мышью) вдоль серых клеток</p><p><small>Провода и трубы пойдут по дороге автоматически.</small></p>',z:()=>[{c:TS.Z.main,k:'gray',l:'ГЛАВНАЯ УЛИЦА'}],on:()=>{tcat('Дороги')},hl:()=>thlCat('Дороги','gray',['road']),pr:()=>'Дорога: '+Math.min(11,tcnt(TS.Z.main,['road']))+' / 9',done:()=>tcnt(TS.Z.main,['road'])>=9},
+{t:'🧱 Обведите кварталы дорогой',h:()=>'<p>Хороший квартал — это <b>участок, обведённый дорогой</b>. Тогда у каждой клетки внутри есть выезд на улицу.</p><p class="st">Проведите дорогу по всем серым клеткам: получится <b>4 квартала</b> (2×2).</p>',z:()=>[{c:TS.Z.ring,k:'gray',l:'ОБВЕДИТЕ КВАРТАЛЫ'}],on:()=>{tcat('Дороги')},hl:()=>thlCat('Дороги','gray',['road']),pr:()=>'Дорог: '+Math.min(45,tcnt(TS.Z.road,['road']))+' / 40',done:()=>tcnt(TS.Z.road,['road'])>=40},
+{t:'🏘 Жилая зона',h:()=>'<p><span class="lg" style="background:#ffd600"></span><b>Жёлтый квартал</b> — жильё. <b>Не ставьте готовые дома!</b> Отметьте <b>зону</b> — горожане сами купят участок и построят дом, а вы получите деньги.</p><p class="st">Раздел <b>🏠 Жильё</b> → <b>🏘 Зона: жильё</b> (мигает) → проведите пальцем по жёлтому кварталу</p>',z:()=>[{c:TS.Z.res,k:'yellow',l:'ЖИЛАЯ ЗОНА'}],on:()=>{tcat('Жильё')},hl:()=>thlCat('Жильё','yellow',['zR']),pr:()=>'Клеток зоны: '+Math.min(8,tcnt(TS.Z.res,RES))+' / 6',done:()=>tcnt(TS.Z.res,RES)>=6},
+{t:'🛍 Торговая зона',h:()=>'<p><span class="lg" style="background:#2f9bff"></span><b>Синий квартал</b> — магазины и офисы. Тоже ставим <b>зону</b>, а не здание.</p><p class="st">Раздел <b>🏪 Бизнес</b> → <b>🛍 Зона: коммерция</b> (мигает) → проведите по синему кварталу</p>',z:()=>[{c:TS.Z.com,k:'blue',l:'ТОРГОВАЯ ЗОНА'}],on:()=>{tcat('Бизнес')},hl:()=>thlCat('Бизнес','blue',['zC']),pr:()=>'Клеток зоны: '+Math.min(8,tcnt(TS.Z.com,COM))+' / 6',done:()=>tcnt(TS.Z.com,COM)>=6},
+{t:'🏗 Промышленная зона',h:()=>'<p><span class="lg" style="background:#ff7a00"></span><b>Оранжевый квартал</b> — заводы. Это работа и деньги, но заводы <b>загрязняют воздух</b> (🌫): держите их подальше от жилья.</p><p class="st">Раздел <b>🏭 Промышленность</b> → <b>🏗 Зона: производство</b> (мигает) → проведите по оранжевому кварталу</p>',z:()=>[{c:TS.Z.ind,k:'orange',l:'ПРОМЗОНА'}],on:()=>{tcat('Промышленность')},hl:()=>thlCat('Промышленность','orange',['zI']),pr:()=>'Клеток зоны: '+Math.min(8,tcnt(TS.Z.ind,IND))+' / 5',done:()=>tcnt(TS.Z.ind,IND)>=5},
+{t:'⚡ Электричество',h:()=>'<p><span class="lg" style="background:#b05cff"></span><b>Фиолетовый квартал</b> — энергетика. Электростанции ставят <b>готовыми</b> (зон для них нет). Без тока дома стоят пустыми.</p><p class="st">Раздел <b>⚡ Энергия и вода</b> → <b>⚡ ТЭЦ</b> → фиолетовая клетка</p><p><small>ТЭЦ дешёвая, но грязная. Солнечная и ГТЭС чище, но дороже.</small></p>',z:()=>[{c:TS.Z.pow,k:'purple',l:'ЭНЕРГЕТИКА'}],on:()=>{tcat('Энергия и вода')},hl:()=>thlCat('Энергия и вода','purple',['power']),pr:()=>'Станций: '+Math.min(1,tcnt(TS.Z.pow,['power','gtes','solar']))+' / 1',done:()=>tcnt(TS.Z.pow,['power','gtes','solar'])>=1},
+{t:'💧 Вода',h:()=>'<p><span class="lg" style="background:#b05cff"></span>В том же фиолетовом квартале нужен <b>водозабор</b>. Без воды жильё пустует.</p><p class="st">Раздел <b>⚡ Энергия и вода</b> → <b>💧 Водозабор</b> → свободная фиолетовая клетка</p><p><small>Водозабор лучше работает рядом с рекой.</small></p>',z:()=>[{c:TS.Z.pow,k:'purple',l:'ВОДА'}],on:()=>{tcat('Энергия и вода')},hl:()=>thlCat('Энергия и вода','purple',['water','wtower']),pr:()=>'Водозаборов: '+Math.min(1,tcnt(TS.Z.pow,['water','wtower']))+' / 1',done:()=>tcnt(TS.Z.pow,['water','wtower'])>=1},
+{t:'🌱 Смотрим, как растёт город',h:()=>'<p>Теперь ничего строить не нужно. <b>Зоны сами превращаются в здания</b>: горожане покупают участок и строят — это занимает несколько секунд.</p><p class="st">Подождите и смотрите на кварталы.</p><p><small>Красная точка на зоне — значит рядом нет дороги.</small></p>',pr:()=>'Выросло зданий: '+tcnt(TS.Z.res.concat(TS.Z.com,TS.Z.ind),['house','cottage','apt','shop','office','factory','ffood','fauto','ftoy'])+' / 1',done:()=>tcnt(TS.Z.res.concat(TS.Z.com,TS.Z.ind),['house','cottage','apt','shop','office','factory','ffood','fauto','ftoy'])>=1},
+{t:'🅿 Парковки',h:()=>'<p><span class="lg" style="background:#26c6da"></span><b>Бирюзовая полоса</b> — место под парковки. Жители ездят на машинах: если парковок нет, машины стоят на улицах и растёт <b>трафик</b> 🚗.</p><p class="st">Раздел <b>🚌 Транспорт</b> → <b>🅿 Парковка</b> (мигает) → поставьте <b>2 парковки</b> у дороги</p><p><small>Нужно примерно 1 парковка на 25 жителей. Содержание — 1 € в день.</small></p>',z:()=>[{c:TS.Z.park,k:'teal',l:'ПАРКОВКИ'}],on:()=>{tcat('Транспорт')},hl:()=>thlCat('Транспорт','teal',['parking']),pr:()=>'Парковок: '+Math.min(2,tcnt(TS.Z.park,['parking']))+' / 2',done:()=>tcnt(TS.Z.park,['parking'])>=2},
+{t:'💾 Сохраните город',h:()=>'<p>Город готов! Сохраним его, чтобы не потерять.</p>'+(TS.ev.save?'<p class="st">✅ Сохранено!</p>':'<p class="st">1. Нажмите мигающую кнопку <b>'+(UIM=='phone'?'☰, затем ⚙':'⚙')+'</b><br>2. <b>💾 Сохранить / загрузить</b><br>3. У <b>Слота 1</b> нажмите <b>Сохранить</b></p>'),done:()=>TS.ev.save,hl:()=>mo?[]:[[tmenuBtn(),'green']],mh:p=>p=='main'?{txt:'Сохранить / загрузить'}:p=='slots'?{ex:'Сохранить'}:{txt:'Назад'}},
+{t:'📂 Загрузите город',h:()=>'<p>Теперь проверим загрузку. Вы в меню сохранений.</p><p class="st">'+(mo?'У <b>Слота 1</b> нажмите <b>Загрузить</b> (мигает)':'Откройте <b>'+(UIM=='phone'?'☰, затем ⚙':'⚙')+' → 💾 Сохранить / загрузить</b> и нажмите <b>Загрузить</b> у Слота 1')+'</p><p><small>Загрузка заменяет текущий город сохранённым.</small></p>',done:()=>TS.ev.load,hl:()=>mo?[]:[[tmenuBtn(),'green']],mh:p=>p=='main'?{txt:'Сохранить / загрузить'}:p=='slots'?{ex:'Загрузить'}:{txt:'Назад'}},
+{t:'🎉 Обучение пройдено!',m:1,mt:'Играть!',h:()=>'<p>Вы умеете главное:</p><p>🎨 стиль · 🛣 дороги вокруг кварталов · 🏘🛍🏗 зоны вместо готовых зданий · ⚡ ток · 💧 вода · 🅿 парковки · 💾 сохранить · 📂 загрузить</p><p>Следите за верхней панелью: 💰 казна, 👥 жители, 😊 счастье, 🌫 экология. Слой <b>🗺 «Сети»</b> покажет здания без тока и воды.</p><p><small>Обучение всегда можно пройти снова: ⚙ → 📖 Обучение.</small></p>'}
+];
+function ZMAKE(c){const main=tcells(c-5,c+5,c,c),ring=[].concat(tcells(c-5,c+5,c-3,c-3),tcells(c-5,c+5,c+3,c+3));for(const x of [c-5,c,c+5]){ring.push(...tcells(x,x,c-2,c-1),...tcells(x,x,c+1,c+2))}
+return{land:tcells(lo,hi,lo,hi),main,ring,road:main.concat(ring),res:tcells(c-4,c-1,c-2,c-1),com:tcells(c-4,c-1,c+1,c+2),ind:tcells(c+1,c+4,c-2,c-1),pow:tcells(c+1,c+4,c+1,c+2),park:tcells(c-4,c+4,c+4,c+4)}}
+function tutAsk(){const w=started||ls('gs1');TS.on=0;tutHlClear();document.documentElement.classList.remove('tuton');
+const a=$('adv');a.style.display='block';a.classList.remove('mini');
+a.innerHTML='<div class="ah"><span class="av">🧑‍💼</span><span class="at">Советник мэра</span></div><p>Хотите пройти обучение? Мы вместе построим маленький город: дороги, жильё, бизнес, завод, электричество и воду, а потом сохраним и загрузим игру.</p>'+(w?'<p class="st">⚠ Обучение начнёт <b>новую пустую игру</b> и заменит автосохранение «Продолжить». Слоты сохранений не пострадают.</p>':'')+'<div class="bt"><button class="m" onclick="tutBegin()">Начать обучение</button><button onclick="tutOff()">Не сейчас</button></div>';tutPos()}
+function tutOff(){try{localStorage.setItem('gsTut','1')}catch(e){}$('adv').style.display='none'}
+function tutBegin(){try{localStorage.setItem('gsTut','1')}catch(e){}closeMenu();newGame(0);SD.auto=1;money=7000;hud();
+const c=Math.floor((lo+hi)/2);TS={on:1,i:0,ev:{},ok:0,hl:[],key:'',Z:ZMAKE(c)};
+document.documentElement.classList.add('tuton');tutStep(0)}
+function tutStep(i){if(i>=TST.length)return tutEnd(1);TS.i=i;TS.ev={};TS.ok=0;TS.key='';const s=TST[i];if(s.on){if(mo&&!s.mh)closeMenu();s.on()}tutRender()}
+function tutMini(){TS.mini=!TS.mini;$('adv').classList.toggle('mini',!!TS.mini);tutRender()}
+function tutPos(){const a=$('adv');if(a.style.display=='none')return;const t=$('top');let y=t?t.getBoundingClientRect().bottom+4:96;if(!(y>0))y=96;a.style.top=Math.round(y)+'px';document.documentElement.style.setProperty('--ah',Math.round(y+a.offsetHeight+8)+'px')}
+function tutRender(){const s=TST[TS.i],a=$('adv');a.style.display='block';a.classList.toggle('mini',!!TS.mini);
+a.innerHTML='<div class="ah"><span class="av">🧑‍💼</span><span class="at">'+s.t+'</span><span class="an">'+(TS.i+1)+'/'+TST.length+'</span><button class="mb2" onclick="tutMini()">'+(TS.mini?'▾':'▴')+'</button></div><div class="pr"><i style="width:'+Math.round(TS.i/(TST.length-1)*100)+'%"></i></div>'+s.h()+'<div id="apr" class="st"></div><div class="bt">'+(s.m?'<button class="m" onclick="tutStep('+(TS.i+1)+')">'+(s.mt||'Далее ▶')+'</button>':'<button onclick="tutStep('+(TS.i+1)+')">Пропустить шаг ▶</button>')+(TS.i<TST.length-1?'<button onclick="tutEnd()">✖ Выйти</button>':'')+'</div>';
+TS.key=s.h();tutPos()}
+function tutEnd(done){TS.on=0;tutHlClear();document.documentElement.classList.remove('tuton');$('adv').style.display='none';try{localStorage.setItem('gsTut','1')}catch(e){}if(done)toast('Обучение завершено. Удачи, мэр!')}
+function tutHlClear(){for(const q of TS.hl){q[0].classList.remove('tg');q[0].removeAttribute('data-c')}TS.hl=[]}
+function tmenuHL(m){const bs=[...$('mb').querySelectorAll(m.sel||'button.mb')];let r=[];if(m.all)return bs.map(e=>[e,'green']);const e=m.ex?bs.find(b=>b.textContent.trim()==m.ex):bs.find(b=>b.textContent.includes(m.txt));if(e)r.push([e,'green']);return r}
+function tutTick(){if(!TS.on)return;tutPos();const s=TST[TS.i];if(!s)return;let L=[];
+if(!TS.ok){if(s.hl)L=L.concat(s.hl());if(mo&&s.mh){const m=s.mh(TS_menu);if(m)L=L.concat(tmenuHL(m))}}
+L=L.filter(q=>q[0]);
+for(const q of TS.hl.slice()){if(!L.some(n=>n[0]==q[0]&&n[1]==q[1])){q[0].classList.remove('tg');q[0].removeAttribute('data-c');TS.hl.splice(TS.hl.indexOf(q),1)}}
+for(const n of L){if(!TS.hl.some(q=>q[0]==n[0]&&q[1]==n[1])){n[0].classList.add('tg');n[0].dataset.c=n[1];TS.hl.push(n)}}
+const h=s.h();if(h!==TS.key&&!TS.ok)tutRender();
+const pe=$('apr');if(pe&&s.pr&&!TS.ok)pe.textContent='📋 '+s.pr();
+if(!TS.ok&&s.done&&s.done()){TS.ok=1;const idx=TS.i;if(pe)pe.innerHTML='<span class="ok">✅ Отлично! Задание выполнено</span>';tutHlClear();toast('✅ Задание выполнено');setTimeout(()=>{if(TS.on&&TS.i==idx)tutStep(idx+1)},1100)}}
+setInterval(tutTick,250);
+function tutDraw(){if(!TS.on||mo||TS.ok)return;const s=TST[TS.i];if(!s||!s.z)return;const a=.5+.5*Math.sin(tm*4),cx=Math.round(cam.x),cy=Math.round(cam.y);
+const P=(u,v)=>tp?[cx+u*Q,cy+v*Q]:[(u-v)*16+cx,(u+v)*8+cy];
+X.save();X.lineJoin='round';
+for(const z of s.z()){const col=TC[z.k],set=new Set(),cl=[];for(const q of z.c){const r=R(q[0],q[1]);set.add(r[0]*1000+r[1]);cl.push(r)}
+const has=(u,v)=>set.has(u*1000+v);
+if(z.f!==0){X.globalAlpha=.16+.16*a;X.fillStyle=col;X.beginPath();for(const r of cl){const p1=P(r[0],r[1]),p2=P(r[0]+1,r[1]),p3=P(r[0]+1,r[1]+1),p4=P(r[0],r[1]+1);X.moveTo(p1[0],p1[1]);X.lineTo(p2[0],p2[1]);X.lineTo(p3[0],p3[1]);X.lineTo(p4[0],p4[1]);X.closePath()}X.fill()}
+X.beginPath();let top=1e9,sxm=0;for(const r of cl){const u=r[0],v=r[1];
+if(!has(u,v-1)){const p=P(u,v),q=P(u+1,v);X.moveTo(p[0],p[1]);X.lineTo(q[0],q[1])}
+if(!has(u+1,v)){const p=P(u+1,v),q=P(u+1,v+1);X.moveTo(p[0],p[1]);X.lineTo(q[0],q[1])}
+if(!has(u,v+1)){const p=P(u,v+1),q=P(u+1,v+1);X.moveTo(p[0],p[1]);X.lineTo(q[0],q[1])}
+if(!has(u-1,v)){const p=P(u,v),q=P(u,v+1);X.moveTo(p[0],p[1]);X.lineTo(q[0],q[1])}
+const c0=P(u+.5,v+.5);if(c0[1]<top)top=c0[1];sxm+=c0[0]}
+X.strokeStyle=col;X.globalAlpha=.3+.25*a;X.lineWidth=4;X.stroke();X.globalAlpha=1;X.lineWidth=1.6;X.stroke();
+if(z.l){sxm/=cl.length;const by=top-10-2*a;X.font='bold 9px system-ui,sans-serif';X.textAlign='center';X.lineWidth=3;X.strokeStyle='rgba(0,0,0,.75)';X.strokeText(z.l,sxm,by);X.fillStyle=col;X.fillText(z.l,sxm,by);X.fillText('▼',sxm,by+9)}}
+X.restore()}
+function tutAuto(){if(!ls('gsTut'))tutAsk()}
+acc=0;menu('main');tutAuto();
 requestAnimationFrame(loop);
 </script></body></html>
