@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0"><title>Туркестан 1723</title>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"></head><body style="margin:0"><title>Туркестан 1723</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
   --font-body:'PT Sans','Segoe UI',system-ui,sans-serif;
 }
 [hidden]{display:none!important}
-html,body{height:100%}
+html,body{position:fixed;left:0;top:0;width:var(--vw,100%);height:var(--vh,100%);overflow:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{
   margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.45;
   padding-left:max(16px,env(safe-area-inset-left,0px));
@@ -30,8 +30,7 @@ body{
 #app{position:relative;height:100%;max-width:980px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:10px}
 #stage{
   position:relative;flex:0 0 auto;aspect-ratio:16/9;border-radius:4px;overflow:hidden;background:#16143a;
-  width:min(100%,calc((100vh - 76px) * 1.7778));
-  width:min(100%,calc((100dvh - 76px) * 1.7778));
+  width:min(100%,calc((var(--vh,100vh) - 76px) * 1.7778));
 }
 #c{display:block;width:100%;height:100%}
 #hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:6px 8px;pointer-events:none}
@@ -101,8 +100,7 @@ body.pc #app{max-width:1600px}
 @media (orientation:landscape) and (max-height:560px){
   body.phone #app{gap:0;justify-content:center}
   body.phone #stage{
-    width:min(100%,calc((100vh - 16px) * 1.7778));
-    width:min(100%,calc((100dvh - 16px) * 1.7778));
+    width:min(100%,calc((var(--vh,100vh) - 16px) * 1.7778));
   }
   body.phone #pad{position:absolute;inset:0;pointer-events:none;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
   body.phone .pb{--sz:clamp(58px,17vh,76px)}
@@ -149,19 +147,19 @@ body.pc #app{max-width:1600px}
         <div id="quest"></div>
       </div>
       <div class="hudr">
+        <button class="hb" id="shth" type="button" aria-label="Убрать или достать оружие">Достать</button>
         <button class="hb" id="wp" type="button" aria-label="Сменить оружие">Кинжал</button>
         <button class="hb hmn" id="mn" type="button" aria-label="Меню" aria-expanded="false">&#9776;</button>
         <div id="hmenu" hidden>
           <button class="hb" id="bag" type="button">Сумка</button>
-          <button class="hb" id="shth" type="button" aria-label="Убрать или достать оружие">Достать</button>
-          <button class="hb" id="snd" type="button">Звук</button>
+                    <button class="hb" id="snd" type="button">Звук</button>
           <button class="hb" id="pz" type="button">Пауза</button>
         </div>
       </div>
     </div>
     <div id="toast" role="status"></div>
   </div>
-  <p id="keys"><b>← →</b> бег · <b>Пробел</b> прыжок · <b>J</b> удар (<b>↓</b> в воздухе бьёт вниз) · <b>E</b> войти, говорить, пить чай; с кинжалом в руке у врага: скрытое убийство · <b>L</b> рывок · <b>V</b> парировать (меч, найза, мылтык) · <b>Q</b> держать: слиться с толпой · <b>R</b> или <b>1 2 3</b> сменить оружие · <b>P</b> или <b>Esc</b> меню · <b>Shift</b> держать: бег · <b>Z</b> держать: красться · <b>G</b> убрать/достать оружие · <b>T</b> зажечь факел (нужны дерево и кремень) · <b>H</b> свист коню (конь у караванщиков) · <b>E</b> у коня: сесть, в седле: спешиться</p>
+  <p id="keys"><b>← →</b> бег · <b>Пробел</b> прыжок · <b>J</b> удар (<b>↓</b> в воздухе бьёт вниз) · <b>E</b> войти, говорить, пить чай; с кинжалом в руке у врага: скрытое убийство · <b>L</b> рывок · <b>V</b> парировать (меч, найза, мылтык) · <b>Q</b> держать: слиться с толпой · <b>R</b> или <b>1 2 3</b> сменить оружие · <b>P</b> или <b>Esc</b> меню · <b>Shift</b> держать: бег · <b>Z</b> держать: красться · <b>G</b> убрать/достать оружие (кнопка вверху) · без оружия <b>J</b> бьёт кулаком, <b>E</b> у врага толкает · <b>T</b> зажечь факел (нужны дерево и кремень) · <b>H</b> свист коню (конь у караванщиков) · <b>E</b> у коня: сесть, в седле: спешиться</p>
   <div id="pad">
     <div class="col">
       <div class="grp"><button class="pb dn" data-k="down" type="button" aria-label="Вниз"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><button class="pb sm" data-k="sprint" type="button" aria-label="Бег"><span>Бег</span></button><button class="pb sm" data-k="sneak" type="button" aria-label="Красться"><span>Красться</span></button><button class="pb sm" id="whs" data-k="whistle" type="button" aria-label="Свист коню" hidden><span>Свист</span></button></div>
@@ -194,7 +192,7 @@ body.pc #app{max-width:1600px}
       <button class="cta ghost" id="ng" type="button" hidden>Новая игра</button>
       <div class="row" id="ov-extra" style="margin-top:10px"><button class="cta ghost" id="ldb" type="button">Загрузить</button><button class="cta ghost" id="stb" type="button">Настройки</button></div>
       <p class="how" id="ov-how">
-        <span class="touch-only">Слева бег, справа <b>Прыжок</b> и <b>Удар</b>. В воздухе зажми <b>Вниз</b> и бей: клинок идёт вниз. <b>Отбить</b> в момент удара врага: мечом, найзой и мылтыком добивает, кинжал не умеет. Удар вниз по врагу сверху убивает его одним ударом. <b>Рывок</b> даёт короткую неуязвимость, у края стены держи вбок, и герой подтянется. У проулка или двери нажми <b>Войти</b>. Рядом с горожанами зажми <b>Слиться</b>, и стража тебя не заметит. Оружие меняется кнопкой наверху. С кинжалом в руке рядом с врагом кнопка <b>Войти</b> меняется на <b>Убийство</b>: тихий удар, 5 урона (спереди в живот, сзади в спину). Зажми <b>Красться</b>: герой идёт тихо и пригнувшись, враги замечают позже и не видят со спины, так можно подобраться к ним с кинжалом. В городе оружие в руке и бег привлекают стражу: смотри на шкалу подозрения слева, убирай оружие (<b>Убрать</b>) и сливайся с толпой. Купил коня у караванщиков: <b>Свист</b> зовёт его, <b>Войти</b> у коня садит в седло.</span>
+        <span class="touch-only">Слева бег, справа <b>Прыжок</b> и <b>Удар</b>. В воздухе зажми <b>Вниз</b> и бей: клинок идёт вниз. <b>Отбить</b> в момент удара врага: мечом, найзой и мылтыком добивает, кинжал не умеет. Удар вниз по врагу сверху убивает его одним ударом. <b>Рывок</b> даёт короткую неуязвимость, у края стены держи вбок, и герой подтянется. У проулка или двери нажми <b>Войти</b>. Рядом с горожанами зажми <b>Слиться</b>, и стража тебя не заметит. Оружие меняется кнопкой наверху. С кинжалом в руке рядом с врагом кнопка <b>Войти</b> меняется на <b>Убийство</b>: тихий удар, 5 урона (спереди в живот, сзади в спину). Без оружия в руке <b>Удар</b> бьёт кулаком, а <b>Войти</b> у врага толкает его. Кнопка <b>Убрать</b>/<b>Достать</b> сверху. Зажми <b>Красться</b>: герой идёт тихо и пригнувшись, враги замечают позже и не видят со спины, так можно подобраться к ним с кинжалом. В городе оружие в руке и бег привлекают стражу: смотри на шкалу подозрения слева, убирай оружие (<b>Убрать</b>) и сливайся с толпой. Купил коня у караванщиков: <b>Свист</b> зовёт его, <b>Войти</b> у коня садит в седло.</span>
         <span class="kbd-only"><b>← →</b> бег · <b>Пробел</b> прыжок · <b>J</b> удар, в воздухе <b>↓</b> + удар бьёт вниз · <b>L</b> рывок (в воздухе один раз, неуязвим) · у края стены держи вбок, и герой подтянется · <b>E</b> войти за угол, в дом, поговорить, выпить чай · <b>Q</b> держать рядом с горожанами: стража тебя не видит. <b>Z</b> держать: красться (враги замечают позже и не видят со спины). У стены нажми прыжок ещё раз, чтобы оттолкнуться.</span>
       </p>
     </div>
@@ -215,7 +213,19 @@ function resize(){
   cv.width=Math.max(2,Math.round(r.width*dpr));cv.height=Math.max(2,Math.round(r.height*dpr));
   scale=cv.width/W;
 }
-window.addEventListener('resize',resize);
+/* real visible size of the viewport (mobile browsers lie about 100vh); also resets stray scroll/zoom after rotation */
+function fitView(){
+  const de=document.documentElement,vv=window.visualViewport;
+  let w=window.innerWidth||de.clientWidth,h=window.innerHeight||de.clientHeight;
+  if(vv&&vv.width>0&&vv.height>0){w=Math.min(w,Math.round(vv.width));h=Math.min(h,Math.round(vv.height));}
+  de.style.setProperty('--vw',w+'px');de.style.setProperty('--vh',h+'px');
+  try{window.scrollTo(0,0);}catch(e){}
+}
+function onViewport(){fitView();resize();setTimeout(function(){fitView();resize();},250);}
+fitView();
+window.addEventListener('resize',onViewport);
+window.addEventListener('orientationchange',onViewport);
+if(window.visualViewport)window.visualViewport.addEventListener('resize',onViewport);
 if(window.ResizeObserver){new ResizeObserver(resize).observe($('stage'));}
 resize();
 
@@ -743,7 +753,7 @@ for(let i=1;i<=6;i++)genWild(i);
   ground(s,0,91);rect(s,26,7,5,1,3);rect(s,60,7,6,1,3);
   s.cps=[{c:4},{c:46}];
   s.defs=[{c:20,a:14,b:23,hp:3},{c:38,a:34,b:46,hp:3},{c:52,a:48,b:58,hp:5},{c:72,a:68,b:80,hp:3},{c:44,a:42,b:47,hp:2,kind:'archer'}];
-  s.portals=[{c:1,to:'semeke',toC:56,label:'В ставку Семеке'},{c:88,to:'kara2',toC:4,label:'К сухим колодцам'}];
+  s.portals=[{c:1,to:'semeke',toC:56,label:'В ставку Семеке'},{c:88,to:'kara2',toC:4,label:'К сухим колодцам'},{c:78,to:'aul',toC:4,label:'К аулу в лощине'}];
   s.signs=[{c:6,t:'Предгорья Каратау. Здесь ходят беженцы и джунгарские разъезды'},{c:66,t:'Расщелина между валунами'}];
   s.lines=['Горы близко.','Тропа ведёт на юг.'];
   addCiv(s,12,12,12,801,9,{still:true,pal:{body:'#7a4a5a',trim:'#e8d6a8'},quest:'refug',face:1,say:'Хлеба детям...'});
@@ -752,6 +762,22 @@ for(let i=1;i<=6;i++)genWild(i);
     if(flags.cCache){toast('Тайник пуст');return;}
     flags.cCache=true;reward(2,4,'В тайнике джунгар: 2 слитка и 4 монеты Бухары');
   }});
+}
+/* Act 2: semi-nomadic aul of the clan (yurts only) */
+{
+  const s=mkScene('aul','Аул в лощине','out',80);
+  s.biome='hidden';s.peace=true;s.hat='kalpak';
+  ground(s,0,79);
+  s.cps=[{c:4},{c:40}];
+  s.portals=[{c:1,to:'kara1',toC:76,label:'Назад к предгорьям'}];
+  s.defs=[];
+  s.signs=[{c:6,t:'Аул рода Конырат. Юрты стоят в лощине, чтобы не видеть дыма издалека'}];
+  s.doors=[{c:18,to:'h_aulelder',label:'Юрта аксакала'},{c:52,to:'h_aulguest',label:'Гостевая юрта'}];
+  s.lamps=[14,34,58];
+  s.lines=['Овцы жмутся к юртам.','Ветер несёт запах кизяка.'];
+  [[24,21,27],[44,40,47],[64,60,68]].forEach(function(a,i){addCiv(s,a[0],a[1],a[2],i+841);});
+  addCiv(s,34,34,34,851,9,{still:true,pal:{body:'#4a3a2a',trim:'#d8b86a',plume:'#d6c8a6'},quest:'aelder',face:-1,sc:1.1,hat:'bork',say:'Подойди к огню, путник.'});
+  buildFacades(s,151);
 }
 {
   const s=steppeScene('kara2','Сухие колодцы',84);
@@ -791,6 +817,8 @@ for(let i=1;i<=6;i++)genWild(i);
 }
 mkHouse('h_semguest','Гостевая юрта',301,{scene:'semeke',c:46}).bed={c:11};
 mkHouse('h_konyurt','Родная юрта',303,{scene:'konyrat',c:16}).bed={c:11};
+mkHouse('h_aulelder','Юрта аксакала',305,{scene:'aul',c:18}).bed={c:11};
+mkHouse('h_aulguest','Гостевая юрта аула',307,{scene:'aul',c:52}).bed={c:11};
 /* houses behind every door */
 (function(){
   let n=0;
@@ -837,6 +865,7 @@ function nearFire(){
   const cx=P.x+P.w/2;
   for(let i=0;i<S.lamps.length;i++){if(Math.abs(cx-(S.lamps[i]*T+26))<70)return true;}
   if(S.id==='hidden'&&Math.abs(cx-(50*T+16))<90)return true;
+  if(S.camp){for(const sd in S.camp){if(Math.abs(cx-S.camp[sd].x)<80)return true;}}
   for(let i=0;i<S.facades.length;i++){const f=S.facades[i];if(f.burn&&Math.abs(cx-(f.c*T+f.w*T/2))<f.w*T/2+30)return true;}
   return false;
 }
@@ -919,6 +948,7 @@ function drawNight(t){
   for(let i=0;i<S.lamps.length;i++)light(S.lamps[i]*T+26,10*T-56,125*fl(i+3),0.95);
   for(let i=0;i<S.facades.length;i++){const f=S.facades[i];if(f.burn)light(f.c*T+f.w*T/2,10*T-f.h*T*0.8,145*fl(i+5),0.9);}
   if(S.id==='hidden')light(50*T+16,10*T-20,175,1);
+  if(S.camp){['jz','kz'].forEach(function(sd,i){const cp=S.camp[sd];if(cp)light(cp.x,10*T-24,150*fl(i+7),1);});}
   ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(nightCv,0,0);ctx.restore();
 }
 function torchBtns(){
@@ -961,7 +991,7 @@ let state='start',P,kills=0,cpState={scene:'gate',c:5},playTime=0,shake=0,trans=
 const cam={x:0,y:0};
 const parts=[];
 let toastTimer=0;
-const flags={met:false,letter:false,delivered:false,thanked:false,mcap:false,act2:false,guide:false,banner:false,m1a:false,m1d:false,m2a:false,m2d:false,spyOn:false,cityFell:false,c1:false,c2:false,spyChase:false,spyDone:false,brief:false,b1:false,b2:false,b3:false,council:false,smith:false,e1a:false,e1got:false,e1d:false,e2a:false,e2got:false,e2d:false,e3a:false,e3d:false,e4a:false,e4burn:false,e4d:false,sIn:false,sHonor:false,sValor:false,sHumble:false,s1a:false,s1d:false,s2a:false,s2d:false,s3a:false,s3d:false,sHorse:false,sKind:false,sJlaw:false,sJwise:false,sJpass:false,sAisha:false,sKnowP:false,sScout:false,sCouncil:false,sGo:false,sArmy:false,cRef:false,cCache:false,cKozha:false,cWeak:false,cBoss:false,cJoin:false,cHide:false,cRevenge:false,cDone:false};
+const flags={met:false,letter:false,delivered:false,thanked:false,mcap:false,act2:false,guide:false,banner:false,m1a:false,m1d:false,m2a:false,m2d:false,spyOn:false,cityFell:false,c1:false,c2:false,spyChase:false,spyDone:false,brief:false,b1:false,b2:false,b3:false,council:false,smith:false,e1a:false,e1got:false,e1d:false,e2a:false,e2got:false,e2d:false,e3a:false,e3d:false,e4a:false,e4burn:false,e4d:false,sIn:false,sHonor:false,sValor:false,sHumble:false,s1a:false,s1d:false,s2a:false,s2d:false,s3a:false,s3d:false,sHorse:false,sKind:false,sJlaw:false,sJwise:false,sJpass:false,sAisha:false,sKnowP:false,sScout:false,sCouncil:false,sGo:false,sArmy:false,cRef:false,cCache:false,cKozha:false,cWeak:false,cBoss:false,cJoin:false,cHide:false,cRevenge:false,cDone:false,aIn:false,aAll:false,aElder:false,aSilent:false,aTea:false,aHead:false,aFed:false};
 let bullets=[],ebullets=[],arrows=[],talk=null,HZ=null,loose=[],sus=0,huntOn=false,huntLost=0,emT=3,heatT=0;
 
 /* ---------- collision ---------- */
@@ -1229,13 +1259,23 @@ function unitDoors(e){
   }
 }
 function hopMove(e,dir,spd){
+  const on=e.vy>=0&&boxHits(e.x,e.y+1,e.w,e.h);
+  if(!on&&e.leap){e.vx=dir*e.leap;return;}
+  if(on)e.leap=0;
   e.vx=dir*spd;
-  if(e.vy>=0&&boxHits(e.x,e.y+1,e.w,e.h)){
+  if(on){
     const fx=dir>0?e.x+e.w+4:e.x-4;
     const wall=solidAt(fx,e.y+e.h-8)||solidAt(fx+dir*8,e.y+e.h-8);
     const gap=!solidAt(fx+dir*10,e.y+e.h+6);
     if(spikeHop(e,dir,spd))return;
-    if(wall||gap)e.vy=-560;
+    if(wall){e.vy=-560;return;}
+    if(gap){
+      /* measure the pit: up to 3 tiles can be cleared with a running leap, wider ones stop the unit */
+      let n=0,px=fx+dir*10;while(n<8&&!solidAt(px,e.y+e.h+6)){n++;px+=dir*T;}
+      if(n>=4){e.vx=0;return;}
+      const lp=Math.max(spd,Math.min(215,(n*T+34)/0.66));
+      e.vx=dir*lp;e.leap=lp;e.vy=-600;
+    }
   }
 }
 function spawnHunters(arrCol){
@@ -1253,10 +1293,9 @@ function spawnHunters(arrCol){
   }
 }
 function toggleSheath(){
-  if(!P||state!=='playing'||trans||P.exec||P.atk>0||P.hp<=0)return;
+  if(!P||state!=='playing'||trans||P.exec||P.hp<=0)return;
   if(P.mounted){toast('В седле оружие наготове');return;}
-  P.sheathed=!P.sheathed;P.aiming=false;P.atk=0;sfx('swing');updateHud();
-  toast(P.sheathed?'Оружие убрано':'Оружие наготове');
+  P.sheathed=!P.sheathed;P.aiming=false;P.atk=0;P.atkCd=0;P.punchT=0;sfx('swing');updateHud();
 }
 function drawReload(){
   if(!isReloading())return;
@@ -1441,7 +1480,7 @@ function snapCam(){
   cam.y=clamp(P.y+P.h/2-H*0.55,0,12*T-H);
 }
 function setScene(id,col,face){
-  S=scenes[id];syncCity(S);
+  S=scenes[id];syncCity(S);S.camp=null;
   if(S===scenes.kara3&&flags.cWeak&&!S.weakDone){S.weakDone=true;S.enemies.forEach(function(e){if(e.boss&&e.state!=='dead'){e.hp=Math.min(e.hp,7);e.maxhp=Math.min(e.maxhp,7);}});}
   HZ=null;loose.length=0;
   S.tdoors.forEach(function(d){if(d.open)setTD(S,d,false);});
@@ -1471,7 +1510,7 @@ function resetGame(){
     s.taken=false;s.kzRes=4;s.jzRes=5;s.wtick=0;s.rtoast=false;s.btoast=0;
     if(s.tea)s.tea.used=false;
     if(s.item)s.item.taken=false;
-    s.alert=false;s.heat=[];s.traces=[];s.triggers.forEach(function(g){g.done=false;});
+    s.alert=false;s.camp=null;s.heat=[];s.traces=[];s.triggers.forEach(function(g){g.done=false;});
     s.tdoors.forEach(function(d){setTD(s,d,false);});
     if(!s.baseCps)s.baseCps=s.cps;
     s.baseCps.forEach(function(c){c.on=false;});
@@ -1544,7 +1583,7 @@ function gunshotNoise(){
   const cx=P.x+P.w/2;let heard=false,jz=false;
   S.enemies.forEach(function(e){
     if(e.state==='dead'||e.ally||e.boss)return;
-    if(Math.abs(e.x+e.w/2-cx)<900){heard=true;if(e.team==='jz')jz=true;if(e.state==='patrol'){e.state='chase';e.vx=0;}}
+    if(Math.abs(e.x+e.w/2-cx)<900){heard=true;if(e.team==='jz')jz=true;if(e.state==='patrol'||e.state==='camp'){e.state='chase';e.rest=false;e.vx=0;}}
   });
   loose.forEach(function(h){if(Math.abs(h.x-cx)<700){h.vx=(h.x<cx?-1:1)*320;h.t=Math.max(h.t,2);}});
   const cityHere=(S.biome==='city'&&S.type==='out')||(S.type==='in'&&S.back&&scenes[S.back.scene]&&scenes[S.back.scene].biome==='city');
@@ -1585,8 +1624,8 @@ function updateBullets(dt){
     if(dead){if(solidAt(b.x,b.y))addTrace(b.x,b.y,'broken');burst(b.x,b.y,4,'#ffe08a',80);bullets.splice(i,1);}
   }
 }
-function stealthTarget(){
-  if(!P||P.wp!=='dagger'||P.sheathed||P.mounted||!P.ground||P.exec||P.mant||P.dashT>0||P.blend||P.hp<=0)return null;
+function stealthTarget(auto){
+  if(!P||P.wp!=='dagger'||(P.sheathed&&!auto)||P.mounted||!P.ground||P.exec||P.mant||P.dashT>0||P.blend||P.hp<=0)return null;
   const pcx=P.x+P.w/2;let best=null,bd=48;
   for(let i=0;i<S.enemies.length;i++){
     const e=S.enemies[i];
@@ -1623,6 +1662,7 @@ function findUse(){
       const sp=s.spots[i];
       if(cx>=sp.c*T-10&&cx<=(sp.c+2)*T+30)return {label:typeof sp.label==='function'?sp.label():sp.label,go:sp.go};
     }
+    if(s.camp&&s.camp.kz&&Math.abs(cx-s.camp.kz.x)<60&&darkLevel()>=0.3&&!P.mounted)return {label:'Переждать ночь у костра',go:restNow};
     for(let i=0;i<s.tdoors.length;i++){
       const td=s.tdoors[i];if(td.open)continue;
       const x0=td.c*T,x1=(td.c+td.w)*T,out=td.side<0?(cx>=x0-48&&cx<=x0):(cx>=x1&&cx<=x1+48),inn=td.side<0?(cx>x1&&cx<=x1+48):(cx>=x0-48&&cx<x0);
@@ -1636,6 +1676,22 @@ function findUse(){
     if(itemVis(s.item)&&Math.abs(cx-(s.item.c*T+16))<40)return {label:s.item.label,go:pickItem};
     if(s.bed&&Math.abs(cx-(s.bed.c*T+48))<64)return {label:'Лечь спать',go:sleepNow};
     if(Math.abs(cx-(s.tea.c*T+16))<44)return {label:s.tea.used?'Чайник пуст':'Выпить чай',go:drinkTea};
+  }
+  if(P.sheathed&&!P.mounted&&!P.blend&&!(P.punchT>0)){
+    let tg=null,td=44;
+    for(let i=0;i<s.enemies.length;i++){
+      const e=s.enemies[i];
+      if(e.state==='dead'||e.ally||e.boss||e.held>0)continue;
+      const ad=Math.abs(cx-(e.x+e.w/2));
+      if(ad<td&&Math.abs((e.y+e.h)-(P.y+P.h))<22){td=ad;tg=e;}
+    }
+    if(tg)return {label:'Толкнуть',shove:true,go:function(){
+      if(tg.state==='dead')return;
+      const dir=(tg.x+tg.w/2)>=(P.x+P.w/2)?1:-1;
+      P.face=dir;P.punchT=0.16;P.punchHit=true;P.atkCd=0.45;
+      tg.vx=dir*400;tg.vy=-170;tg.state='stun';tg.t=0.6;tg.lastSwing=-1;
+      sfx('hit');burst(tg.x+tg.w/2,tg.y+tg.h*0.5,6,'#f1e6d2',100);cityHit(tg);
+    }};
   }
   let best=null,bd=1e9;
   for(let i=0;i<s.civs.length;i++){
@@ -1834,7 +1890,7 @@ function updatePlayer(dt){
   }
   const armed=canWield(P.wp);
   // bow: hold attack to draw, jump/down raise and lower the aim, release to shoot
-  if(P.wp==='bow'&&input.atk&&!P.blend&&P.atkCd<=0){
+  if(P.wp==='bow'&&input.atk&&!P.blend&&!(P.sheathed&&!P.mounted)&&P.atkCd<=0){
     if(!P.aiming){P.aiming=true;P.aimT=0;P.aimA=0;}
     P.aimT=Math.min(P.aimT+dt,0.5);
     if(input.jump)P.aimA=Math.max(-0.7,P.aimA-1.7*dt);
@@ -1845,11 +1901,31 @@ function updatePlayer(dt){
   }
   P.shootT=Math.max(0,(P.shootT||0)-dt);P.fast=Math.max(0,(P.fast||0)-dt);
   pickDrops();
+  // sneaking with a dagger: the attack button performs a stealth kill when an enemy is in reach
+  if(input.atkPressed&&P.sneak&&P.wp==='dagger'&&!P.exec){
+    const st=stealthTarget(true);
+    if(st&&st.state!=='dead'&&!(st.held>0)){
+      if(P.sheathed){P.sheathed=false;updateHud();}
+      const front=((P.x+P.w/2)>=(st.x+st.w/2)?1:-1)===st.face;
+      startExec(front?'stabFront':'stabBack',st);
+      P.t+=dt;return;
+    }
+  }
   // attack
-  if(P.sheathed&&!P.blend&&!P.mounted&&(input.atkPressed||(P.wp==='bow'&&input.atk))){P.sheathed=false;updateHud();sfx('swing');}
+  if(P.sheathed&&!P.blend&&!P.mounted&&input.atkPressed&&P.atkCd<=0){P.punchT=0.16;P.punchHit=false;P.atkCd=0.32;P.swing++;sfx('swing');}
+  P.punchT=Math.max(0,(P.punchT||0)-dt);
+  if(P.punchT>0&&!P.punchHit&&(0.16-P.punchT)>0.04){
+    P.punchHit=true;
+    const fb={x:P.face>0?P.x+P.w-2:P.x-20,y:P.y+4,w:22,h:P.h-8};
+    for(let i=0;i<S.enemies.length;i++){
+      const e=S.enemies[i];
+      if(e.state!=='dead'&&!e.ally&&e.lastSwing!==P.swing&&overlap(fb,e)){hitEnemy(e,0.5);burst(e.x+e.w/2,e.y+14,4,'#f1e6d2',90);}
+    }
+    if(S.peace&&!S.alert){for(let i=0;i<S.civs.length;i++){if(overlap(fb,S.civs[i])){triggerAlert();break;}}}
+  }
   const wp=WP[P.wp];
-  if(input.atkPressed&&P.atkCd<=0&&!P.blend&&P.wp!=='bow'&&!armed){toast('С коня бьют только копьём и луком');P.atkCd=0.6;}
-  if(input.atkPressed&&P.atkCd<=0&&!P.blend&&P.wp!=='bow'&&armed){
+  if(input.atkPressed&&P.atkCd<=0&&!P.blend&&!(P.sheathed&&!P.mounted)&&P.wp!=='bow'&&!armed){toast('С коня бьют только копьём и луком');P.atkCd=0.6;}
+  if(input.atkPressed&&P.atkCd<=0&&!P.blend&&!(P.sheathed&&!P.mounted)&&P.wp!=='bow'&&armed){
     P.atkDur=wp.dur;P.atk=wp.dur;P.atkCd=wp.cd;P.swing++;P.bounced=false;
     if(P.wp==='musket'){if(input.down&&!P.ground){P.down=true;P.atkCd=0.4;sfx('swing');}else{P.down=false;fireMusket();}}
     else{P.down=(input.down&&!P.ground&&!P.mounted);sfx('swing');}
@@ -1905,8 +1981,46 @@ function blockedAhead(e,dir){
   return solidAt(fx,e.y+e.h-10)||solidAt(fx,e.y+6)||!solidAt(fx,e.y+e.h+6)||spikeAhead(e,dir,48)>0;
 }
 /* units fight each other: Kazakh warriors and archers against Dzungars */
+function nightPeace(){return !!S&&S.type==='out'&&S.biome==='steppe'&&!S.peace&&darkLevel()>0.55;}
+/* night camps on the steppe: each side gathers at one fire, and the sides do not fight until dawn */
+function findCampX(want,avoid){
+  const c0=clamp(Math.round(want/T),4,S.cols-5);
+  for(let d=0;d<S.cols;d++){
+    const cs=[c0+d,c0-d];
+    for(let j=0;j<2;j++){
+      const c=cs[j];if(c<4||c>S.cols-5)continue;
+      let ok=true;
+      for(let k=-3;k<=3;k++){const q=c+k;if(q<0||q>=S.cols||!S.grid[10][q]||S.grid[9][q]||S.grid[8][q])ok=false;}
+      if(!ok)continue;
+      if(S.spikes.some(function(q){return Math.abs(q.c-c)<4;}))continue;
+      if(S.portals.some(function(q){return Math.abs(q.c-c)<4;}))continue;
+      if(avoid!==null&&Math.abs(c*T+16-avoid)<320)continue;
+      return c*T+16;
+    }
+  }
+  return want;
+}
+function campOf(e){
+  const side=e.team==='kz'?'kz':'jz';
+  if(!S.camp)S.camp={};
+  if(S.camp[side])return S.camp[side];
+  const us=S.enemies.filter(function(u){return u.team===side&&u.state!=='dead'&&!u.boss&&!u.off;}).sort(function(a,b){return a.x-b.x;});
+  const lead=us[Math.floor(us.length/2)]||e,other=S.camp[side==='kz'?'jz':'kz'];
+  const cp={x:findCampX(lead.x+lead.w/2,other?other.x:null),n:0};
+  S.camp[side]=cp;return cp;
+}
+function slotFor(cp){const k=(cp.n++)%7;return k===0?0:(k%2?-1:1)*Math.ceil(k/2)*28;}
+function restNow(){
+  if(darkLevel()<0.3){toast('Ещё светло');return;}
+  const col=clamp(Math.floor((P.x+P.w/2)/T),3,S.cols-4);
+  goScene(S.id,col,P.face||1,false,function(){
+    dayClock=DAY_LEN*0.02;lastPhase=dayLabel();P.hp=3;
+    updateHud();saveGame(true);toast('Ты отдохнул у костра. Наступило утро, силы восстановлены');
+  });
+}
 function unitFoe(e,u){
   if(u===e||u.state==='dead')return false;
+  if(nightPeace())return false;
   if(e.ally)return !u.ally&&u.team==='jz'&&!u.boss;
   return e.team==='jz'&&u.ally;
 }
@@ -2108,6 +2222,7 @@ function drawWarBar(){
 function updateEnemy(e,dt){
   e.anim+=dt;e.flash=Math.max(0,e.flash-dt);e.ramCd=Math.max(0,(e.ramCd||0)-dt);e.emerge=Math.max(0,(e.emerge||0)-dt);
   e.vy=Math.min(e.vy+GRAV*dt,700);
+  if(e.leap&&e.vy>=0&&boxHits(e.x,e.y+1,e.w,e.h))e.leap=0;
   if(e.state==='dead'){
     e.vx*=0.9;e.fade-=dt*0.7;
     moveX(e,e.vx*dt);moveY(e,e.vy*dt);return;
@@ -2141,6 +2256,7 @@ function updateEnemy(e,dt){
   unitDoors(e);
   switch(e.state){
     case 'patrol':
+      if(nightPeace()&&!e.boss&&(e.team==='jz'||(e.team==='kz'&&e.ally))){const cp0=campOf(e);e.slot=slotFor(cp0);e.state='camp';e.vx=0;break;}
       if(e.invest&&e.invest.t>0){
         e.invest.t-=dt;const ix=e.invest.x-(e.x+e.w/2);
         if(Math.abs(ix)>26){e.face=ix>0?1:-1;e.vx=blockedAhead(e,e.face)?0:e.face*(rd?120:85);}else e.vx=0;
@@ -2159,21 +2275,20 @@ function updateEnemy(e,dt){
         const close=tg.ad<(rd?140:110),cornered=close&&blockedAhead(e,-e.face);
         if(e.shotCd<=0&&tg.ad>=60&&Math.abs(tg.dy)<56){e.state='aim';e.aimTot=cornered?0.4:(rd?0.5:0.7);e.t=e.aimTot;e.vx=0;break;}
         if(close&&!cornered)e.vx=-e.face*(rd?190:95);
-        else if(tg.ad>330){if(cityHere)hopMove(e,e.face,95);else e.vx=blockedAhead(e,e.face)?0:e.face*(rd?160:70);}
+        else if(tg.ad>330){hopMove(e,e.face,rd?160:(cityHere?95:70));}
         else e.vx=0;
         break;
       }
       if(rd){
         // cavalry: lance charge
         if(e.chCd<=0&&tg.ad<=260&&tg.ad>=40&&Math.abs(tg.dy)<44&&!blockedAhead(e,e.face)){e.state='windup';e.t=0.42;e.vx=0;break;}
-        if(tg.ad>170)e.vx=blockedAhead(e,e.face)?0:e.face*200;
+        if(tg.ad>170)hopMove(e,e.face,200);
         else if(tg.ad<70)e.vx=blockedAhead(e,-e.face)?0:-e.face*60;
         else e.vx=0;
         break;
       }
       if(tg.ad<=(sw?56:48)&&Math.abs(tg.dy)<40){e.state='windup';e.t=sw?0.3:0.34;e.vx=0;break;}
-      if(cityHere)hopMove(e,e.face,(huntOn&&e.team==='jz')?(sw?165:155):(sw?125:115));
-      else if(!spikeHop(e,e.face,sw?125:115))e.vx=blockedAhead(e,e.face)?0:e.face*(sw?125:115);
+      hopMove(e,e.face,(cityHere&&huntOn&&e.team==='jz')?(sw?165:155):(sw?125:115));
       break;
     case 'aim':
       e.vx=0;
@@ -2199,6 +2314,19 @@ function updateEnemy(e,dt){
       const hb=sw?{x:e.face>0?e.x+e.w-2:e.x-44,y:e.y+4,w:46,h:20}:{x:e.face>0?e.x+e.w:e.x-52,y:e.y+8,w:52,h:14};
       meleeHit(e,hb,sw?2:1);
       if(e.t<=0){e.state='cool';e.t=0.5;}
+      break;}
+    case 'camp':{
+      const cp=S.camp&&S.camp[e.team];
+      if(!cp||!nightPeace()){e.state='patrol';e.rest=false;e.vx=0;break;}
+      const ag=(e.team==='jz')?acquire(e,true):null;
+      if(ag&&ag.isP){
+        let al=false;
+        for(let q=0;q<S.enemies.length&&!al;q++){const u=S.enemies[q];if(u!==e&&u.team==='jz'&&u.state==='chase'&&Math.abs(u.x-e.x)<260)al=true;}
+        if(ag.ad<(P.sneak?50:110)||al){e.state='chase';e.rest=false;break;}
+      }
+      const cdx=cp.x+e.slot-(e.x+e.w/2);
+      if(Math.abs(cdx)>8){e.rest=false;e.face=cdx>0?1:-1;hopMove(e,e.face,rd?150:95);}
+      else{e.vx=0;e.rest=true;e.face=(e.slot>0)?-1:1;}
       break;}
     case 'cool':
       e.vx=0;if(e.t<=0)e.state='chase';break;
@@ -2318,7 +2446,7 @@ function step(dt){
   }
   for(let i=loose.length-1;i>=0;i--){const l=loose[i];l.t-=dt;l.anim+=dt;l.x+=l.vx*dt;if(l.t<=0)loose.splice(i,1);}
   for(let i=0;i<S.enemies.length;i++)updateEnemy(S.enemies[i],dt);
-  updateWar(dt);updateChapter();
+  updateWar(dt);updateChapter();if(S.camp&&!nightPeace())S.camp=null;
   for(let i=0;i<S.civs.length;i++)updateCiv(S.civs[i],dt);
   updateSuspicion(dt);
   updateBullets(dt);updateEBullets(dt);updateArrows(dt);
@@ -2355,7 +2483,7 @@ function step(dt){
     if(S.goal&&overlap(P,S.goal)){if(S.id==='finale'){if(!flags.banner){flags.banner=true;sfx('win');toast('Знамя поднято. Отнеси его хану в скрытый город');saveGame();}}}
   }
   hint=(state==='playing'&&!trans)?findUse():null;
-  const ut=(hint&&hint.stealth)?'Убийство':'Войти';if(ut!==useTxt){useTxt=ut;const ul=$('usel');if(ul)ul.textContent=ut;}
+  const ut=(hint&&hint.stealth)?'Убийство':((hint&&hint.shove)?'Толкнуть':'Войти');if(ut!==useTxt){useTxt=ut;const ul=$('usel');if(ul)ul.textContent=ut;}
   const tx=clamp(P.x+P.w/2-W/2+P.face*(P.mounted?70:30),0,Math.max(0,S.ww-W));
   cam.x+=(tx-cam.x)*Math.min(1,dt*6);
   const ty=clamp(P.y+P.h/2-H*0.55,0,12*T-H);
@@ -2513,7 +2641,7 @@ function semAct(n){
       function(){toast('Задание: помочь бию решить спор');});
     return;
   }
-  if(n===9)openCouncil();
+  if(n===9){closePanel();openCouncil();}
 }
 function herdTalk(){
   const CH='Чабан Нурлан',NH=scenes.sem_herd.defs.length,dead=jzDead('sem_herd');
@@ -2656,6 +2784,41 @@ function kozhaTalk(){
       o.push({t:'Пройти мимо',f:null});
       askChoice('Сухие колодцы','Старик просит помощи','Как поступишь?',o);
     });
+}
+function aelderTalk(){
+  const AE='Аксакал Жанабай';
+  if(flags.aFed){startTalk([{who:AE,text:flags.aSilent?'Живи у нас сколько нужно, батыр. Джунгары сюда пока не заглядывают.':'Живи у нас сколько нужно, батыр. Будь осторожен: язык разносит вести быстрее ветра.'}]);return;}
+  function finish(){
+    flags.aFed=true;sfx('win');updateHud();saveGame();
+    startTalk([{who:AE,text:'Джунгары берут с нас дань скотом и людьми. Мы кочуем из лощины в лощину и ждём, пока степь изменится.'},
+      {who:AE,text:'Скоро будет той по случаю рождения сына. Приходи: будет борьба и скачки. Заодно поближе узнаешь людей.'}],function(){toast('В ауле готовится той: борьба и скачки');saveGame();},{dark:true,backdrop:'aul'});
+  }
+  function tea(){
+    if(P.tea>0){
+      askChoice('Аул в лощине','Чая нет','Дастархан накрыт: кумыс, курт, баурсаки, но чайника на нём нет.',[
+        {t:'Подарить аксакалу пачку чая',f:function(){P.tea--;flags.aTea=true;startTalk([{who:AE,text:'Чай... Давно я его не пил. Он у нас только у оседлых да у баев. Рахмет, балам, это дорогой дар.'}],finish,{dark:true,backdrop:'aul'});}},
+        {t:'Оставить чай себе',f:function(){startTalk([{who:AE,text:'Кумыс не хуже чая. Угощайся.'}],finish,{dark:true,backdrop:'aul'});}}]);
+    }else{
+      startTalk([{who:AE,text:'Чая у нас нет, батыр, не обессудь. Он у оседлых и у баев, а у нас в кочевье кумыс да айран.'}],finish,{dark:true,backdrop:'aul'});
+    }
+  }
+  function head(){
+    askChoice('Аул в лощине','Баранья голова','Хозяин ставит перед тобой блюдо с головой барана. Как гостю, тебе положено разделить её.',[
+      {t:'Передать голову аксакалу',f:function(){flags.aHead=true;startTalk([{who:AE,text:'Уважил старика. Хороший у тебя воспитатель был.'}],tea,{dark:true,backdrop:'aul'});}},
+      {t:'Отрезать ухо мальчику, остальное старшим',f:function(){flags.aHead=true;startTalk([{who:AE,text:'Чтобы слушал старших! Правильно. Ты знаешь обычай.'}],tea,{dark:true,backdrop:'aul'});}},
+      {t:'Съесть самому, ты же гость',f:function(){startTalk([{who:AE,text:'Гость есть гость. Что ж, угощайся.'},{who:'',text:'За дастарханом на мгновение стало тише. Люди переглянулись.'}],tea,{dark:true,backdrop:'aul'});}}]);
+  }
+  function news(){
+    startTalk([{who:AE,text:'Откуда идёшь, батыр? Вижу по коню, что издалека.'},
+      {who:'',text:'Другая часть рода жила в Туркестане. Аул не знает, что город пал.'}],null,{dark:true,backdrop:'aul',prompt:'Что скажешь аулу?',choices:[
+      {t:'Рассказать всем: город пал',f:function(){flags.aAll=true;startTalk([{who:HEB,text:'Туркестан пал. Наши родичи там под джунгарами.'},{who:AE,text:'Да поможет им Аллах. Женщины запричитали, а мужчины уже шепчутся о том, чтобы уйти дальше в горы.'}],head,{dark:true,backdrop:'aul'});}},
+      {t:'Сказать только аксакалу, наедине',f:function(){flags.aElder=true;startTalk([{who:HEB,text:'Аксакал, я скажу тебе одному. Город пал, оседлая часть рода под гнётом.'},{who:AE,text:'Понял тебя. Людей пугать не будем, но сам подумаю, как нам быть.'}],head,{dark:true,backdrop:'aul'});}},
+      {t:'Промолчать: люди и так измучены',f:function(){flags.aSilent=true;startTalk([{who:HEB,text:'Я шёл по степи и давно не ел горячего.'},{who:AE,text:'Вот и поешь. Остальное подождёт.'}],head,{dark:true,backdrop:'aul'});}}]});
+  }
+  flags.aIn=true;
+  startTalk([{who:'',text:'Лощина между холмов. Белые юрты стоят кругом, дым тянется тонкой струйкой. Это кочевье твоего рода.'},
+    {who:AE,text:'Селам, путник. Наш род из тех, что не сидят на месте. Оседлая часть рода давно живёт в городе, а мы уходим от дорог.'},
+    {who:AE,text:'Проходи, гостю всегда место за дастарханом.'}],news,{dark:true,backdrop:'aul'});
 }
 function elderTalk(){
   const EL='Аксакал Бердібай';
@@ -2826,6 +2989,7 @@ function loadGame(d){
 
 /* ---------- quest: the letter ---------- */
 function questMark(c){
+  if(c.quest==='aelder')return !flags.aFed;
   if(c.quest==='elder')return !flags.cDone;
   if(c.quest==='refug')return !flags.cRef;
   if(c.quest==='kozha')return !flags.cKozha;
@@ -2982,6 +3146,7 @@ function runQuest(c){
       {who:BK,text:'Дозор поредел. Теперь нашим будет легче пройти. Держи, это тебе за работу.'}],
       function(){flags.e3d=true;P.m.b+=5;if(P.has.musket)P.ammo=Math.min(AMMO_MAX,P.ammo+2);sfx('win');updateHud();saveGame();toast('Награда: 5 монет Бухары');elderNote();});
     else startTalk([{who:BK,text:'Железо любит заботу. Береги клинок.'}]);
+  }else if(c.quest==='aelder'){aelderTalk();
   }else if(c.quest==='elder'){elderTalk();
   }else if(c.quest==='refug'){refugTalk();
   }else if(c.quest==='kozha'){kozhaTalk();
@@ -3970,6 +4135,22 @@ function drawSteppeDecor(t){
   flame(74*T+16,gy,t,1);
   ctx.fillStyle='#4b2e22';ctx.fillRect(74*T+4,gy-4,24,4);
 }
+function drawCamps(t){
+  if(!S.camp)return;const gy=10*T;
+  ['jz','kz'].forEach(function(side,i){
+    const cp=S.camp[side];if(!cp||cp.x<cam.x-130||cp.x>cam.x+W+130)return;
+    const x=cp.x,kz=side==='kz',col=kz?'#2fb5a8':'#8a1a24';
+    ctx.fillStyle=kz?'#27403d':'#33161d';
+    ctx.beginPath();ctx.moveTo(x-80,gy);ctx.lineTo(x-58,gy-34);ctx.lineTo(x-36,gy);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(x+36,gy);ctx.lineTo(x+58,gy-34);ctx.lineTo(x+80,gy);ctx.closePath();ctx.fill();
+    ctx.fillStyle=col;ctx.fillRect(x-60,gy-12,4,12);ctx.fillRect(x+56,gy-12,4,12);
+    ctx.fillStyle='#4b4b55';for(let k=-2;k<=2;k++){ctx.beginPath();ctx.ellipse(x+k*7,gy-3,4,3,0,0,7);ctx.fill();}
+    ctx.strokeStyle='#4b2e22';ctx.lineWidth=4;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(x-12,gy-4);ctx.lineTo(x+9,gy-12);ctx.moveTo(x+12,gy-4);ctx.lineTo(x-9,gy-12);ctx.stroke();
+    flame(x,gy-8,t+i,1.3);
+    drawBanner(x+88,gy,t,col,i);
+  });
+}
 function drawChest(t){
   if(!itemVis(S.item))return;
   const x=S.item.c*T,gy=10*T,g=0.5+0.5*Math.sin(t*3);
@@ -4248,6 +4429,10 @@ function drawFigure(e,pal,m){
       ctx.fillStyle='#ffd68a';ctx.beginPath();ctx.moveTo(32,-19);ctx.lineTo(42,-24);ctx.lineTo(38,-19);ctx.lineTo(42,-14);ctx.closePath();ctx.fill();
       ctx.fillStyle='#fff3c8';ctx.beginPath();ctx.arc(33,-19,3,0,7);ctx.fill();
     }
+  }else if(m.punch>=0){
+    const q=m.punch<0.5?m.punch*2:(1-m.punch)*2,fx=5+17*q;
+    ctx.strokeStyle=body;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(2,-21);ctx.lineTo(fx,-19);ctx.stroke();
+    ctx.fillStyle=body;ctx.beginPath();ctx.arc(fx,-19,2.6,0,7);ctx.fill();
   }else{
     ctx.strokeStyle=body;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(2,-21);ctx.lineTo(3.5,-12);ctx.stroke();
   }
@@ -4289,6 +4474,7 @@ function drawUnit(e){
     m.horse={pal:e.horse.pal,t:e.anim,run:Math.abs(e.vx)>20,air:m.air,rear:e.state==='windup',gal:Math.abs(e.vx)>150};
     m.sit=true;
   }
+  if(e.rest&&!e.horse)m.sit=true;
   if(e.emerge>0)m.alpha=clamp(1-e.emerge/0.5,0.05,1);
   if(e.state==='retreat'&&e.rt>2)m.alpha=clamp(1-(e.rt-2)/2,0.1,1);
   drawFigure(e,pal,m);
@@ -4302,7 +4488,7 @@ function render(now){
   ctx.save();
   const sx=shake>0?(Math.random()-0.5)*5:0,sy=shake>0?(Math.random()-0.5)*5:0;
   ctx.translate(-Math.round(cam.x)+sx,-Math.round(cam.y)+sy);
-  if(S.type==='out'){drawCity(t);drawStalls();drawSpots(t);if(S.id==='hidden')drawBonfire(t);drawWater(t);if(S.biome==='steppe')drawSteppeDecor(t);}else{drawInterior(t);drawChest(t);}
+  if(S.type==='out'){drawCity(t);drawStalls();drawSpots(t);if(S.id==='hidden')drawBonfire(t);drawWater(t);if(S.biome==='steppe')drawSteppeDecor(t);drawCamps(t);}else{drawInterior(t);drawChest(t);}
   drawDecor();if(S.maus){ctx.save();ctx.translate(S.maus*T,10*T);ctx.scale(1.7,1.7);drawMausoleum(0,0);ctx.restore();}drawRoofHouses();drawAlleys();drawTiles();drawWells();drawTDoors(t);drawPortals(t);drawDoors(t);drawLamps(t);drawSpikes();drawSigns();drawCheckpoints(t);drawTraces();drawGoal(t);
   for(let i=0;i<S.civs.length;i++){
     const c=S.civs[i];
@@ -4323,6 +4509,7 @@ function render(now){
       continue;
     }
     drawUnit(e);
+    if(e.rest&&e.state==='camp'&&e.team==='jz'){ctx.font='700 12px "PT Sans",sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(241,230,210,'+(0.55+0.3*Math.sin(t*2+i))+')';ctx.fillText('z',e.x+e.w/2+8,e.y-4-((t*14+i*5)%10));ctx.textAlign='left';}
     const wv=e.watch||((e.invest&&e.invest.t>0)?1:0);
     if(wv&&e.state!=='dead'){
       ctx.font='700 18px "Philosopher",serif';ctx.textAlign='center';ctx.textBaseline='middle';
@@ -4341,7 +4528,7 @@ function render(now){
   if(P&&!(P.inv>0&&Math.floor(P.inv*14)%2===0&&state==='playing')){
     const air=!(P.vy>=0&&boxHits(P.x,P.y+1,P.w,P.h));
     if(P.blend)drawFigure(P,HERO_BLEND,{t:P.t,run:Math.abs(P.vx)>15&&!air,air:false,weapon:'none',hat:'skull',alpha:0.88});
-    else drawFigure(P,HERO,{horse:P.mounted?{pal:HCOAT.player,t:P.t,run:Math.abs(P.vx)>30&&!air,air:air,gal:Math.abs(P.vx)>200}:null,sit:P.mounted,pips:(P.mounted&&P.hh<3)?{hp:P.hh,max:3}:null,t:P.t,run:Math.abs(P.vx)>30&&!air&&!P.exec,air:P.exec?false:air,weapon:(P.sheathed&&!P.mounted)?'none':P.wp,hat:eqd('helm')?'dulyga':'hood',shield:eqd('shield'),mail:eqd('armor'),boots:eqd('boots'),torch:P.torchT>0,quiver:P.wp==='bow'&&!(P.sheathed&&!P.mounted),aimP:(P.wp==='bow'&&P.aiming)?clamp(P.aimT/0.35,0,1):-1,shoot:(P.shootT||0)>0,aimA:P.aimA||0,pose:(P.wp==='spear'&&P.atk>0)?(P.down?'down':'thrust'):(Math.abs(P.vx)>30?'chase':'patrol'),atkP:P.atk>0?1-P.atk/P.atkDur:-1,down:P.down,
+    else drawFigure(P,HERO,{horse:P.mounted?{pal:HCOAT.player,t:P.t,run:Math.abs(P.vx)>30&&!air,air:air,gal:Math.abs(P.vx)>200}:null,sit:P.mounted,pips:(P.mounted&&P.hh<3)?{hp:P.hh,max:3}:null,t:P.t,run:Math.abs(P.vx)>30&&!air&&!P.exec,air:P.exec?false:air,weapon:(P.sheathed&&!P.mounted)?'none':P.wp,hat:eqd('helm')?'dulyga':'hood',shield:eqd('shield'),mail:eqd('armor'),boots:eqd('boots'),punch:P.punchT>0?1-P.punchT/0.16:-1,torch:P.torchT>0,quiver:P.wp==='bow'&&!(P.sheathed&&!P.mounted),aimP:(P.wp==='bow'&&P.aiming)?clamp(P.aimT/0.35,0,1):-1,shoot:(P.shootT||0)>0,aimA:P.aimA||0,pose:(P.wp==='spear'&&P.atk>0)?(P.down?'down':'thrust'):(Math.abs(P.vx)>30?'chase':'patrol'),atkP:P.atk>0?1-P.atk/P.atkDur:-1,down:P.down,
       ex:P.exec?{kind:P.exec.kind,u:Math.min(1,P.exec.t/P.exec.dur)}:null,guard:P.parryT>0&&P.wp!=='dagger',crouch:!!(P.sneak||P.exec&&((P.exec.kind==='dagger'&&P.exec.t/P.exec.dur>0.4)||((P.exec.kind==='sword'||P.exec.kind==='musket'||P.exec.kind==='spear')&&P.exec.t/P.exec.dur>0.3&&P.exec.t/P.exec.dur<0.7)))});
   }
   if(P&&P.aiming&&P.aimT>0.1){
