@@ -1,0 +1,21 @@
+{
+ "name": "Unreasonably Large Armies",
+ "short_name": "ULA",
+ "start_url": "ula-game.html",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#14181d",
+ "theme_color": "#14181d",
+ "icons": [
+  {
+   "src": "ula-icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "ula-icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

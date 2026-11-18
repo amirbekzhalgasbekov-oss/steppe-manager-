@@ -1,15 +1,19 @@
 // Офлайн-кеш для всего сайта: Steppe Manager, Neon Cube, Modern Front.
 // Один service worker в корне сайта — он управляет всеми страницами.
 // Версию меняем при каждом обновлении сайта, чтобы старый кеш не остался.
-const CACHE = 'steppe-site-v7';
+const CACHE = 'steppe-site-v19';
 const FILES = [
-  './', './index.html', './steppe.html', './about.html', './gorodostroy.html', './gorodostroy_v51.html', './manifest.webmanifest', './play.html',
+  './', './index.html', './steppe.html', './about.html', './gorodostroy.html', './gorodostroy_v51.html', './mirovaya-partiya.html', './mirovaya-partiya-game.html', './mirovaya-partiya.webmanifest', './mirovaya-partiya-icon-192.png', './mirovaya-partiya-icon-512.png', './mirovaya-partiya-apple-touch-icon.png', './mirovaya-partiya-screen.png', './manifest.webmanifest', './play.html',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png',
   './neon-cube.html', './Neon_Cube.html', './neon-cube.webmanifest',
   './neon-cube-icon-192.png', './neon-cube-icon-512.png', './neon-cube-apple-touch-icon.png',
   './modern-front.html', './modern-front-game.html', './modern-front.webmanifest',
   './modern-front-icon-192.png', './modern-front-icon-512.png', './modern-front-apple-touch-icon.png',
-  './modern-front-game.png', './modern-front-start.png'
+  './modern-front-game.png', './modern-front-start.png',
+  './ula.html', './ula-game.html', './ula.webmanifest',
+  './ula-icon-192.png', './ula-icon-512.png', './ula-apple-touch-icon.png',
+  './turkestan.html', './turkestan-game.html', './turkestan.webmanifest',
+  './turkestan-icon-192.png', './turkestan-icon-512.png', './turkestan-apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {

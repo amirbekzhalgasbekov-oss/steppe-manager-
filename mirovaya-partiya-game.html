@@ -103,6 +103,15 @@ a{color:var(--you)}
 .prow .st{font:500 12px var(--f-n);color:var(--mute);white-space:nowrap}
 #startact{padding-block:8px;padding-bottom:max(8px,env(safe-area-inset-bottom,0px));display:flex;gap:8px;border-top:1px solid var(--line)}
 #startact .btn{flex:1}
+#mainm{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:var(--panel);overflow:auto;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+#mainm[hidden]{display:none}
+#mainm .mm{width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px}
+#mainm h1{margin:0;font:26px var(--f-d);letter-spacing:.05em;text-align:center}
+#mainm .sub{margin:0 0 6px;color:var(--mute);font-size:13px;text-align:center}
+.mmc{display:block;width:100%;text-align:left;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:inherit;font:inherit;cursor:pointer}
+.mmc b{display:block;font-size:16px}
+.mmc small{display:block;color:var(--mute);font-size:13px;margin-top:4px;line-height:1.35}
+.mmc.pri{border-color:var(--gold)}
 #go{font-family:var(--f-d);letter-spacing:.03em}
 
 #modal{position:fixed;inset:0;background:rgba(3,8,14,.78);display:flex;align-items:center;justify-content:center;z-index:30;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
@@ -201,6 +210,7 @@ a{color:var(--you)}
     <div id="toast" role="status"></div>
   </main>
   <section id="sheet" class="gut"></section>
+  <section id="mainm" hidden><div class="mm" id="mmBody"></div></section>
   <section id="startp">
     <div class="hd gut board">
       <h1>МИРОВАЯ ПАРТИЯ</h1>
@@ -208,7 +218,7 @@ a{color:var(--you)}
       <input id="q" type="search" placeholder="Поиск страны" autocomplete="off">
     </div>
     <div id="plist"></div>
-    <div id="startact" class="gut"><button id="cont" class="btn" hidden>Продолжить</button><button id="go" class="btn pri" disabled>Выберите страну</button></div>
+    <div id="startact" class="gut"><button id="cont" class="btn" hidden>Продолжить</button><button id="backM" class="btn">Меню</button><button id="go" class="btn pri" disabled>Выберите страну</button></div>
   </section>
 </div>
 <div id="modal" hidden><div class="card"><h2 id="mT"></h2><div class="body" id="mB"></div><div class="macts" id="mA"></div></div></div>
@@ -616,8 +626,203 @@ function rast(p,arr,val){
     for(let k=0;k+1<xi.length;k+=2){const xa=Math.max(0,Math.ceil(xi[k]-.5)),xb=Math.min(GW-1,Math.floor(xi[k+1]-.5));for(let x=xa;x<=xb;x++)arr[y*GW+x]=val;}}
 }
 
+/* ===== СЦЕНАРИЙ 1939: «Вторая мировая» ===== */
+/* слияния: эта страна становится частью другой (её границы рисуются как территория владельца) */
+const ALIAS1939={
+  AT:'DE',SK:'CZ',HR:'RS',SI:'RS',BA:'RS',ME:'RS',MK:'RS',AL:'IT',
+  UA:'RU',BY:'RU',GE:'RU',AM:'RU',AZ:'RU',KZ:'RU',UZ:'RU',TM:'RU',TJ:'RU',KG:'RU',MD:'RO',
+  KP:'JP',KR:'JP',TW:'JP',PH:'US',
+  VN:'FR',LA:'FR',KH:'FR',SY:'FR',LB:'FR',DZ:'FR',TN:'FR',MA:'FR',MR:'FR',ML:'FR',NE:'FR',TD:'FR',SN:'FR',GN:'FR',CI:'FR',BF:'FR',BJ:'FR',TG:'FR',CM:'FR',GA:'FR',CF:'FR',CG:'FR',MG:'FR',
+  ID:'NL',SR:'NL',
+  IN:'GB',PK:'GB',BD:'GB',LK:'GB',MM:'GB',MY:'GB',KW:'GB',QA:'GB',AE:'GB',SD:'GB',SS:'GB',NG:'GB',GH:'GB',SL:'GB',KE:'GB',UG:'GB',TZ:'GB',MW:'GB',ZM:'GB',ZW:'GB',BW:'GB',GY:'GB',IL:'GB',JO:'GB',
+  ET:'IT',ER:'IT',SO:'IT',LY:'IT',
+  CD:'BE',RW:'BE',BI:'BE',
+  AO:'PT',MZ:'PT',GW:'PT',
+  NA:'ZA',PG:'AU'
+};
+/* названия, доход, армия, глава государства, глава правительства (пусто — если не уверены) */
+const NAMES1939={
+  RU:['СССР',30,60,'Сталин',''],
+  DE:['Германия',24,40,'Гитлер',''],
+  PL:['Польша',8,14,'',''],
+  GB:['Британская империя',40,40,'Чемберлен',''],
+  FR:['Франция',22,26,'',''],
+  IT:['Италия',12,22,'Муссолини',''],
+  JP:['Японская империя',20,34,'',''],
+  US:['США',60,40,'Рузвельт',''],
+  CN:['Китай (Гоминьдан)',15,22,'Чан Кайши',''],
+  RS:['Королевство Югославия',4,8,'',''],
+  CZ:['Чехословакия',6,8,'',''],
+  NL:['Нидерланды',8,6,'',''],
+  BE:['Бельгия',6,6,'',''],
+  PT:['Португалия',3,4,'',''],
+  AU:['Австралия',8,6,'',''],
+  ZA:['Южная Африка',6,8,'',''],
+  RO:['Румыния',5,10,'','']
+};
+/* Маньчжоу-го выделяется из Китая по области Маньчжурии */
+const MJ_NEW={name:'Маньчжоу-го',eco:4,mil:10,site:'123.4,41.8,2.5'};
+const NOFLAG_ALL=new Set(['WS','SB','FE','XV','BU','KO','MJ']);
+/* 1917: слияния по состоянию на 1917 год (Австро-Венгрия, Османская империя, колонии) */
+const ALIAS1917={
+  HU:'AT',CZ:'AT',SK:'AT',SI:'AT',HR:'AT',BA:'AT',MK:'RS',
+  SY:'TR',LB:'TR',IQ:'TR',JO:'TR',IL:'TR',YE:'TR',
+  SD:'GB',SS:'GB',KE:'GB',UG:'GB',TZ:'GB',NG:'GB',GH:'GB',SL:'GB',MW:'GB',ZM:'GB',ZW:'GB',BW:'GB',IN:'GB',PK:'GB',BD:'GB',LK:'GB',MM:'GB',MY:'GB',KW:'GB',QA:'GB',AE:'GB',GY:'GB',
+  DZ:'FR',TN:'FR',MA:'FR',MR:'FR',ML:'FR',NE:'FR',TD:'FR',SN:'FR',GN:'FR',CI:'FR',BF:'FR',BJ:'FR',TG:'FR',CM:'FR',GA:'FR',CF:'FR',CG:'FR',MG:'FR',VN:'FR',LA:'FR',KH:'FR',
+  ID:'NL',SR:'NL',CD:'BE',RW:'BE',BI:'BE',AO:'PT',MZ:'PT',GW:'PT',NA:'ZA',PG:'AU',PH:'US',
+  KP:'JP',KR:'JP',TW:'JP',LY:'IT',ER:'IT',SO:'IT'
+};
+function RAW1939(){
+  const rows=[];
+  RAW.forEach(r=>{if(ALIAS1939[r[0]]!==undefined)return;const o=r.slice();const n=NAMES1939[r[0]];
+    if(n){o[1]=n[0];o[2]=n[1];o[3]=n[2];o[6]=n[3];o[7]=n[4];}rows.push(o);});
+  rows.push(['MJ',MJ_NEW.name,MJ_NEW.eco,MJ_NEW.mil,'#888888',MJ_NEW.site,'','']);
+  return rows;
+}
+function apply1939(){
+  const by={};C.forEach(c=>by[c.iso]=c.i);const ok=(a,b)=>by[a]!==undefined&&by[b]!==undefined&&a!==b;
+  const ally=(a,b)=>{if(ok(a,b)){const k=key(by[a],by[b]);G.ally[k]=1;addOp(by[a],by[b],30);addOp(by[b],by[a],30);}};
+  const war=(a,b)=>{if(ok(a,b)){const k=key(by[a],by[b]);delete G.ally[k];delete G.trade[k];G.war[k]=1;G.op[by[a]][by[b]]=-100;G.op[by[b]][by[a]]=-100;}};
+  [['DE','IT'],['DE','JP'],['JP','IT'],['GB','FR'],['GB','PL'],['FR','PL']].forEach(([a,b])=>ally(a,b));
+  [['DE','PL'],['DE','GB'],['DE','FR'],['CN','JP']].forEach(([a,b])=>war(a,b));
+  if(ok('RU','DE'))G.pact[key(by.RU,by.DE)]=9999;
+  addLog('Старт: 1 сентября 1939. Германия напала на Польшу; Британия и Франция объявили войну. СССР связан пактом с Германией. Китай воюет с Японией',false);
+}
+/* ===== СЦЕНАРИИ: «Современность» (2026) и «Великий развал» (1917) ===== */
+let SCN='2026';
+const startYear=()=>SCN==='1917'?1917:SCN==='1939'?1939:2026;
+/* опорные точки 1917 года: [долгота, широта, вес]; клетки бывшей Российской империи и соседей отходят к ближайшей точке */
+const SEEDS1917={
+  RU:[[37.6,55.7,4],[30.3,59.9,3],[59.5,56.5,3],[48,56,3],[39,51,3],[40.5,64.5,3]],
+  WS:[[39.7,47.2,3],[39,45,2],[44.5,44.5,2],[34,45,1.5]],
+  SB:[[73.4,55,4],[85,56.5,3],[104.3,52.3,3],[92.9,56,3]],
+  FE:[[131.9,43.1,3],[127.5,50.3,3],[113.5,52,2.5],[129.7,62,4],[158.6,53,2]],
+  KZ:[[71.4,51.2,4],[80.2,50.4,3],[51.4,51.2,3],[63.6,53.2,2.5],[57.2,50.3,2.5]],
+  UZ:[[69.3,41.3,3],[65.5,44.8,3],[68.3,43.3,2]],
+  KO:[[70.9,40.5,2],[71.7,41.0,2],[71.8,40.4,1.5],[76.9,43.2,3],[74.6,42.9,2]],
+  BU:[[64.4,39.8,3],[66.9,39.7,2],[68.8,38.6,2.5]],
+  XV:[[60.4,41.4,2.5],[58.4,37.9,2.5],[61.8,37.6,2]],
+  AZ:[[49.9,40.4,2.5],[46.4,40.7,1.5]],
+  GE:[[44.8,41.7,2],[42.7,42.3,1.5]],
+  AM:[[44.5,40.2,2]],
+  UA:[[30.5,50.4,3.5],[36.2,50,2.5],[30.7,46.5,2],[28.8,47,1]],
+  BY:[[27.5,53.9,2.5],[30.3,53.9,1.5]],
+  LT:[[25.3,54.7,1.5]],LV:[[24.1,56.9,1.5]],EE:[[24.7,59.4,1.2]],
+  FI:[[24.9,60.2,2.5],[25,64,2]],
+  PL:[[21,52.2,3],[22.6,51.2,1.5]]
+};
+/* эти страны 1917 года исчезают, их территория уходит соседям по опорным точкам */
+const UNION1917_GONE=['MD','TM','TJ','KG'];
+/* название, доход, армия, глава государства (или '' если не уверены) */
+const NAMES1917={
+  RU:['Красная Россия',12,30,'Ленин',''],
+  WS:['Белый Юг',4,14,'Деникин',''],
+  SB:['Белая Сибирь',4,12,'Колчак',''],
+  FE:['Дальний Восток',2,6,'',''],
+  KZ:['Алаш',2,4,'Букейханов',''],
+  UZ:['Үш жүз',2,5,'',''],
+  KO:['Коканд',2,4,'',''],
+  BU:['Бухарский эмират',2,4,'Алим-хан',''],
+  XV:['Хивинское ханство',1,3,'',''],
+  AZ:['Азербайджан',2,4,'',''],
+  GE:['Грузия',1,2,'',''],
+  AM:['Армения',1,2,'',''],
+  UA:['Украина',4,14,'Грушевский',''],
+  BY:['Белорусская НР',2,5,'',''],
+  LT:['Литва',1,2,'',''],LV:['Латвия',1,2,'',''],EE:['Эстония',1,2,'',''],
+  FI:['Финляндия',3,4,'Свинхувуд',''],
+  PL:['Польша',6,12,'',''],
+  DE:['Германская империя',24,40,'Вильгельм II',''],
+  AT:['Австро-Венгрия',12,30,'Карл I',''],
+  TR:['Османская империя',10,25,'Мехмед V',''],
+  GB:['Британская империя',40,40,'Георг V','Ллойд Джордж'],
+  FR:['Франция',22,26,'Раймон Пуанкаре',''],
+  IT:['Италия',12,22,'Виктор Эммануил III','Орландо'],
+  JP:['Японская империя',20,34,'Ёсихито',''],
+  US:['США',60,40,'Вудро Вильсон',''],
+  CN:['Китайская республика',15,22,'',''],
+  RS:['Сербия',4,8,'Пётр I',''],
+  RO:['Румыния',5,10,'Фердинанд I',''],
+  ES:['Испания',10,14,'Альфонсо XIII',''],
+  PT:['Португалия',3,4,'',''],
+  BE:['Бельгия',6,6,'Альберт I',''],
+  NL:['Нидерланды',8,6,'Вильгельмина',''],
+  GR:['Греция',4,8,'Константин I',''],
+  BG:['Болгария',4,12,'Фердинанд I',''],
+  AL:['Албания',1,2,'',''],
+  ME:['Черногория',1,3,'Никола I',''],
+  AU:['Австралия',8,6,'Георг V',''],
+  CA:['Канада',14,10,'Георг V','Роберт Борден'],
+  ZA:['Южно-Африканский Союз',6,8,'Георг V',''],
+  EG:['Египет (протекторат)',6,8,'Хусейн Камиль',''],
+  MN:['Монголия (Богдо-хан)',1,3,'Богдо-хан',''],
+  ET:['Эфиопия',3,8,'Зевдиту',''],
+  TH:['Сиам',5,8,'Ваджиравуд',''],
+  IR:['Персия',4,6,'Ахмад-шах',''],
+  AF:['Афганистан',1,8,'Хабибулла-хан',''],
+  SA:['Хиджаз и Неджд',6,8,'Хусейн ибн Али',''],
+  MX:['Мексика',11,15,'Венустиано Карранса',''],
+  BR:['Бразилия',20,30,'Венсеслау Брас',''],
+  AR:['Аргентина',12,14,'Иполито Иригойен',''],
+  CL:['Чили',6,8,'',''],
+  NO:['Норвегия',4,4,'Хокон VII',''],
+  SE:['Швеция',5,6,'Густав V',''],
+  DK:['Дания',4,4,'Кристиан X',''],
+  CH:['Швейцария',3,4,'',''],
+  SV:['Сальвадор',1,2,'',''],
+  GT:['Гватемала',2,3,'',''],
+  HN:['Гондурас',2,3,'',''],
+  NI:['Никарагуа',1,2,'',''],
+  CR:['Коста-Рика',1,2,'',''],
+  PA:['Панама',1,2,'',''],
+  CU:['Куба',3,4,'',''],
+  HT:['Гаити',1,2,'',''],
+  DO:['Доминиканская республика',1,2,'',''],
+  CO:['Колумбия',4,6,'',''],
+  VE:['Венесуэла',4,6,'',''],
+  EC:['Эквадор',2,3,'',''],
+  PE:['Перу',3,6,'',''],
+  BO:['Боливия',2,3,'',''],
+  PY:['Парагвай',1,2,'',''],
+  UY:['Уругвай',2,3,'',''],
+
+};
+const NEW1917={WS:1,SB:1,FE:1,XV:1,BU:1,KO:1};
+const NOFLAG1917=new Set(Object.keys(NEW1917));
+function RAW1917(){
+  const have=new Set(RAW.map(r=>r[0]));
+  const rows=[];RAW.forEach(r=>{if(ALIAS1917[r[0]]!==undefined)return;const o=r.slice();const n=NAMES1917[r[0]];if(n){o[1]=n[0];o[2]=n[1];o[3]=n[2];o[6]=n[3];o[7]=n[4];}rows.push(o);});
+  Object.keys(NEW1917).forEach(iso=>{if(have.has(iso))return;
+    const n=NAMES1917[iso];
+    rows.push([iso,n[0],n[1],n[2],'#888888',SEEDS1917[iso].map(s=>s.join(',')).join('|'),n[3],n[4]]);});
+  return rows;
+}
+function nukeStatesNow(){return SCN==='2026'?NUKE_STATES:{};}
+function apply1917(){
+  const by={};C.forEach(c=>by[c.iso]=c.i);const ok=(a,b)=>by[a]!==undefined&&by[b]!==undefined&&a!==b;
+  const ally=(a,b)=>{if(ok(a,b)){const k=key(by[a],by[b]);G.ally[k]=1;addOp(by[a],by[b],30);addOp(by[b],by[a],30);}};
+  const war=(a,b)=>{if(ok(a,b)){const k=key(by[a],by[b]);delete G.ally[k];delete G.trade[k];G.war[k]=1;G.op[by[a]][by[b]]=-100;G.op[by[b]][by[a]]=-100;}};
+  [['GB','FR'],['GB','JP'],['FR','JP'],['GB','IT'],['FR','IT'],['GB','RS'],['FR','RS'],['FR','RO'],['DE','AT'],['DE','TR'],['AT','TR'],['AT','BG']].forEach(([a,b])=>ally(a,b));
+  [['WS','SB'],['WS','FE'],['SB','FE'],['WS','KO'],['SB','KO'],['FE','KO']].forEach(([a,b])=>ally(a,b));
+  [['RU','WS'],['RU','SB'],['RU','FE'],['RU','KO'],['KO','UZ'],['UA','PL'],['DE','GB'],['DE','FR'],['AT','IT'],['AT','RS'],['TR','GB'],['BG','RS'],['RO','DE'],['RO','AT']].forEach(([a,b])=>war(a,b));
+  addLog('Старт: 1917 год. Мировая война продолжается; Российская империя распадается: Красная Россия против Белого Юга, Белой Сибири и Дальнего Востока',false);
+}
+/* пересобрать карту под выбранный сценарий */
+function buildWorld(scn){
+  if(scn===SCN&&C.length)return;
+  SCN=scn;G=null;
+  buildCountries();attachDeposits();resStatic();buildSea();
+  ownC=mk(BW,BH);buildBase();rebuildOwn();V.dirty=true;
+}
+/* сценарий последней сохранённой партии (локальной или облачной) */
+function latestScn(){
+  let best=null;
+  try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s&&s.g&&!s.g.over)best=s;}catch(e){}
+  if(CLOUD.s&&CLOUD.s.g&&!CLOUD.s.g.over&&(!best||(CLOUD.s.ts||0)>(best.ts||0)))best=CLOUD.s;
+  return best?(best.sc||'2026'):'2026';
+}
 function buildCountries(){
-  C=RAW.map((r,i)=>({i,iso:r[0],ru:r[1],eco:r[2],mil:r[3],col:r[4],sites:r[5].split('|').map(s=>s.split(',').map(Number)),hos:r[6],hog:r[7],nb:new Set()}));
+  C=(SCN==='1917'?RAW1917():SCN==='1939'?RAW1939():RAW).map((r,i)=>({i,iso:r[0],ru:r[1],eco:r[2],mil:r[3],col:r[4],sites:r[5].split('|').map(s=>s.split(',').map(Number)),hos:r[6],hog:r[7],nb:new Set()}));
   const SX=[],SY=[],SW=[],SC=[],MAIN=[];
   C.forEach(c=>c.sites.forEach((s,k)=>{SX.push(s[0]);SY.push(s[1]);SW.push(s[2]*s[2]);SC.push(c.i);if(k===0)MAIN[c.i]=SX.length-1;}));
   const NS=SX.length;
@@ -626,7 +831,7 @@ function buildCountries(){
   for(let y=0;y<CH;y++){const lat=LAT0-(y+.5)*2/CPD,cl=Math.cos(lat*Math.PI/180);for(let x=0;x<CW;x++)co[y*CW+x]=near(-180+(x+.5)*2/CPD,lat,cl);}
   const siteOf=new Uint16Array(GW*GH);CT=new Uint8Array(GW*GH).fill(255);
   const PT=new Uint8Array(GW*GH).fill(255);
-  {const idx={};C.forEach(c=>idx[c.iso]=c.i);BORD.forEach(([iso,polys])=>{const k=idx[iso];if(k===undefined)return;polys.forEach(q=>rast(q,PT,k));});}
+  {const idx={};C.forEach(c=>idx[c.iso]=c.i);const AL=SCN==='1939'?ALIAS1939:SCN==='1917'?ALIAS1917:null;if(AL)Object.keys(AL).forEach(x=>{if(idx[AL[x]]!==undefined)idx[x]=idx[AL[x]];});BORD.forEach(([iso,polys])=>{const k=idx[iso];if(k===undefined)return;polys.forEach(q=>rast(q,PT,k));});}
   const cand=new Uint16Array(9);
   for(let y=0;y<GH;y++){const lat=LAT0-(y+.5)/CPD,cl=Math.cos(lat*Math.PI/180),cy=y>>1;
     for(let x=0;x<GW;x++){const i=y*GW+x;if(!LANDM[i])continue;
@@ -635,6 +840,21 @@ function buildCountries(){
       for(let yy=cy-1;yy<=cy+1;yy++){if(yy<0||yy>=CH)continue;for(let xx=cx-1;xx<=cx+1;xx++){if(xx<0||xx>=CW)continue;const s=co[yy*CW+xx];let dup=false;for(let k=0;k<n;k++)if(cand[k]===s){dup=true;break;}if(dup)continue;cand[n++]=s;
         const dx=(lon-SX[s])*cl,dy=lat-SY[s],d=(dx*dx+dy*dy)/SW[s];if(d<b){b=d;bi=s;}}}
       siteOf[i]=bi;CT[i]=SC[bi];}}
+  // 1917: территории бывшей империи и соседей переходят к ближайшей опорной точке 1917 года
+  if(SCN==='1917'){
+    const sidx={};C.forEach(c=>sidx[c.iso]=c.i);
+    const UN=new Uint8Array(256);
+    [...Object.keys(SEEDS1917),...UNION1917_GONE].forEach(iso=>{if(sidx[iso]!==undefined)UN[sidx[iso]]=1;});
+    const SD=[];Object.keys(SEEDS1917).forEach(iso=>{if(sidx[iso]===undefined)return;SEEDS1917[iso].forEach(q=>SD.push({t:sidx[iso],x:q[0],y:q[1],w:q[2]*q[2],m:MAIN[sidx[iso]]}));});
+    for(let i=0;i<CT.length;i++){const t=CT[i];if(t===255||!UN[t])continue;
+      const lon=-180+((i%GW)+.5)/CPD,lat=LAT0-(((i/GW)|0)+.5)/CPD,cl=Math.cos(lat*Math.PI/180);
+      let b=1e18,bs=null;
+      for(const q of SD){const dx=(lon-q.x)*cl,dy=lat-q.y,d=(dx*dx+dy*dy)/q.w;if(d<b){b=d;bs=q;}}
+      if(bs){CT[i]=bs.t;if(bs.m!==undefined)siteOf[i]=bs.m;}}
+  }
+  // 1939: Маньчжурия отходит от Китая к Маньчжоу-го
+  if(SCN==='1939'){const ic=C.findIndex(c=>c.iso==='CN'),im=C.findIndex(c=>c.iso==='MJ');
+    if(ic>=0&&im>=0)for(let i=0;i<CT.length;i++){if(CT[i]!==ic)continue;const x=i%GW,y=(i/GW)|0;const lon=-180+(x+.5)/CPD,lat=LAT0-(y+.5)/CPD;if(lon>=117&&lat>=39.5&&lat<=54)CT[i]=im;}}
   // анклавы: куски страны, оторванные от основного и без собственной площадки, отдаём соседям по суше
   {
     const N=GW*GH,lab=new Int32Array(N).fill(-1),ord=new Int32Array(N),comps=[];let tot=0;
@@ -1075,21 +1295,21 @@ const NUKE_STATES={US:4,RU:4,CN:3,GB:2,PK:2,KP:1};   /* ядерные держ�
 const NUKE_URAN=20,NUKE_BUILD_URAN=10,NUKE_BUILD_GOLD=300,NUKE_LIMIT=12;
 const NUKE_EMB_TURNS=10,NUKE_RAD_TURNS=15,NUKE_DISARM_CD=5;
 const NUKE_RES_START=30,NUKE_RES_MAX=200,NUKE_RES_FEED=8; /* урановый резерв: стартовый, предел и приток из добычи в ход */
-const isNukeSt=f=>!!C[f]&&NUKE_STATES[C[f].iso]!==undefined;
+const isNukeSt=f=>!!C[f]&&nukeStatesNow()[C[f].iso]!==undefined;
 const uranCount=f=>{let n=0;for(let p=0;p<P.length;p++)if(G.pOwner[p]===f&&P[p].dep&&P[p].dep.some(d=>d[0]===RI.uranium))n++;return n;};
 const hasUran=f=>uranCount(f)>0;
 const embOn=(exp,tgt)=>{const t=G.emb&&G.emb[exp+'>'+tgt];return t!==undefined&&t>=G.turn;};
 const embOnTarget=t=>{if(!G.emb)return false;for(const k in G.emb)if(k.endsWith('>'+t)&&G.emb[k]>=G.turn)return true;return false;};
 function nukeFix(){
-  if(!G.nuke)G.nuke=C.map(c=>NUKE_STATES[c.iso]||0);
-  if(!G.ures)G.ures=C.map(c=>NUKE_STATES[c.iso]?NUKE_RES_START:0);
+  if(!G.nuke)G.nuke=C.map(c=>nukeStatesNow()[c.iso]||0);
+  if(!G.ures)G.ures=C.map(c=>nukeStatesNow()[c.iso]?NUKE_RES_START:0);
   if(!G.emb)G.emb={};if(!G.rad)G.rad={};if(!G.disarmT)G.disarmT={};
 }
 function nukeInit(){
-  G.nuke=C.map(c=>NUKE_STATES[c.iso]||0);G.ures=C.map(c=>NUKE_STATES[c.iso]?NUKE_RES_START:0);G.emb={};G.rad={};G.disarmT={};
+  G.nuke=C.map(c=>nukeStatesNow()[c.iso]||0);G.ures=C.map(c=>nukeStatesNow()[c.iso]?NUKE_RES_START:0);G.emb={};G.rad={};G.disarmT={};
   /* союз Пакистана, Саудовской Аравии и Турции с начала партии */
   const ids=['PK','SA','TR'].map(i=>C.findIndex(c=>c.iso===i));
-  if(ids.every(i=>i>=0&&PC[i]>0)){setAlly(ids[0],ids[1]);setAlly(ids[0],ids[2]);setAlly(ids[1],ids[2]);}
+  if(SCN==='2026'&&ids.every(i=>i>=0&&PC[i]>0)){setAlly(ids[0],ids[1]);setAlly(ids[0],ids[2]);setAlly(ids[1],ids[2]);}
 }
 function nukeInfoHTML(t){
   if(!isNukeSt(t)||!G.rst)return'';
@@ -1439,14 +1659,14 @@ function showState(){
 
 function newGame(you){
   const n=C.length;
-  G={you,turn:1,pOwner:P.map(p=>p.c),core:P.map(p=>p.c),res:P.map(()=>0),tech:C.map(()=>[0,0,0]),xcl:{},ev:null,since:P.map(()=>0),rfund:P.map(()=>0),pEco:[],armies:[],nid:1,gold:[],aggr:[],war:{},ally:{},pact:{},truce:{},trade:{},asked:{},op:[],offers:[],log:[],news:[],over:null,vassal:{},ws:{},lease:{},reg:C.map(c=>REG[c.iso]||'HNC'),reformT:{}};
+  G={you,turn:1,tpy:pendingTpy||12,pOwner:P.map(p=>p.c),core:P.map(p=>p.c),res:P.map(()=>0),tech:C.map(()=>[0,0,0]),xcl:{},ev:null,since:P.map(()=>0),rfund:P.map(()=>0),pEco:[],armies:[],nid:1,gold:[],aggr:[],war:{},ally:{},pact:{},truce:{},trade:{},asked:{},op:[],offers:[],log:[],news:[],over:null,vassal:{},ws:{},lease:{},reg:C.map(c=>regOf(c.iso)),reformT:{}};
   C.forEach(c=>{
     c.prov.forEach(id=>{const pr=P[id],sh=pr.n/c.n;let e=Math.max(1,Math.round(c.eco*sh)),m=Math.max(1,Math.round(c.mil*sh));
       if(pr.city){const k=pr.city.k;e+=k==='c'?1+Math.round(c.eco*.25):k==='h'?1+Math.round(c.eco*.15):1;m=Math.max(k==='c'?3:2,m);}
       G.pEco[id]=e;G.armies.push({id:G.nid++,o:c.i,p:id,n:m,mv:false});});
     G.gold[c.i]=c.eco*3;G.aggr[c.i]=Math.max(0.1,Math.min(1,0.35+Math.random()*0.5+eff(c.i,'aggr')));});
   for(let i=0;i<n;i++){const row=new Array(n);for(let j=0;j<n;j++)row[j]=Math.max(-100,Math.min(100,((Math.random()*24-12)|0)+(Math.random()<0.2?14:0)-(C[i].nb.includes(j)?3:0)+Math.round(aff(i,j)*0.8)));G.op.push(row);}
-  applyReal();scenInit();initLeases();recount();resInit();nukeInit();lnInit();stateInit();save();return G;
+  if(SCN==='1917'){apply1917();G.scen={};}else if(SCN==='1939'){apply1939();G.scen={};}else{applyReal();scenInit();}initLeases();recount();resInit();nukeInit();lnInit();stateInit();save();return G;
 }
 
 /* ---------- бой ---------- */
@@ -1510,12 +1730,12 @@ function checkEnd(){
 }
 
 /* ---------- сохранение ---------- */
-function save(){try{if(G)localStorage.setItem(SAVE_KEY,JSON.stringify({np:P.length,iso:C.map(c=>c.iso).join(''),ts:Date.now(),g:G}));}catch(e){}cloudQueue();}
+function save(){try{if(G)localStorage.setItem(SAVE_KEY,JSON.stringify({sc:SCN,np:P.length,iso:C.map(c=>c.iso).join(''),ts:Date.now(),g:G}));}catch(e){}cloudQueue();}
 const validSave=s=>s&&s.np===P.length&&s.iso===C.map(c=>c.iso).join('')&&s.g&&!s.g.over;
 function loadSave(){
   let best=null;try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(validSave(s))best=s;}catch(e){}
   if(validSave(CLOUD.s)&&(!best||(CLOUD.s.ts||0)>(best.ts||0)))best=CLOUD.s;
-  if(best){G=best.g;G.news=[];if(!G.lease)G.lease={};if(!G.reg)G.reg=C.map(c=>REG[c.iso]||'HNC');if(!G.reformT)G.reformT={};nukeFix();lnFix();stateFix();recount();if(!G.rst)resInit();return true;}return false;
+  if(best){G=best.g;G.news=[];if(!G.lease)G.lease={};if(!G.reg)G.reg=C.map(c=>regOf(c.iso));if(!G.reformT)G.reformT={};for(const k in G.lease)if(G.lease[k].until>=9999)G.lease[k].until=turnOfYear(G,2050);nukeFix();lnFix();stateFix();recount();if(!G.rst)resInit();return true;}return false;
 }
 function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}cloudClear();}
 /* ================= ДИПЛОМАТИЯ И ИИ ================= */
@@ -2055,7 +2275,7 @@ async function cloudInit(){
 function cloudQueue(){if(!CLOUD.ref)return;CLOUD.dirty=true;clearTimeout(CLOUD.t);CLOUD.t=setTimeout(cloudFlush,1500);}
 async function cloudFlush(){
   if(!CLOUD.ref||CLOUD.busy||!CLOUD.dirty||!G||G.over)return;CLOUD.busy=true;CLOUD.dirty=false;
-  try{await CLOUD.ref.set({ts:Date.now(),json:JSON.stringify({np:P.length,iso:C.map(c=>c.iso).join(''),ts:Date.now(),g:G})});}catch(e){}
+  try{await CLOUD.ref.set({ts:Date.now(),json:JSON.stringify({sc:SCN,np:P.length,iso:C.map(c=>c.iso).join(''),ts:Date.now(),g:G})});}catch(e){}
   CLOUD.busy=false;if(CLOUD.dirty)cloudQueue();
 }
 function cloudClear(){clearTimeout(CLOUD.t);CLOUD.dirty=false;CLOUD.s=null;if(CLOUD.ref)CLOUD.ref.delete().catch(()=>{});}
@@ -2246,7 +2466,7 @@ function pickAt(sx,sy){
 function loop(){if(FX.length)V.dirty=true;if(V.dirty){V.dirty=false;draw();}requestAnimationFrame(loop);}
 /* ================= ИНТЕРФЕЙС ================= */
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-const flagE=iso=>String.fromCodePoint(0x1F1E6+iso.charCodeAt(0)-65,0x1F1E6+iso.charCodeAt(1)-65);
+const flagE=iso=>NOFLAG_ALL.has(iso)&&SCN!=='2026'?'🏳':String.fromCodePoint(0x1F1E6+iso.charCodeAt(0)-65,0x1F1E6+iso.charCodeAt(1)-65);
 const wiki=n=>'https://en.wikipedia.org/wiki/Special:Search?search='+encodeURIComponent(n)+'&go=Go';
 const wikiRu=n=>'https://ru.wikipedia.org/wiki/Special:Search?search='+encodeURIComponent(n)+'&go=Go';
 const LISTURL='https://en.wikipedia.org/wiki/List_of_current_heads_of_state_and_government';
@@ -2275,7 +2495,7 @@ function renderTop(){
   if(!G)return;
   const y=G.you,c=C[y],sh=share(y);
   $('#tFlag').textContent=flagE(c.iso);$('#tName').textContent=c.ru;
-  $('#tSub').textContent='Ход '+G.turn+' · провинций: '+PC[y];
+  $('#tSub').textContent=yearLine(G)+' · провинций: '+PC[y];
   $('#sGold b').innerHTML=G.gold[y]+' <span style="color:var(--ok)">+'+income(y)+'</span>';
   $('#sArmy b').textContent=armyOf(y);$('#sShare b').textContent=Math.round(sh*100)+'%';
   $('#prog i').style.width=Math.min(100,sh*100)+'%';$('#stats').hidden=false;$('#bEndN').textContent=G.turn;
@@ -2370,7 +2590,9 @@ function showRules(){
   modal('Правила','<p>Вы правите одной страной. Цель: вместе с союзниками контролировать '+Math.round(WIN_SHARE*100)+'% мировой экономики.</p><p><b>Провинции.</b> Большие страны поделены на несколько провинций. Каждая даёт доход.</p><p><b>Армии.</b> Армия — шахматная фигура: чем больше войск, тем сильнее фигура. Нажмите на свою армию, потом на соседнюю провинцию и выберите: пойти всей армией или половиной. Каждая армия ходит один раз за ход.</p><p><b>Бой.</b> Заходить можно в свои и союзные провинции, а в чужие только после объявления войны. Защитник получает бонус 25%. Победитель забирает провинцию.</p><p><b>Дипломатия.</b> Война и мир, союзы, пакты о ненападении, торговые договоры и подарки. ИИ тоже воюет, просит мира и зовёт в союз.</p><p><b>Оккупация.</b> Захваченная земля остаётся оккупированной: она с полосками цвета прежней страны, а прежняя страна на неё притязает. Оккупанту её сопротивление растёт каждый ход, особенно без гарнизона. При 50% доход с провинции пропадает, при 100% начинается восстание. Через 3 хода и при сопротивлении ниже 50% можно аннексировать землю: она навсегда становится частью вашей страны. Оккупированная целиком страна может возродиться из-за восстания. Подробности нажмите «Страна» в карточке провинции.</p><p><b>Прокси-война.</b> В дипломатии можно тайно снабжать оружием страну, которая воюет, или финансировать повстанцев на оккупированных землях, не объявляя войны. Но помощь могут раскрыть.</p><p><b>Реальный мир.</b> Партия стартует с обстановки осени 2026: идут войны Россия–Украина, США и Израиль–Иран, Афганистан–Пакистан, Конго–Руанда. Действуют союзы НАТО и ОДКБ, договоры США с Японией, Кореей, Филиппинами, Австралией, Таиландом и Израилем, а также России и Китая с КНДР и другие. Отношения стран (Индия и Пакистан, Китай и Тайвань и т.д.) взяты из реальной политики. Это упрощение, данные приблизительные.</p><p><b>Притязания.</b> На соседнюю чужую провинцию можно заявить права за 30 золота. Тогда война за неё не портит репутацию, а захваченная земля не оккупируется и аннексируется почти даром. Любую свою оккупированную или аннексированную землю можно освободить: прежняя страна станет вам другом, а погибшая возродится.</p><p><b>Ресурсы.</b> В игре 35 ресурсов: сырьё, продовольствие, энергия, потребительские и военные товары, мягкие ресурсы и стратегические. Месторождения привязаны к реальной географии и достаются тому, кто владеет провинцией. Каждый ход страна добывает и потребляет ресурсы; дефицит еды снижает доход, нехватка топлива и оружия ослабляет армию и удорожает набор, нехватка науки удорожает технологии. Недостающее покупается на рынке (Меню → Рынок ресурсов), излишки можно продавать. Авто-закупка покрывает дефицит за счёт казны (не больше 35% за ход). С воюющими странами торговать нельзя.</p><p><b>Техника.</b> В провинции (кнопка «Техника и флот») можно построить танк, бронемашину, машины, истребитель, корабль, грузовой корабль и катер; нужные исследования открываются в ветке «Военная». Каждая группа ходит на свою дальность: танк до 6 клеток, бронемашина 3 (с ней пехота идёт на 3 клетки вместо 1), машины 5, истребитель 9, катер 5, корабль 6, грузовой корабль 4. Флот ходит только по морским зонам (нажмите на воду), грузовой корабль берёт на борт любые наземные части и высаживает десант на побережье. Дроны есть только у Ирана: после удара исчезают, каждый уничтожает до 5 человек.</p><p><b>Карты.</b> Сверху можно переключать вид: политическая, дипломатия (цвет страны показывает её отношения с выбранной державой), ресурсная (где добывается выбранный ресурс) и физическая (климат и рельеф, схематично).</p><p><b>Строй страны.</b> У каждой державы есть система (демократия, монархия, гибридный режим, тоталитаризм), идеология (коммунизм, либерализм, национализм, фашизм, теократия) и экономика (либеральная, социализм, узкий круг лиц, плановая, капитализм). Они меняют доход, торговлю, цену набора, силу атаки и обороны, агрессивность ИИ и отношения: схожие строи сближаются, противоположные расходятся. Свой строй можно менять в «Меню → Строй страны» за 60 золота раз в 8 ходов. Наведите на плашку строя в карточке страны, чтобы увидеть эффекты.</p><p><b>Города.</b> Столицы и особые города (деловые центры, космодромы, военные базы) — отдельные провинции с повышенным доходом; базы дают защиту +2. Нажмите на значок города на карте.</p><p><b>Аренда.</b> Союзник или вассал может арендовать вашу провинцию (кроме столицы) на 12 ходов. Рента равна доходу провинции, арендатор получает на 50% больше и может набирать там войска. Аренда заканчивается при войне, распаде союза или смене владельца.</p><p><b>Очки войны и мирный договор.</b> За захваты и удержание чужих земель вы копите очки войны. В дипломатии при войне нажмите «Мирный договор»: потратьте очки, чтобы потребовать провинции, сделать врага вассалом или взять контрибуцию. ИИ-победители тоже диктуют условия.</p><p><b>Вассалы.</b> Вассал отдаёт сюзерену 20% дохода, воюет на его стороне и не может сам объявлять войну. Его земли открыты для ваших армий. Если сюзерен ослабнет, вассал может отделиться. Вассала можно освободить: он станет другом.</p><p><b>Технологии и события.</b> Три ветки по три уровня: армия, экономика, администрация. Иногда случаются события, в которых нужно выбрать: заплатить или рискнуть.</p><p style="color:var(--mute)">Границы приблизительные. Правители взяты со страницы <a href="'+LISTURL+'" target="_blank" rel="noopener">Википедии</a>, каждое имя ведёт на статью.</p>');
 }
 function showMenu(){
-  modal('Меню','<p style="color:var(--mute)">Ход '+G.turn+' · версия v8</p>',[
+  modal('Меню','<p style="color:var(--mute)">'+yearLine(G)+' · версия v8</p>',[
+    {label:'Сохранить партию',fn:()=>{closeModal();save();toast('Партия сохранена');}},
+    {label:'В главное меню',fn:()=>{closeModal();save();showMainM('home');}},
     {label:'Рынок ресурсов',fn:showMarket},
     {label:'Мои ресурсы',fn:()=>showResBalance(G.you)},
     {label:'Территории',fn:showState},
@@ -2388,7 +2610,7 @@ function toggleFlags(){
 function newMatch(){
   G=null;clearSave();sel.focus=-1;sel.army=null;sel.pick=-1;rebuildOwn();
   $('#stats').hidden=true;$('#prog i').style.width='0';$('#tFlag').textContent='♜';$('#tName').textContent='Мировая партия';$('#tSub').textContent='Глобальная стратегия';
-  $('#app').classList.add('starting');$('#go').disabled=true;$('#go').textContent='Выберите страну';$('#cont').hidden=true;buildPlist();
+  SAVED=null;showMainM('scen');
   requestAnimationFrame(()=>{resize();});
 }
 
@@ -2396,7 +2618,7 @@ function newMatch(){
 function buildPlist(){
   const q=$('#q').value.trim().toLowerCase();
   const ids=C.map((c,i)=>i).sort((a,b)=>(C[b].eco*2+C[b].mil)-(C[a].eco*2+C[a].mil)).filter(i=>!q||C[i].ru.toLowerCase().includes(q));
-  $('#plist').innerHTML=ids.map(i=>'<button class="prow'+(i===sel.pick?' on':'')+'" data-i="'+i+'"><span class="fl">'+flagE(C[i].iso)+'</span><span class="nm">'+esc(C[i].ru)+'</span><span class="st">доход '+C[i].eco+' · войска '+C[i].mil+' · '+((REG[C[i].iso]||'HNC').split('').map((ch,k)=>[SYSN,IDN,ECN][k][ch]).join(' / '))+'</span></button>').join('');
+  $('#plist').innerHTML=ids.map(i=>'<button class="prow'+(i===sel.pick?' on':'')+'" data-i="'+i+'"><span class="fl">'+flagE(C[i].iso)+'</span><span class="nm">'+esc(C[i].ru)+'</span><span class="st">доход '+C[i].eco+' · войска '+C[i].mil+' · '+((regOf(C[i].iso)).split('').map((ch,k)=>[SYSN,IDN,ECN][k][ch]).join(' / '))+'</span></button>').join('');
 }
 function pickCountry(t,fromMap){
   sel.pick=t;const b=$('#go');b.disabled=false;b.textContent='Играть за: '+C[t].ru;buildPlist();
@@ -2407,8 +2629,62 @@ $('#plist').addEventListener('click',e=>{const r=e.target.closest('.prow');if(r)
 $('#q').addEventListener('input',buildPlist);
 $('#go').onclick=()=>{if(sel.pick<0)return;newGame(sel.pick);enterGame();};
 $('#cont').onclick=()=>{if(SAVED){G=SAVED;recount();enterGame();}};
+/* ---------- главное меню и формат партии ---------- */
+let pendingTpy=12;
+const tpyOf=g=>(g&&g.tpy)||12;
+const yearOfTurn=g=>startYear()+Math.floor((g.turn-1)/tpyOf(g));
+const turnOfYear=(g,Y)=>(Y-startYear())*tpyOf(g)+1;
+const yearLine=g=>{const t=tpyOf(g);return yearOfTurn(g)+' · ход '+(((g.turn-1)%t)+1)+' из '+t;};
+function hideMainM(){$('#mainm').hidden=true;}
+function chooseScn(sc){
+  closeModal();
+  if(sc===SCN){showMainM('format');return;}
+  if(G){save();G=null;SAVED=null;}
+  toast('Рисую карту…');
+  setTimeout(()=>{buildWorld(sc);showMainM('format');},30);
+}
+function showMainM(view){
+  closeModal();
+  $('#app').classList.add('starting');$('#mainm').hidden=false;
+  const b=$('#mmBody');
+  if(view==='scen'){
+    b.innerHTML='<h1>Сценарий</h1><p class="sub">С какого момента начнётся партия</p>'+
+      '<button class="mmc" data-s="2026"><b>Современность · 2026</b><small>Осень 2026. Реальные войны, союзы и ядерные державы.</small></button>'+
+      '<button class="mmc" data-s="1939"><b>Вторая мировая · 1939</b><small>Сентябрь 1939. Германия против Польши, Британии и Франции. СССР связан пактом с Германией. Японская и итальянская экспансия. Ядерного оружия нет.</small></button>'+
+      '<button class="mmc" data-s="1917"><b>Великий развал · 1917</b><small>Российская империя распалась: Красная Россия, Белый Юг, Белая Сибирь, Алаш, Туркестан, Хива, Бухара, Азербайджан и другие. Ядерного оружия нет.</small></button>'+
+      '<button class="btn" id="mmBack">Назад</button>';
+    b.querySelectorAll('[data-s]').forEach(x=>x.onclick=()=>chooseScn(x.dataset.s));
+    $('#mmBack').onclick=()=>showMainM('home');
+    return;
+  }
+  if(view==='format'){
+    b.innerHTML='<h1>Формат партии</h1><p class="sub">Формат задаёт, сколько ходов длится год</p>'+
+      '<button class="mmc" data-f="8"><b>Блиц · 8 ходов в год</b><small>Быстрый темп. Год проходит за несколько сессий.</small></button>'+
+      '<button class="mmc" data-f="12"><b>Длинная партия · 12 ходов в год</b><small>Больше ходов на каждый год, партия идёт обстоятельнее.</small></button>'+
+      '<button class="btn" id="mmBack">Назад</button>';
+    b.querySelectorAll('[data-f]').forEach(x=>x.onclick=()=>startNew(+x.dataset.f));
+    $('#mmBack').onclick=()=>showMainM('scen');
+    return;
+  }
+  const s=G||SAVED;
+  let h='<h1>МИРОВАЯ ПАРТИЯ</h1><p class="sub">Глобальная стратегия</p>';
+  if(s)h+='<button class="mmc pri" id="mmCont"><b>Продолжить</b><small>'+esc(C[s.you].ru)+' · '+esc(yearLine(s))+'</small></button>';
+  h+='<button class="mmc" id="mmNew"><b>Играть</b><small>Сценарий, формат и страна</small></button>';
+  b.innerHTML=h;
+  if(s)$('#mmCont').onclick=()=>{if(!G){G=SAVED;recount();}hideMainM();enterGame();};
+  $('#mmNew').onclick=()=>showMainM('scen');
+}
+function startNew(tpy){
+  pendingTpy=tpy;hideMainM();
+  sel.pick=-1;sel.focus=-1;sel.army=null;
+  $('#app').classList.add('starting');$('#go').disabled=true;$('#go').textContent='Выберите страну';$('#cont').hidden=true;
+  $('#startp .hd p').textContent='Формат: '+tpy+' ходов в год. Выберите страну в списке или нажмите на карте';
+  buildPlist();
+  requestAnimationFrame(()=>{resize();});
+}
+$('#backM').onclick=()=>showMainM('home');
 function enterGame(){
-  if(!G.reg)G.reg=C.map(c=>REG[c.iso]||'HNC');if(!G.reformT)G.reformT={};if(!G.lease)G.lease={};if(!G.rst)resInit();
+  if(!G.reg)G.reg=C.map(c=>regOf(c.iso));if(!G.reformT)G.reformT={};if(!G.lease)G.lease={};if(!G.rst)resInit();
   sel.focus=-1;sel.army=null;$('#app').classList.remove('starting');
   requestAnimationFrame(()=>{resize();rebuildOwn();const cap=C[G.you].cap;focusProv(cap,3.5);sel.focus=cap;const a=armyAt(G.you,cap);sel.army=a?a.id:null;renderAll();toast('Вы управляете: '+C[G.you].ru);});
 }
@@ -2455,10 +2731,10 @@ async function boot(){
   try{
     initMap();
     await Promise.race([cloudInit(),new Promise(r=>setTimeout(r,3500))]);
+    buildWorld(latestScn());
     const keep=G;if(loadSave())SAVED=G;G=keep;
-    if(SAVED){$('#cont').hidden=false;$('#cont').textContent='Продолжить: '+C[SAVED.you].ru;}
     buildPlist();resize();loop();$('#boot').hidden=true;
-    if(SAVED){G=SAVED;recount();enterGame();toast('Партия продолжена');}
+    showMainM('home');
   }catch(err){$('#boot').innerHTML='<span>Ошибка</span><small>'+esc(err&&err.message||err)+'</small>';console.error(err);}
 }
 setTimeout(boot,40);
@@ -3605,12 +3881,28 @@ document.addEventListener('click',e=>{
 /* ================= СТРОЙ СТРАНЫ: СИСТЕМА, ИДЕОЛОГИЯ, ЭКОНОМИКА ================= */
 const REG={};
 `US DLC|CA DLC|MX DNC|GT HNO|HN HNO|SV HNO|NI TKO|CR DLC|PA DLC|CU TKP|HT HNO|DO DLC|CO DLC|VE TKS|GY DLC|SR DLC|EC DLC|PE DLC|BR DLC|BO DKS|PY DNC|UY DLC|AR DLL|CL DLC|GB DLC|IE DLC|IS DLS|NO DLS|SE DLS|FI DLS|DK DLS|DE DLC|FR DLC|NL DLC|BE DLC|CH DLL|AT DLC|CZ DLC|SK DNC|PL DNC|HU HNO|RO DLC|BG DLC|GR DLC|IT DNC|ES DLC|PT DLC|SI DLC|HR DNC|BA HNO|RS HNO|ME DLC|AL HLO|MK HNC|MD DLC|UA DNC|BY TNP|LT DLC|LV DLC|EE DLL|TR HNC|RU TNO|GE HLC|AM HLC|AZ TNO|KZ HNO|UZ TNO|TM TNP|KG HNO|TJ TNO|AF TTO|PK HNO|IN DNC|NP DKS|BT MNS|BD HNO|LK DNC|MM TNO|TH MNC|LA TKP|KH HNO|VN TKS|MY MNC|ID DNC|PH DLC|TW DLC|CN TKS|KP TKP|KR DLC|JP DLC|MN DNC|IR TTO|IQ HTO|SY HTO|LB HNO|IL DNC|JO MNC|SA MTO|YE HTO|OM MNC|AE MNL|QA MNC|KW MNC|EG TNO|LY HNO|TN HNC|DZ HNO|MA MNC|MR HNO|ML TNO|NE TNO|TD TNO|SD TNO|SS HNO|ET HNO|ER TNP|SO HNO|KE DLC|UG TNO|TZ HKS|RW TNO|BI TNO|CD HNO|CG TNO|CF HNO|CM TNO|GA TNO|NG DNC|BJ HNC|TG HNO|GH DLC|CI DNC|LR DLC|SL DLC|GN TNO|GW HNO|SN DLC|BF TNO|AO HNO|ZM DLC|ZW TNO|MW DLC|MZ HNO|NA DLC|BW DLC|ZA DLC|MG HNO|AU DLC|NZ DLC|PG DLC`.split('|').forEach(t=>{const q=t.split(' ');REG[q[0]]=q[1];});
-const SYSN={D:'Демократия',M:'Монархия',H:'Гибридный режим',T:'Тоталитаризм'};
+/* режимы сценариев: система/идеология/экономика по коду (см. SYSN, IDN, ECN) */
+const REG1939={
+  RU:'TKP',DE:'TFP',IT:'TFP',ES:'TFP',JP:'TNC',PT:'TNC',RO:'TNC',HU:'TNC',GR:'TNC',BR:'TNC',TH:'TNC',
+  MJ:'TNC',EE:'TNC',LV:'TNC',LT:'TNC',AF:'MNC',IR:'MNC',RS:'MNC',EG:'MLC',
+  PL:'HNC',CN:'HNC',BG:'HNC',TR:'HNS',MN:'TKS',ZA:'DNC',AR:'DLC',
+  GB:'CLC',NL:'CLC',BE:'CLC',SE:'CLS',NO:'CLS',DK:'CLS'
+};
+const REG1917={
+  RU:'TKP',WS:'TNC',SB:'TNC',FE:'DNL',KZ:'DNS',UZ:'TKP',KO:'DNS',UA:'DNS',BY:'DNS',AZ:'DNL',AM:'DNL',GE:'DLS',
+  BU:'MNC',XV:'MNC',PL:'MNC',FI:'DLC',LT:'DLC',LV:'DLC',EE:'DLC',
+  DE:'CNC',AT:'CNC',TR:'MNC',GB:'CLC',FR:'DLC',IT:'CLC',JP:'CNC',US:'DLC',CN:'HNC',
+  RS:'CNC',RO:'CNC',ES:'CLC',PT:'DLC',BE:'CLC',NL:'CLC',GR:'CLC',BG:'MNC',AL:'MNC',ME:'MNC',
+  AU:'CLC',CA:'CLC',ZA:'DNC',EG:'MLC',MN:'MTO',ET:'MTO',TH:'MNC',IR:'MNC',AF:'MNC',SA:'MTO',
+  NO:'CLS',SE:'CLS',DK:'CLS',CH:'DLC',MX:'DNC',BR:'DLC',AR:'DLC'
+};
+function regOf(iso){const t=SCN==='1939'?REG1939:SCN==='1917'?REG1917:null;return (t&&t[iso])||REG[iso]||'HNC';}
+const SYSN={D:'Демократия',C:'Конституционная монархия',M:'Абсолютная монархия',H:'Гибридный режим',T:'Тоталитаризм'};
 const IDN={K:'Коммунизм',L:'Либерализм',N:'Национализм',F:'Фашизм',T:'Теократия'};
 const ECN={L:'Либеральная экономика',S:'Социализм',O:'Узкий круг лиц',P:'Плановая экономика',C:'Капитализм'};
 const REGN2={s:SYSN,i:IDN,e:ECN},REGK={s:'Система',i:'Идеология',e:'Экономика'};
 const EFF={
-  s:{D:{inc:1.05,rec:1.10,aggr:-.15},M:{inc:1.02},H:{rec:.95,aggr:.05},T:{inc:.95,rec:.80,aggr:.15}},
+  s:{D:{inc:1.05,rec:1.10,aggr:-.15},C:{inc:1.03,rec:1.05,aggr:-.08},M:{inc:1.02},H:{rec:.95,aggr:.05},T:{inc:.95,rec:.80,aggr:.15}},
   i:{K:{rec:.95,trade:.85},L:{trade:1.25,inc:1.02},N:{def:1,aggr:.05},F:{atk:.10,aggr:.20,trade:.80},T:{def:1,trade:.90,aggr:.05}},
   e:{L:{inc:1.05,trade:1.30,rec:1.10,up:.90},S:{inc:.97,up:.85},O:{inc:.92,rec:.90},P:{trade:.60,rec:.85,up:.90},C:{inc:1.08,trade:1.10}}
 };
@@ -3718,13 +4010,14 @@ function aiLease(f){
 /* стартовые аренды: Байконур у Казахстана арендует Россия */
 function initLeases(){
   G.lease={};
+  if(SCN!=='2026')return;
   const by={};C.forEach(c=>by[c.iso]=c.i);
   [['KZ','RU','Байконур']].forEach(([a,b,n])=>{
     if(by[a]===undefined||by[b]===undefined)return;
     const p=C[by[a]].prov.find(id=>P[id].city&&P[id].city.n===n);if(p===undefined)return;
     const k=key(by[a],by[b]);delete G.war[k];G.ally[k]=1;
-    G.lease[p]={from:by[a],to:by[b],until:9999};
-    addLog(n+': аренда '+C[by[b]].ru+' у '+C[by[a]].ru+' действует с начала игры',false);
+    G.lease[p]={from:by[a],to:by[b],until:turnOfYear(G,2050)};
+    addLog(n+': аренда '+C[by[b]].ru+' у '+C[by[a]].ru+' действует до 2050 года',false);
   });
 }
 

@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Unreasonably Large Armies: массовые сражения армий разных эпох в изометрии. Двадцать фракций, шесть эпох, двадцать карт.">
+<title>Unreasonably Large Armies</title>
+<meta name="theme-color" content="#14181d">
+<link rel="manifest" href="ula.webmanifest">
+<link rel="icon" href="ula-icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="ula-apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&display=swap">
+<style>
+:root{--bg:#14181d;--panel:#1d232b;--panel2:#262e38;--line:#2c3541;--line2:#3a4656;--text:#d5dde5;--head:#f1eee2;--dim:#8b97a5;
+--blue:#2f6bff;--red:#e23b3b;--gold:#d8b04a;--go:#25804a;--px:3px;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font:400 16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+padding:env(safe-area-inset-top,0) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+background:repeating-linear-gradient(26.565deg,rgba(255,255,255,.025) 0 1px,transparent 1px 18px),repeating-linear-gradient(153.435deg,rgba(255,255,255,.025) 0 1px,transparent 1px 18px);
+-webkit-mask-image:linear-gradient(#000,transparent 85%);mask-image:linear-gradient(#000,transparent 85%)}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.wrap{max-width:1080px;margin:0 auto;padding-bottom:max(48px,env(safe-area-inset-bottom,0px))}
+h1,h2,h3,.pf{font-family:"Pixelify Sans",ui-monospace,Menlo,monospace;font-weight:700}
+.px{--edge:var(--line2);--ledge:transparent;margin:var(--px);background:var(--panel);
+box-shadow:0 calc(-1*var(--px)) 0 0 var(--edge),0 var(--px) 0 0 var(--edge),calc(-1*var(--px)) 0 0 0 var(--edge),var(--px) 0 0 0 var(--edge),0 calc(2*var(--px)) 0 0 var(--ledge)}
+
+/* шапка */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;height:64px;border-bottom:3px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--head);font-size:16px}
+.brand svg{width:24px;height:24px;flex:none}
+.nav{display:flex;gap:4px;align-items:center;position:relative}
+.nav a.link{font-size:15px;text-decoration:none;color:var(--dim);padding:10px 12px}
+.nav a.link:hover{color:var(--head);box-shadow:inset 0 -3px 0 var(--gold)}
+@media(max-width:719px){.nav a.link{display:none}}
+.menu-btn{--ledge:#0b0e12;font:700 15px/1 "Pixelify Sans",monospace;background:var(--panel2);color:var(--head);border:0;padding:12px 16px;min-height:44px;cursor:pointer}
+.menu-btn:hover,.menu-btn[aria-expanded="true"]{--edge:var(--gold)}
+.menu-panel{position:absolute;right:0;top:calc(100% + 12px);z-index:20;min-width:260px;padding:6px}
+.menu-panel[hidden]{display:none}
+.menu-panel a{display:flex;justify-content:space-between;gap:12px;padding:12px;text-decoration:none;color:var(--text)}
+.menu-panel a:hover,.menu-panel a:focus-visible{background:var(--panel2);outline:none}
+.menu-panel small{font-size:13px;color:var(--dim)}
+
+/* кнопки */
+.btn{--edge:var(--line2);--ledge:#0b0e12;display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 24px;
+font:700 18px/1 "Pixelify Sans",monospace;text-decoration:none;color:var(--head);background:var(--panel2);cursor:pointer;margin:var(--px)}
+.btn:hover{--edge:var(--gold)}
+.btn:active{transform:translateY(3px);--ledge:transparent}
+.btn.go{background:var(--go);color:#fff;--edge:#0f3a20;--ledge:#0b2a17}
+.btn.go:hover{--edge:var(--gold)}
+
+/* первый экран */
+.hero{padding:44px 0 0}
+.hero h1{font-size:clamp(34px,7.2vw,68px);line-height:1.02;color:var(--head);text-shadow:4px 4px 0 #0b0e12;text-wrap:balance}
+.lede{font-size:18px;max-width:34em;margin-top:20px}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.screen{margin-top:40px;overflow:visible}
+.stage{position:relative;line-height:0;background:#000}
+.stage canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 110% at 50% 50%,transparent 55%,rgba(10,13,16,.7))}
+.hud{display:grid;grid-template-columns:repeat(3,1fr);border-top:3px solid var(--line)}
+.hud>div{padding:12px 18px;border-right:3px solid var(--line)}
+.hud>div:last-child{border:0}
+.hud b{display:block;font:700 clamp(26px,5vw,36px)/1.1 "Pixelify Sans",monospace;color:var(--head)}
+.hud span{font-size:14px;color:var(--dim)}
+.hint{margin-top:18px;font-size:14px;color:var(--dim)}
+
+/* разделы */
+section{padding-top:84px}
+.sec-head{margin-bottom:28px}
+.sec-head h2{font-size:clamp(26px,4vw,34px);line-height:1.15;color:var(--head)}
+.sec-head p{color:var(--dim);margin-top:8px;max-width:40em}
+.grid2{display:grid;gap:22px}
+@media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+.mode{padding:22px 24px 26px}
+.mode h3,.ctrl h3{font-size:22px;color:var(--head);margin-top:16px}
+.mode p,.ctrl p{color:var(--dim);margin-top:6px;font-size:15px}
+.pips{display:flex;gap:6px;align-items:center}
+.pips i{width:16px;height:16px;background:var(--line2)}
+.pips i.on{background:var(--gold)}
+.pips i.b{background:var(--blue);width:28px;height:28px}
+.pips i.r{background:var(--red);width:28px;height:28px}
+.pips em{font:700 14px "Pixelify Sans",monospace;color:var(--dim);margin:0 6px;font-style:normal}
+
+/* эпохи: хронология */
+.epochs{list-style:none;position:relative;display:grid;gap:14px;padding-left:34px}
+.epochs::before{content:"";position:absolute;left:7px;top:14px;bottom:14px;width:3px;background:var(--line2)}
+.ep{position:relative;display:grid;gap:10px 24px;padding:16px 20px}
+.ep::before{content:"";position:absolute;left:-31px;top:22px;width:11px;height:11px;background:var(--gold);box-shadow:0 0 0 4px var(--bg)}
+@media(min-width:760px){.ep{grid-template-columns:minmax(220px,1fr) 2fr;align-items:center}}
+.ep h3{font-size:20px;color:var(--head)}
+.cnt{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--dim);margin-top:4px}
+.sq{display:flex;gap:3px}
+.sq i{width:9px;height:9px;background:var(--gold)}
+.fac{list-style:none;display:flex;flex-wrap:wrap;gap:10px}
+.fac li{padding:5px 11px;background:var(--panel2);font-size:15px;color:var(--head);box-shadow:0 -2px 0 var(--line2),0 2px 0 var(--line2),-2px 0 0 var(--line2),2px 0 0 var(--line2)}
+.fac li.more{color:var(--dim);background:transparent}
+
+/* управление: кнопки как в игре */
+.ctrl{padding:22px 24px 26px}
+@media(min-width:900px){.grid3{grid-template-columns:repeat(3,1fr)}}
+.keys{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:86px}
+.key{display:grid;place-items:center;width:40px;height:40px;font-size:20px;line-height:1;background:rgba(38,46,56,.95);border:1px solid var(--line2);border-radius:10px;color:var(--head)}
+kbd{font:700 15px "Pixelify Sans",monospace;color:var(--head);background:var(--panel2);padding:6px 10px;box-shadow:0 -2px 0 var(--line2),0 2px 0 var(--line2),-2px 0 0 var(--line2),2px 0 0 var(--line2),0 4px 0 #0b0e12;margin:0 4px}
+.joy{position:relative;width:84px;height:84px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.35)}
+.joy::after{content:"";position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;transform:translate(12px,-9px);border-radius:50%;background:rgba(255,225,74,.75);border:2px solid #fff}
+.atk{display:grid;place-items:center;width:62px;height:62px;border-radius:50%;font-size:26px;background:rgba(226,59,59,.85);border:2px solid rgba(255,255,255,.5)}
+
+.final{margin-top:84px;padding:30px 26px;--edge:var(--gold);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px}
+.final h2{font-size:clamp(26px,4vw,34px);color:var(--head)}
+.final p{color:var(--dim);margin-top:6px}
+footer{margin-top:64px;padding-top:20px;border-top:3px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;color:var(--dim);font-size:14px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn:active{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+
+<header class="top">
+  <a class="brand pf" href="#top" aria-label="На главную">
+    <svg viewBox="0 0 24 24" aria-hidden="true" shape-rendering="crispEdges"><rect x="1" y="1" width="14" height="14" fill="#2f6bff"/><rect x="9" y="9" width="14" height="14" fill="#e23b3b"/><rect x="9" y="9" width="6" height="6" fill="#f1eee2"/></svg>
+    Unreasonably Large Armies
+  </a>
+  <nav class="nav">
+    <a class="link" href="#modes">Режимы</a>
+    <a class="link" href="#epochs">Эпохи</a>
+    <a class="link" href="#controls">Управление</a>
+    <a class="link" href="about.html">Платформа</a>
+    <button class="menu-btn px" type="button" aria-expanded="false" aria-controls="menu-panel">Меню</button>
+    <div class="menu-panel px" id="menu-panel" hidden>
+      <a href="ula-game.html">Играть <small>игра</small></a>
+      <a href="index.html">Каталог игр <small>главная</small></a>
+      <a href="about.html">О платформе</a>
+      <a href="#top">Наверх</a>
+    </div>
+  </nav>
+</header>
+
+<div class="hero">
+  <h1>Unreasonably Large Armies</h1>
+  <p class="lede">Массовые сражения армий разных эпох в изометрии: от римских легионов до окопов Первой мировой. Соберите армию, выберите карту и ведите бой.</p>
+  <div class="cta">
+    <a class="btn go" href="ula-game.html">Играть</a>
+    <a class="btn px" href="#modes">Режимы</a>
+  </div>
+  <figure class="screen px">
+    <div class="stage"><canvas id="battle" width="384" height="192" role="img" aria-label="Две армии, синяя и красная, сходятся в изометрическом бою"></canvas></div>
+    <div class="hud">
+      <div><b>20</b><span>фракций</span></div>
+      <div><b>6</b><span>эпох</span></div>
+      <div><b>20</b><span>карт</span></div>
+    </div>
+  </figure>
+  <p class="hint">Работает на телефоне и компьютере без установки. Прогресс сохраняется в вашем браузере.</p>
+</div>
+
+<section id="modes">
+  <div class="sec-head"><h2>Режимы</h2><p>Два способа играть.</p></div>
+  <div class="grid2">
+    <div class="mode px">
+      <div class="pips" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+      <h3>Кампания</h3>
+      <p>Выберите эпоху и уровень. Первые армии открыты сразу, остальные открываются по мере прохождения.</p>
+    </div>
+    <div class="mode px">
+      <div class="pips" aria-hidden="true"><i class="b"></i><em>vs</em><i class="r"></i></div>
+      <h3>Песочница</h3>
+      <p>Выберите карту, армии обеих сторон и запустите бой. Можно менять армии и условия до начала.</p>
+    </div>
+  </div>
+</section>
+
+<section id="epochs">
+  <div class="sec-head"><h2>Эпохи и фракции</h2><p>20 фракций и 20 карт. Эпохи расположены по времени.</p></div>
+  <ol class="epochs">
+    <li class="ep px"><div><h3>Древность</h3><p class="cnt"><span class="sq" aria-hidden="true"><i></i><i></i></span>2 фракции</p></div>
+      <ul class="fac"><li>Рим</li><li>Хань</li></ul></li>
+    <li class="ep px"><div><h3>Средневековье</h3><p class="cnt"><span class="sq" aria-hidden="true"><i></i><i></i></span>2 фракции</p></div>
+      <ul class="fac"><li>Монголы</li><li>Сун</li></ul></li>
+    <li class="ep px"><div><h3>Ренессанс</h3><p class="cnt"><span class="sq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>5 фракций</p></div>
+      <ul class="fac"><li>Османы</li><li>Италия</li><li>Япония</li><li>Корея</li><li class="more">и ещё 1</li></ul></li>
+    <li class="ep px"><div><h3>Джунгарское нашествие</h3><p class="cnt"><span class="sq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>7 фракций</p></div>
+      <ul class="fac"><li>Цин</li><li>Казахи</li><li>Джунгары</li><li>Россия Петра</li><li class="more">и ещё 3</li></ul></li>
+    <li class="ep px"><div><h3>Наполеоновские войны</h3><p class="cnt"><span class="sq" aria-hidden="true"><i></i><i></i><i></i></span>3 фракции</p></div>
+      <ul class="fac"><li>Россия</li><li>Франция</li><li>Пруссия</li></ul></li>
+    <li class="ep px"><div><h3>Первая мировая</h3><p class="cnt"><span class="sq" aria-hidden="true"><i></i></span>1 фракция</p></div>
+      <ul class="fac"><li>Османская армия</li></ul></li>
+  </ol>
+</section>
+
+<section id="controls">
+  <div class="sec-head"><h2>Управление</h2><p>Телефон и компьютер. Кнопки ниже выглядят так же, как в игре.</p></div>
+  <div class="grid2 grid3">
+    <div class="ctrl px">
+      <div class="keys" aria-hidden="true"><span class="key">＋</span><span class="key">－</span><span class="key">↺</span><span class="key">↻</span><span class="key">◇</span><span class="key">◎</span></div>
+      <h3>Камера</h3>
+      <p>Щипок двумя пальцами — приблизить, поворот двумя пальцами по кругу. На клавиатуре <kbd>Q</kbd><kbd>E</kbd>. Кнопки справа от поля: ＋ － ↺ ↻ ◇ ◎.</p>
+    </div>
+    <div class="ctrl px">
+      <div class="keys" aria-hidden="true"><span class="key">⚡</span><span class="key">💥</span><span class="key">📣</span><span class="key">⚔</span></div>
+      <h3>Действия в бою</h3>
+      <p>Кнопки ⚡ 💥 📣 ⚔ выполняют действия выбранного отряда.</p>
+    </div>
+    <div class="ctrl px">
+      <div class="keys" aria-hidden="true"><span class="joy"></span><span class="atk">⚔</span></div>
+      <h3>Одержимость</h3>
+      <p>Вселитесь в одного бойца и управляйте им, пока он жив. Если боец погиб, выберите нового кнопкой «Одержимость».</p>
+    </div>
+  </div>
+</section>
+
+<section id="play">
+  <div class="final px">
+    <div>
+      <h2>Начать сражение</h2>
+      <p>Откройте игру в браузере. Её можно добавить на экран телефона как приложение.</p>
+    </div>
+    <div class="cta" style="margin:0">
+      <a class="btn go" href="ula-game.html">Играть</a>
+      <a class="btn px" href="index.html">Каталог игр</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026 Amirbek Zhalgasbekov. Все права защищены.</span>
+  <span>Игры работают в браузере</span>
+</footer>
+
+</div>
+<script>
+/* живое поле боя: две армии сходятся, бьются и редеют; цикл 15 секунд */
+(function () {
+  var cv = document.getElementById('battle'), g = cv.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  var W = 384, H = 192, OX = 192, OY = -16, GC = 14, LOOP = 15, SP = 0.7;
+  var TEAM = {
+    b: { c: '#2f6bff', l: '#7aa2ff', d: '#1c3a8a', dir: 1 },
+    r: { c: '#e23b3b', l: '#ff7f72', d: '#8f1f1f', dir: -1 }
+  };
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function hash(x, y) {
+    var h = (Math.imul(x, 374761393) + Math.imul(y, 668265263)) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967295;
+  }
+  function rng(s) { return function () { s = (s + 0x6D2B79F5) | 0; var t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+  // земля: клетки 2:1, вытоптанная середина
+  var ground = document.createElement('canvas'); ground.width = W; ground.height = H;
+  (function () {
+    var c = ground.getContext('2d'), img = c.createImageData(W, H), d = img.data;
+    var A = [74, 82, 48], B = [83, 92, 54], M = [118, 98, 62];
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var u = (x + .5 - OX) / 8, v = (y + .5 - OY) / 4, gx = (u + v) / 2, gy = (v - u) / 2;
+      var col = ((Math.floor(gx) + Math.floor(gy)) & 1) ? A : B;
+      var n = hash(x, y), k = n < .05 ? .85 : n > .96 ? 1.1 : 1;
+      var m = Math.exp(-((gx - GC) * (gx - GC) * .02 + (gy - GC) * (gy - GC) * .05)) * .55, i = (y * W + x) * 4;
+      for (var j = 0; j < 3; j++) d[i + j] = clamp((col[j] * (1 - m) + M[j] * m) * k, 0, 255);
+      d[i + 3] = 255;
+    }
+    c.putImageData(img, 0, 0);
+  })();
+
+  function makeArmy(team, seed) {
+    var r = rng(seed), us = [], rows = {};
+    for (var row = -5; row <= 5; row++) {
+      rows[row] = [];
+      for (var f = 0; f < 13; f++) {
+        var p = f < 3 ? .85 : f < 6 ? .6 : f < 9 ? .3 : .12;
+        var u = { team: team, f: f, r: row, seed: r(), flag: row === 0 && f === 4, td: 1e9, rowArr: rows[row] };
+        if (r() < p) u.td = 7 + f * .3 + r() * 1.5;
+        rows[row].push(u); us.push(u);
+      }
+    }
+    return us;
+  }
+  var units = makeArmy('b', 11).concat(makeArmy('r', 23));
+
+  function sprite(team, x, y, o) {
+    var T = TEAM[team], dir = T.dir, i;
+    if (o.dead) {
+      g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x - 3, y, 7, 1);
+      g.fillStyle = '#6a4a2a'; g.fillRect(x - 3, y, 6, 1);
+      g.fillStyle = T.d; g.fillRect(x - 2, y - 2, 4, 2);
+      g.fillStyle = '#e8c9a0'; g.fillRect(dir > 0 ? x - 4 : x + 2, y - 2, 2, 2);
+      return;
+    }
+    var yy = y - (o.bob | 0), px = x + dir * 2;
+    g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(x - 2, y, 5, 1);
+    if (o.flag) {
+      var fx = dir > 0 ? px + 1 : px - 5;
+      g.fillStyle = '#6a4a2a'; g.fillRect(px, yy - 16, 1, 15);
+      g.fillStyle = T.c; g.fillRect(fx, yy - 16, 5, 3);
+      g.fillStyle = T.d; g.fillRect(fx, yy - 14, 5, 1);
+      g.fillStyle = '#d8b04a'; g.fillRect(px, yy - 17, 1, 1);
+    } else if (o.thrust) {
+      for (i = 0; i < 4; i++) {
+        g.fillStyle = i < 3 ? '#6a4a2a' : '#e8e4d4';
+        g.fillRect(x + dir * (2 + i), yy - 5 + dir * (i >> 1), 1, 1);
+      }
+    } else {
+      g.fillStyle = '#6a4a2a'; g.fillRect(px, yy - 10, 1, 8);
+      g.fillStyle = '#e8e4d4'; g.fillRect(px, yy - 11, 1, 1);
+    }
+    g.fillStyle = '#23262b'; g.fillRect(x - 1, y - 2, 1, 2); g.fillRect(x + 1, y - 2, 1, 2);
+    g.fillStyle = T.l; g.fillRect(x - 1, yy - 5, 3, 1);
+    g.fillStyle = T.c; g.fillRect(x - 1, yy - 4, 3, 1);
+    g.fillStyle = T.d; g.fillRect(x - 1, yy - 3, 3, 1);
+    g.fillStyle = '#aeb6c2'; g.fillRect(x - 1, yy - 7, 3, 1);
+    g.fillStyle = '#e8c9a0'; g.fillRect(x - 1, yy - 6, 3, 1);
+  }
+
+  var SPK = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+  function frame(t) {
+    g.drawImage(ground, 0, 0);
+    var a = clamp((t - 1) / 5.5, 0, 1); a = a * a * (3 - 2 * a);
+    var back = (1 - a) * 9, moving = t > .9 && t < 6.6, alive = [], i, u;
+    for (i = 0; i < units.length; i++) {
+      u = units[i];
+      var te = Math.min(t, u.td), s = u.f;
+      for (var k = 0; k < u.f; k++) { var v = u.rowArr[k]; if (v.td < 1e9) s -= clamp((te - v.td) / .7, 0, 1); }
+      var gx = u.team === 'b' ? GC - SP - s * SP - back : GC + SP + s * SP + back, gy = GC + u.r * SP;
+      u.sx = Math.round(OX + (gx - gy) * 8); u.sy = Math.round(OY + (gx + gy) * 4); u.s = s;
+      if (t >= u.td) sprite(u.team, u.sx, u.sy, { dead: true }); else alive.push(u);
+    }
+    alive.sort(function (p, q) { return p.sy - q.sy || p.sx - q.sx; });
+    for (i = 0; i < alive.length; i++) {
+      u = alive[i];
+      sprite(u.team, u.sx, u.sy, {
+        flag: u.flag,
+        bob: moving ? (Math.floor(t * 7 + u.seed * 9) & 1) : 0,
+        thrust: t > 6 && u.s < 1.6 && ((t * 1.7 + u.seed * 4) % 1) < .38
+      });
+    }
+    for (i = 0; i < units.length; i++) {
+      u = units[i]; var p = (t - u.td) / .3;
+      if (p >= 0 && p < 1) for (var n = 0; n < 4; n++) {
+        g.fillStyle = p < .5 ? '#fff2a8' : '#ffb02e';
+        g.fillRect(Math.round(u.sx + SPK[n][0] * (1 + p * 5)), Math.round(u.sy - 4 + SPK[n][1] * (1 + p * 3)), 1, 1);
+      }
+    }
+    var fa = t < .8 ? 1 - t / .8 : t > LOOP - 1.2 ? (t - (LOOP - 1.2)) / 1.2 : 0;
+    if (fa > 0) { g.fillStyle = 'rgba(20,24,29,' + fa + ')'; g.fillRect(0, 0, W, H); }
+  }
+
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { frame(8.5); return; }
+  var running = false, last = 0, clock = 0;
+  function loop(ts) {
+    if (!running) return;
+    var dt = Math.min(.05, (ts - last) / 1000); last = ts;
+    clock = (clock + dt) % LOOP; frame(clock); requestAnimationFrame(loop);
+  }
+  function setRun(on) { if (on && !running) { running = true; last = performance.now(); requestAnimationFrame(loop); } else if (!on) running = false; }
+  frame(8.5);
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { setRun(e[0].isIntersecting); }).observe(cv);
+  else setRun(true);
+})();
+
+(function () {
+  var btn = document.querySelector('.menu-btn'), panel = document.getElementById('menu-panel');
+  function setOpen(open) { panel.hidden = !open; btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(panel.hidden); });
+  document.addEventListener('click', function (e) { if (!panel.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+  panel.addEventListener('click', function (e) { if (e.target.tagName === 'A') setOpen(false); });
+})();
+</script>
+</body>
+</html>

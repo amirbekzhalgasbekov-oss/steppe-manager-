@@ -97,6 +97,7 @@ body.pc #keys{display:block}
 body.pc .kbd-only{display:inline}
 body.pc .touch-only{display:none}
 body.pc #app{max-width:1600px}
+body.mini:not(.mini-r) #pad{visibility:hidden}
 @media (orientation:landscape) and (max-height:560px){
   body.phone #app{gap:0;justify-content:center}
   body.phone #stage{
@@ -991,7 +992,7 @@ let state='start',P,kills=0,cpState={scene:'gate',c:5},playTime=0,shake=0,trans=
 const cam={x:0,y:0};
 const parts=[];
 let toastTimer=0;
-const flags={met:false,letter:false,delivered:false,thanked:false,mcap:false,act2:false,guide:false,banner:false,m1a:false,m1d:false,m2a:false,m2d:false,spyOn:false,cityFell:false,c1:false,c2:false,spyChase:false,spyDone:false,brief:false,b1:false,b2:false,b3:false,council:false,smith:false,e1a:false,e1got:false,e1d:false,e2a:false,e2got:false,e2d:false,e3a:false,e3d:false,e4a:false,e4burn:false,e4d:false,sIn:false,sHonor:false,sValor:false,sHumble:false,s1a:false,s1d:false,s2a:false,s2d:false,s3a:false,s3d:false,sHorse:false,sKind:false,sJlaw:false,sJwise:false,sJpass:false,sAisha:false,sKnowP:false,sScout:false,sCouncil:false,sGo:false,sArmy:false,cRef:false,cCache:false,cKozha:false,cWeak:false,cBoss:false,cJoin:false,cHide:false,cRevenge:false,cDone:false,aIn:false,aAll:false,aElder:false,aSilent:false,aTea:false,aHead:false,aFed:false};
+const flags={met:false,letter:false,delivered:false,thanked:false,mcap:false,act2:false,guide:false,banner:false,m1a:false,m1d:false,m2a:false,m2d:false,spyOn:false,cityFell:false,c1:false,c2:false,spyChase:false,spyDone:false,brief:false,b1:false,b2:false,b3:false,council:false,smith:false,e1a:false,e1got:false,e1d:false,e2a:false,e2got:false,e2d:false,e3a:false,e3d:false,e4a:false,e4burn:false,e4d:false,sIn:false,sHonor:false,sValor:false,sHumble:false,s1a:false,s1d:false,s2a:false,s2d:false,s3a:false,s3d:false,sHorse:false,sKind:false,sJlaw:false,sJwise:false,sJpass:false,sAisha:false,sKnowP:false,sScout:false,sCouncil:false,sGo:false,sArmy:false,cRef:false,cCache:false,cKozha:false,cWeak:false,cBoss:false,cJoin:false,cHide:false,cRevenge:false,cDone:false,aIn:false,aAll:false,aElder:false,aSilent:false,aTea:false,aHead:false,aFed:false,tIn:false,tEnd:false,tTeaDone:false,tTeaS:false,tTeaG:false,tTeaN:false,tTeaL:false,tWrDone:false,tWrW:false,tWrL:false,tWrY:false,tWrYO:false,tWrR:false,tRcDone:false,tRcF:false,tRcP:false,tRcY:false,tRcN:false,tRcC:false,tRcS:false};
 let bullets=[],ebullets=[],arrows=[],talk=null,HZ=null,loose=[],sus=0,huntOn=false,huntLost=0,emT=3,heatT=0;
 
 /* ---------- collision ---------- */
@@ -1041,7 +1042,7 @@ function updateHud(){
   let h='';for(let i=0;i<3;i++)h+='<span class="heart'+(i<P.hp?'':' off')+'">♥</span>';
   hearts.innerHTML=h;
   killsEl.innerHTML='<span class="chip coin">₸ '+total()+'</span>'+(P.torchT>0?'<span class="chip fire">✦ '+fmt(P.torchT)+'</span>':'')+(P.horse?'<span class="chip">Конь'+(P.mounted?' ♥'+P.hh:'')+'</span>':'');
-  const qt=[(flags.letter&&!flags.delivered)?'Письмо':'',(flags.spyOn&&!flags.spyDone)?'Лазутчик':'',(flags.sIn&&!flags.sCouncil)?'Ставка '+trialCount()+'/3':'',(flags.sCouncil&&!flags.cDone)?'Путь к роду':'',(flags.brief&&!flags.council)?'Батыры '+((flags.b1?1:0)+(flags.b2?1:0)+(flags.b3?1:0))+'/3':'',(elderOn()&&!elderAll())?'Старейшины '+elderCount()+'/4':'',(inCity()&&!flags.smith)?'Цель: дом кузнеца':''].filter(Boolean);
+  const qt=[(flags.letter&&!flags.delivered)?'Письмо':'',(flags.spyOn&&!flags.spyDone)?'Лазутчик':'',(flags.sIn&&!flags.sCouncil)?'Ставка '+trialCount()+'/3':'',(flags.sCouncil&&!flags.cDone)?'Путь к роду':'',(flags.aFed&&!flags.tEnd)?'Той '+toyCount()+'/3':'',(flags.brief&&!flags.council)?'Батыры '+((flags.b1?1:0)+(flags.b2?1:0)+(flags.b3?1:0))+'/3':'',(elderOn()&&!elderAll())?'Старейшины '+elderCount()+'/4':'',(inCity()&&!flags.smith)?'Цель: дом кузнеца':''].filter(Boolean);
   const qe=$('quest');if(qe)qe.textContent=qt.length?'◆ '+qt.join(' · '):'';
   const wb=$('wp');if(wb&&P)wb.textContent=wpLabel();
   const shb=$('shth');if(shb&&P)shb.textContent=P.sheathed?'Достать':'Убрать';
@@ -2492,6 +2493,906 @@ function step(dt){
   input.jumpPressed=false;input.atkPressed=false;input.usePressed=false;input.dashPressed=false;input.parryPressed=false;
 }
 
+/* ---------- той: күрес (борьба), бәйге (скачки), чай ---------- */
+let mg=null,swp=null;
+const MGK={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',Space:'ok',Enter:'ok',KeyJ:'ok',KeyE:'ok',KeyL:'dash',KeyC:'dash',ShiftLeft:'sprint',ShiftRight:'sprint'};
+const MGPAD={jump:'jump',atk:'jump',dash:'dash',sprint:'sprint',down:'down',left:'left',right:'right',use:'ok',parry:'ok',blend:'ok'};
+const DIRS=['left','right','up','down'];
+const DKEY={left:'A',right:'D',up:'W',down:'S'};
+const AEL='Аксакал Жанабай',DAU='Даулет, сын бая',ERA='Ерасыл';
+function rrange(a){return a[0]+Math.random()*(a[1]-a[0]);}
+
+/* репутация: народ и старшие */
+function crowdRep(){
+  let r=0;
+  if(flags.tWrW)r+=2;if(flags.tWrL)r+=1;if(flags.tWrYO)r-=2;if(flags.tWrR)r-=1;
+  if(flags.tRcF)r+=2;if(flags.tRcN)r+=1;if(flags.tRcY)r-=1;if(flags.tRcC)r+=1;if(flags.tRcS)r-=2;
+  if(flags.tTeaS)r+=1;if(flags.tTeaG)r+=2;
+  return r;
+}
+function elderRep(){
+  let r=0;
+  if(flags.tWrW)r-=1;if(flags.tWrL)r+=1;if(flags.tWrY)r+=1;if(flags.tWrY&&!flags.tWrYO)r+=1;if(flags.tWrR)r+=1;
+  if(flags.tRcF)r-=1;if(flags.tRcN)r-=1;if(flags.tRcY)r+=2;if(flags.tRcS)r-=2;
+  if(flags.tTeaS)r+=1;if(flags.tTeaG)r+=1;if(flags.tTeaN)r-=1;
+  return r;
+}
+function aulRep(){return crowdRep()+elderRep();}
+function toyCount(){return (flags.tTeaDone?1:0)+(flags.tWrDone?1:0)+(flags.tRcDone?1:0);}
+function toyEcho(){
+  if(!flags.tEnd)return '';
+  const t=aulRep();
+  return t>=3?' Из аула Жанабая пришла весть о тое: о тебе говорят хорошо.':(t<=-2?' Из аула Жанабая пришла весть о тое: о тебе говорят нехорошо.':'');
+}
+
+/* ---------- общий каркас ---------- */
+function mgStart(o){
+  mg=o;mg.t=0;mg.hold={sprint:false};mg.escT=0;mg.shake=0;mg.msg=null;
+  state='mini';releaseAll();hint=null;
+  document.body.classList.add('mini');document.body.classList.toggle('mini-r',o.type==='race');
+}
+function mgEnd(cb){
+  mg=null;swp=null;
+  document.body.classList.remove('mini');document.body.classList.remove('mini-r');
+  state='playing';last=performance.now();acc=0;updateHud();
+  if(cb)cb();
+}
+function mgBegin(){
+  const m=mg;
+  if(m.type==='wrest')wrBegin(0);
+  else if(m.type==='race')m.phase='count';
+  else m.phase='play';
+}
+function mgAct(a,down){
+  const m=mg;if(!m)return;
+  if(m.phase==='how'){if(down&&m.t>0.5)mgBegin();return;}
+  if(m.type==='race'){
+    if(a==='sprint'||a==='right'){m.hold.sprint=down;return;}
+    if(down)rcAct(a);
+    return;
+  }
+  if(!down)return;
+  if(m.type==='wrest')wrAct(a);else teaAct(a);
+}
+function mgPad(k,down){const a=MGPAD[k];if(a)mgAct(a,down);}
+function mgKeyDown(e){
+  e.preventDefault();
+  if(e.code==='Escape'||e.code==='KeyP'){if(!e.repeat)togglePause();return;}
+  if(e.repeat)return;
+  const a=MGK[e.code];if(a)mgAct(a,true);
+}
+function mgKeyUp(e){const a=MGK[e.code];if(a)mgAct(a,false);}
+function mgAbort(){
+  if(!mg)return;const t=mg.type;
+  mgEnd(function(){
+    if(t==='tea'){teaAfter(0);return;}
+    toast(t==='wrest'?'Ты ушёл с арены':'Ты сошёл с дистанции');openToy();
+  });
+}
+function miniStep(d){
+  const m=mg;if(!m)return;
+  d=Math.min(d,0.05);m.t+=d;if(m.escT>0)m.escT-=d;
+  if(m.shake>0)m.shake-=d;
+  if(m.type==='wrest')wrUpdate(d);else if(m.type==='race')rcUpdate(d);else teaUpdate(d);
+}
+/* свайпы по сцене (телефон) */
+$('stage').addEventListener('pointerdown',function(e){
+  if(state!=='mini'||!mg||(e.target.closest&&e.target.closest('.hb')))return;
+  swp={x:e.clientX,y:e.clientY,f:false};
+});
+window.addEventListener('pointermove',function(e){
+  if(!swp||swp.f||state!=='mini'||!mg)return;
+  const dx=e.clientX-swp.x,dy=e.clientY-swp.y;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<26)return;
+  swp.f=true;
+  const a=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');
+  mgAct(mg.type==='race'?({up:'jump',right:'dash',down:'down',left:'x'})[a]:a,true);
+});
+window.addEventListener('pointerup',function(){const s=swp;swp=null;if(s&&!s.f&&state==='mini'&&mg)mgAct('ok',true);});
+window.addEventListener('pointercancel',function(){swp=null;});
+
+/* ---------- Күрес ---------- */
+const WR_OPP=[
+  {n:'Сержан, молодой пастух',pal:{body:'#5a3a22',edge:'rgba(241,230,210,.35)',trim:'#e8c46a',plume:'#e8c46a'},hat:'skull',sc:1.0,win:1.2,atk:1.5,dmg:15,gap:[1.3,2.0]},
+  {n:'Бекен, чабан-борец',pal:{body:'#3a4a5a',edge:'rgba(241,230,210,.35)',trim:'#d8a23a',plume:'#d8a23a'},hat:'kalpak',sc:1.1,win:0.95,atk:1.25,dmg:19,gap:[1.1,1.7]},
+  {n:'Ерасыл, сын аксакала',pal:{body:'#2f5a3a',edge:'rgba(232,196,106,.6)',trim:'#e8c46a',plume:'#d6c8a6'},hat:'bork',sc:1.18,win:0.75,atk:1.05,dmg:24,gap:[0.9,1.4]}
+];
+function startWrest(){
+  mgStart({type:'wrest',phase:'how',bout:0,opps:WR_OPP,me:100,op:100,combo:0,prompt:null,next:1,timer:70,yield:false,yieldMode:false,yStep:0,yq:null,fallT:0,pw:false,pt:0,ev:null,fx:[],cheer:0,landed:false});
+}
+function wrBegin(i){
+  const m=mg;m.bout=i;m.me=100;m.op=100;m.combo=0;m.prompt=null;m.next=1.2;m.timer=75;m.phase='intro';m.pt=1.8;m.fallT=0;m.yStep=0;m.yq=null;m.yield=(i===2&&m.yieldMode);m.msg=null;m.ev=null;m.landed=false;m.fx=[];m.cheer=0;
+}
+function wrSay(s,c){if(mg)mg.msg={text:s,t:1.1,col:c||'#f1e6d2'};}
+function wrNewPrompt(){
+  const m=mg,o=m.opps[m.bout],horiz=Math.random()<0.7;
+  const dir=horiz?(Math.random()<0.5?'left':'right'):(Math.random()<0.5?'up':'down');
+  if(m.yield){
+    if(m.yStep<3){m.yStep++;m.prompt={kind:'def',dir:dir,t:1.3,T:1.3};}
+    else m.prompt={kind:'yld',dir:Math.random()<0.5?'left':'right',t:1.7,T:1.7};
+    return;
+  }
+  const atk=m.combo>=2||(m.op<55&&Math.random()<0.45);
+  if(atk){m.combo=0;m.prompt={kind:'atk',dir:Math.random()<0.5?'left':'right',t:o.atk,T:o.atk};}
+  else m.prompt={kind:'def',dir:dir,t:o.win,T:o.win};
+}
+function wrDefFail(msg){
+  const m=mg,o=m.opps[m.bout];
+  m.prompt=null;m.combo=0;m.next=rrange(o.gap);m.shake=0.25;
+  if(m.yield){wrSay('Неловко...','#e8c46a');return;}
+  wrAnim('stag',0.5);
+  m.me=Math.max(0,m.me-o.dmg);sfx('hurt');wrSay(msg,'#d8434b');
+}
+function wrAtkFail(msg){
+  const m=mg,o=m.opps[m.bout];
+  m.prompt=null;m.combo=0;m.next=rrange(o.gap);m.shake=0.2;
+  m.me=Math.max(0,m.me-11);sfx('hurt');wrSay(msg,'#d8434b');wrAnim('slip',0.5);
+}
+function wrAct(a){
+  const m=mg;
+  if(DIRS.indexOf(a)<0||m.phase!=='fight'||!m.prompt)return;
+  const p=m.prompt,o=m.opps[m.bout];
+  if(p.kind==='def'){
+    if(a===p.dir){
+      m.prompt=null;m.combo++;m.next=rrange(o.gap);m.shake=0.12;sfx('blend');
+      if(!m.yield)m.op=Math.max(0,m.op-7);
+      wrSay(m.yield?'Держишь':'Устоял!','#7fe0d4');wrAnim('brace',0.35);m.cheer=0.5;
+    }else wrDefFail('Не туда!');
+  }else if(p.kind==='atk'){
+    if(a!==p.dir){wrAtkFail('Не туда!');return;}
+    const R=18+42*(p.t/p.T);
+    if(R>38){wrAtkFail('Рано!');return;}
+    const perfect=R<=27;
+    m.prompt=null;m.next=rrange(o.gap)+0.3;m.combo=0;m.shake=0.2;sfx('hit');
+    m.op=Math.max(0,m.op-(perfect?62:34));
+    wrSay(perfect?'БРОСОК!':'Подсечка!',perfect?'#e8c46a':'#7fe0d4');
+    if(perfect)wrAnim('throw',0.85);else wrAnim('trip',0.55);
+    m.cheer=perfect?1.6:1;
+  }else{
+    const R=18+42*(p.t/p.T);
+    m.prompt=null;m.yq=(a===p.dir&&R<=36)?'nat':'obv';m.me=0;
+  }
+}
+function wrFall(win){
+  const m=mg;m.phase='fall';m.pw=win;m.pt=1.8;m.fallT=0;m.prompt=null;m.ev=null;m.landed=false;m.cheer=win?2:0.6;sfx(win?'win':'die');
+}
+function wrUpdate(dt){
+  const m=mg;
+  if(m.msg&&m.msg.t>0)m.msg.t-=dt;
+  if(m.cheer>0)m.cheer-=dt;
+  if(m.ev){
+    m.ev.t+=dt;
+    if(!m.ev.d){
+      if((m.ev.k==='trip'&&m.ev.t>0.28)||(m.ev.k==='throw'&&m.ev.t>0.6)){m.ev.d=true;wrDust(350,284,m.ev.k==='throw'?9:5);}
+      else if((m.ev.k==='stag'||m.ev.k==='slip')&&m.ev.t>0.2){m.ev.d=true;wrDust(296,284,4);}
+    }
+    if(m.ev.t>=m.ev.T)m.ev=null;
+  }
+  m.fx.forEach(function(p){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=60*dt;});
+  m.fx=m.fx.filter(function(p){return p.t<p.T;});
+  if(m.phase==='fall'&&!m.landed&&m.fallT>=0.72){m.landed=true;wrDust(m.pw?390:250,284,11);m.shake=0.3;sfx('hit');}
+  if(m.phase==='intro'){m.pt-=dt;if(m.pt<=0)m.phase='fight';return;}
+  if(m.phase==='fall'){m.pt-=dt;m.fallT=Math.min(1,m.fallT+dt*1.5);if(m.pt<=0)wrBoutEnd();return;}
+  if(m.phase!=='fight')return;
+  if(!m.yield)m.timer-=dt;
+  if(m.prompt){
+    m.prompt.t-=dt;
+    if(m.prompt.t<=0){
+      const k=m.prompt.kind;
+      if(k==='def')wrDefFail('Поздно!');
+      else if(k==='atk')wrAtkFail('Поздно!');
+      else{m.prompt=null;m.yq='obv';m.me=0;}
+    }
+  }else{m.next-=dt;if(m.next<=0)wrNewPrompt();}
+  if(!m.yield)m.op=Math.min(100,m.op+dt);
+  if(m.me<=0)wrFall(false);
+  else if(m.op<=0)wrFall(true);
+  else if(!m.yield&&m.timer<=0)wrFall(m.me>=m.op);
+}
+function wrBoutEnd(){
+  const m=mg;
+  if(m.pw){
+    if(m.bout===0)wrBegin(1);
+    else if(m.bout===1)wrChoice();
+    else wrFinish('win');
+  }else{
+    if(m.bout===2){if(m.yield)wrFinish(m.yq==='nat'?'yn':'yo');else wrFinish('honest');}
+    else wrFinish('out');
+  }
+}
+function wrChoice(){
+  mg.phase='wait';
+  askChoice('Күрес','Выходит сын аксакала','Против тебя выходит Ерасыл, сын уважаемого Жанабая. Аул притих: он борется всерьёз, но все знают, чей он сын. Как поведёшь себя?',[
+    {t:'Бороться всерьёз',f:function(){mg.yieldMode=false;wrBegin(2);}},
+    {t:'Поддаться сыну аксакала',f:function(){mg.yieldMode=true;wrBegin(2);}},
+    {t:'Отказаться от схватки',f:function(){wrFinish('refuse');}}]);
+}
+function wrFinish(kind){
+  mgEnd(function(){
+    let lines,rw=null;
+    if(kind==='out'){startTalk([{who:AEL,text:'Не горюй, батыр. Борьба любит терпеливых. Выходи ещё раз, когда будешь готов.'}],openToy);return;}
+    flags.tWrDone=true;
+    if(kind==='win'){
+      flags.tWrW=true;
+      lines=[{who:'',text:'Ты провёл бросок. Ерасыл лежит на спине и смеётся, но лицо у него красное. Аул гремит.'},{who:ERA,text:'Сильная хватка. Не думал, что гость так возьмёт.'},{who:AEL,text:'Честная победа. Но сын мой это запомнит.'}];
+      rw=function(){reward(1,0,'Приз күрес: слиток серебра');};
+    }else if(kind==='honest'){
+      flags.tWrL=true;
+      lines=[{who:'',text:'Ерасыл бросил тебя через бедро. Ты бился всерьёз до конца, и аул это видел.'},{who:AEL,text:'Честный проигрыш лучше подаренной победы. Вставай, батыр.'}];
+      rw=function(){reward(0,3,'Награда за смелость: 3 монеты Бухары');};
+    }else if(kind==='yn'){
+      flags.tWrY=true;
+      lines=[{who:'',text:'Ты упал так, будто тебя и правда сломали. Ерасыл поднял руки, и толпа взревела.'},{who:AEL,text:'Гость знает, как почитать хозяев. Мой сын запомнит.'}];
+    }else if(kind==='yo'){
+      flags.tWrY=true;flags.tWrYO=true;
+      lines=[{who:'',text:'Ты рухнул слишком легко. В толпе зашептались: видно, что поддался.'},{who:ERA,text:'Не надо мне таких побед. Я вижу, когда мне уступают.'},{who:AEL,text:'Намерение доброе, но исполнено неловко.'}];
+    }else{
+      flags.tWrR=true;
+      lines=[{who:'Батыр рода Конырат',text:'Сын хозяина мне не соперник. Я не выйду на круг против него.'},{who:'',text:'Ерасыл пожимает плечами, молодые в толпе гудят.'},{who:AEL,text:'Скромность гостя я понимаю. Люди поймут по-разному.'}];
+    }
+    saveGame();
+    startTalk(lines,function(){if(rw)rw();toyBack();});
+  });
+}
+
+/* ---------- Бәйге ---------- */
+function startRace(mode){
+  const r=rnd(4141+(wildSeed%997)),obs=[];
+  let x=520;
+  while(x<2750){const d=r()<0.3;obs.push({x:Math.round(x),w:d?64:16,need:d?8:32,k:d?'ditch':'fence'});x+=240+Math.floor(r()*170);}
+  function mk(n,lane,base,pal,hat){return {n:n,lane:lane,x:40,h:0,vy:0,v:0,st:100,dashT:0,stumT:0,b0:base,base:base,pal:pal,hat:hat,fin:null,hit:{},plan:{},dashed:0,ph:r()*6,anim:0,jq:0};}
+  mgStart({type:'race',mode:mode,phase:'how',obs:obs,len:2950,cutZ:[1700,1900],cutJump:380,judgeX:2160,order:[],cd:3.2,rt:0,cut:{used:false,t:0,tp:0,caught:false},
+    riders:[mk('Ты',1,240,HERO,'hood'),
+      mk('Ерасыл',0,258,{body:'#2f5a3a',edge:'rgba(232,196,106,.6)',trim:'#e8c46a',plume:'#d6c8a6'},'bork'),
+      mk('Даулет',2,250,{body:'#6a2a5a',edge:'rgba(240,208,112,.6)',trim:'#f0d070',plume:'#f0d070'},'bork')]});
+}
+function rcJump(r){if(r.h<=0.01&&r.vy<=0){r.vy=560;r.st=Math.max(0,r.st-3);return true;}return false;}
+function rcWatch(t){return ((t||0)%4.2)<1.5;}
+function rcSay(s,c){if(mg)mg.msg={text:s,t:1.3,col:c||'#f1e6d2'};}
+function rcAct(a){
+  const m=mg,p=m.riders[0];
+  if(m.phase==='result'){if(m.t-m.rs>0.6)rcFinish();return;}
+  if(m.phase!=='run'||p.fin!==null||m.cut.t>0)return;
+  if(a==='jump'||a==='up'||a==='ok'){
+    if(p.stumT<=0){if(rcJump(p))sfx('jump');else p.jq=0.14;}
+  }else if(a==='dash'){
+    if(p.st>=30&&p.dashT<=0&&p.stumT<=0){p.st-=30;p.dashT=0.8;sfx('swing');}
+    else if(p.st<30)rcSay('Мало сил для рывка','#e8c46a');
+  }else if(a==='down'){
+    if(m.mode==='cut'&&!m.cut.used&&p.x>=m.cutZ[0]&&p.x<=m.cutZ[1]&&p.stumT<=0){
+      m.cut.used=true;m.cut.t=0.7;m.cut.tp=m.rt;sfx('door');rcSay('Ты свернул в овраг...','#e8c46a');
+    }
+  }
+}
+function rcMove(m,r,dt,isP){
+  let gallop=false;
+  r.anim+=dt*(0.6+r.v/200);
+  if(isP&&m.cut.t>0){
+    m.cut.t-=dt;r.x+=m.cutJump/0.7*dt;r.h=0;r.vy=0;r.v=r.base;
+    if(m.cut.t<=0){
+      for(let i=0;i<m.obs.length;i++)if(m.obs[i].x<r.x+40)r.hit[i]=true;
+      if(rcWatch(m.cut.tp)||rcWatch(m.rt)){m.cut.caught=true;r.stumT=1.2;rcSay('Судья заметил тебя!','#d8434b');sfx('hurt');}
+      else rcSay('Вышел из оврага незамеченным','#7fe0d4');
+    }
+    return;
+  }
+  if(r.fin!==null){r.v=approach(r.v,60,500*dt);r.x+=r.v*dt;r.h=0;return;}
+  if(isP){
+    gallop=m.hold.sprint;
+    if(r.jq>0){r.jq-=dt;if(r.stumT<=0&&rcJump(r)){r.jq=0;sfx('jump');}}
+  }else{
+    const pl=m.riders[0];
+    r.base=r.b0*(1+0.035*Math.sin(m.rt*0.8+r.ph))*clamp(1+(pl.x-r.x)*0.00014,0.94,1.06);
+    for(let i=0;i<m.obs.length;i++){
+      const o=m.obs[i];if(o.x+o.w<r.x-20)continue;
+      let pn=r.plan[i];if(!pn)pn=r.plan[i]={at:48+Math.random()*34+(o.k==='ditch'?10:0),miss:Math.random()<0.07,done:false};
+      const dx=o.x-r.x;
+      if(dx>0&&dx<pn.at&&!pn.done&&r.stumT<=0){pn.done=true;if(!pn.miss)rcJump(r);}
+      break;
+    }
+    const f=r.x/m.len;
+    if((r.dashed===0&&f>0.4)||(r.dashed===1&&f>0.75)){r.dashed++;r.dashT=0.7;}
+  }
+  let tg;
+  if(r.stumT>0){r.stumT-=dt;tg=r.base*0.3;}
+  else{
+    if(gallop&&r.st<=0)gallop=false;
+    tg=r.base*(gallop?1.18:1);
+    if(isP&&r.st<15)tg*=0.82;
+  }
+  if(r.dashT>0){r.dashT-=dt;tg*=1.55;}
+  if(isP){
+    if(gallop&&r.stumT<=0)r.st=Math.max(0,r.st-16*dt);
+    else if(r.dashT<=0)r.st=Math.min(100,r.st+10*dt);
+  }
+  r.v=approach(r.v,tg,700*dt);
+  r.x+=r.v*dt;
+  if(r.h>0||r.vy>0){r.h+=r.vy*dt;r.vy-=1650*dt;if(r.h<=0){r.h=0;r.vy=0;}}
+  for(let i=0;i<m.obs.length;i++){
+    const o=m.obs[i];
+    if(r.hit[i]||r.x+12<o.x||r.x-12>o.x+o.w)continue;
+    if(r.h<o.need&&r.stumT<=0){
+      r.hit[i]=true;r.stumT=0.7;r.v*=0.35;r.st=Math.max(0,r.st-10);
+      if(isP){sfx('hit');m.shake=0.2;rcSay('Споткнулся!','#d8434b');}
+    }
+  }
+}
+function rcUpdate(dt){
+  const m=mg;
+  if(m.msg&&m.msg.t>0)m.msg.t-=dt;
+  if(m.phase==='how'||m.phase==='result')return;
+  if(m.phase==='count'){
+    m.cd-=dt;
+    m.riders.forEach(function(r){r.anim+=dt*2;});
+    if(m.cd<=0){m.phase='run';sfx('whistle');rcSay('СТАРТ!','#e8c46a');}
+    return;
+  }
+  m.rt+=dt;
+  for(let i=0;i<3;i++){
+    const r=m.riders[i];rcMove(m,r,dt,i===0);
+    if(r.fin===null&&r.x>=m.len){
+      r.fin=m.rt;m.order.push(i);
+      if(i===0){m.place=m.order.length;m.sonAhead=m.order.indexOf(1)>=0;m.endT=1.4;sfx('win');}
+    }
+  }
+  if(m.endT!==undefined){m.endT-=dt;if(m.endT<=0){m.phase='result';m.rs=m.t;}}
+}
+function rcFinish(){
+  const m=mg,place=m.place||3,mode=m.mode,cut=m.cut,sonAhead=!!m.sonAhead;
+  mgEnd(function(){
+    const JG='Судья скачек';
+    let lines,kind;
+    flags.tRcDone=true;
+    if(cut.used&&cut.caught){
+      flags.tRcS=true;kind='S';
+      lines=[{who:JG,text:'Стой! Я видел, как ты вышел из оврага. Скачки так не выигрывают.'},{who:'',text:'Аул затих. Ерасыл отводит глаза, Даулет усмехается. Позор тяжелее любого проигрыша.'},{who:AEL,text:'Дорога короче, а имя дороже. Запомни этот день, гость.'}];
+    }else if(cut.used){
+      flags.tRcC=true;kind='C';
+      lines=[{who:'',text:place===1?'Ты пришёл первым, и никто не видел, откуда ты вышел. Аул ликует.':'Овраг сэкономил время, но не принёс победы. Никто ничего не заметил.'},{who:'',text:'Тебе не по себе: ты один знаешь, как всё было.'}];
+    }else if(mode==='yield'){
+      if(sonAhead){
+        flags.tRcY=true;kind='Y';
+        lines=[{who:'',text:'Ты придержал коня и пришёл следом за Ерасылом. Толпа приветствует хозяйского сына.'},{who:AEL,text:'Гость, который знает своё место за столом хозяев, всегда дорог в моём доме.'}];
+      }else{
+        flags.tRcN=true;kind='N';
+        lines=[{who:'',text:'Ты собирался уступить, но обогнал Ерасыла. Он принимает это молча.'},{who:ERA,text:'Скачешь лучше меня. Что ж, в степи так бывает.'}];
+      }
+    }else if(place===1){
+      flags.tRcF=true;kind='F';
+      lines=[{who:'',text:'Ты пересёк линию первым. Мальчишки гонятся за конём, женщины машут платками.'},{who:AEL,text:'Быстрый конь и честный всадник. Но Ерасыл не привык проигрывать.'}];
+    }else{
+      flags.tRcP=true;kind='P';
+      lines=[{who:'',text:'Ты скакал честно, хоть и не первым. Аул не забывает и таких.'},{who:AEL,text:'Бәйге не всегда выигрывают. Главное, как ты скакал.'}];
+    }
+    saveGame();
+    startTalk(lines,function(){
+      if(kind==='F')reward(1,3,'Приз бәйге: слиток и 3 монеты');
+      else if(kind==='C'&&place===1)reward(1,0,'Приз бәйге: слиток');
+      else if(kind==='Y')reward(0,5,'Аксакал благодарит: 5 монет');
+      else if(kind==='N'||kind==='P')reward(0,3,'Награда: 3 монеты');
+      toyBack();
+    });
+  });
+}
+
+/* ---------- Чай и аркан тартыс ---------- */
+function startTea(){
+  mgStart({type:'tea',phase:'how',pos:0,dp:0,st:100,lastP:-9,rq:'',rqT:0,timer:45,cd:1.6,sn:3.2,prompt:null,miss:0,hit:0,pullA:0,win:false,wait:0,fx:[]});
+}
+function teaSay(s,c){if(mg)mg.msg={text:s,t:0.9,col:c||'#f1e6d2'};}
+function teaFinish(w){const m=mg;m.win=w;m.phase='fb';m.wait=2;m.prompt=null;sfx(w?'win':'die');}
+function teaMiss(txt){
+  const m=mg;m.prompt=null;m.pos-=0.18;m.miss++;m.st=Math.max(0,m.st-14);m.sn=rrange([2.6,4]);m.shake=0.25;sfx('hurt');teaSay(txt,'#d8434b');
+}
+function teaUpdate(dt){
+  const m=mg;
+  if(m.msg&&m.msg.t>0)m.msg.t-=dt;
+  if(m.rqT>0)m.rqT-=dt;
+  if(m.phase==='how')return;
+  m.dp+=(m.pos-m.dp)*Math.min(1,dt*9);
+  if(m.pullA>0)m.pullA-=dt;
+  m.fx.forEach(function(p){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=60*dt;});
+  m.fx=m.fx.filter(function(p){return p.t<p.T;});
+  if(m.phase==='fb'){
+    m.wait-=dt;
+    if(m.wait<=0){const h=m.win?(m.miss===0?2:1):0;mgEnd(function(){teaAfter(h);});}
+    return;
+  }
+  if(m.cd>0){m.cd-=dt;return;}
+  m.timer-=dt;
+  m.st=Math.min(100,m.st+11*dt);
+  let opp=0.22-0.0026*(45-m.timer)+Math.sin(m.t*2.3)*0.025;
+  if(m.prompt){
+    opp+=0.4;m.prompt.t-=dt;
+    if(m.prompt.t<=0)teaMiss('Рванул!');
+  }else{
+    m.sn-=dt;
+    if(m.sn<=0)m.prompt={kind:'def',dir:Math.random()<0.5?'left':'right',t:1.15,T:1.15,title:'ДАУЛЕТ РВЁТ! УПРИСЬ!'};
+  }
+  m.pos=clamp(m.pos-opp*dt,-1,1);
+  if(m.pos>=1)teaFinish(true);
+  else if(m.pos<=-1)teaFinish(false);
+  else if(m.timer<=0)teaFinish(m.pos>0);
+}
+function teaAct(a){
+  const m=mg;
+  if(m.phase!=='play'||m.cd>0)return;
+  if(DIRS.indexOf(a)>=0){
+    const p=m.prompt;if(!p)return;
+    if(a===p.dir){
+      m.prompt=null;m.pos=Math.min(1,m.pos+0.07);m.st=Math.min(100,m.st+18);m.hit++;m.sn=rrange([2.6,4]);m.shake=0.12;m.pullA=0.3;sfx('blend');teaSay('Упёрся!','#7fe0d4');
+    }else teaMiss('Не туда!');
+    return;
+  }
+  if(a==='sprint')return;
+  if(m.st<3.2){teaSay('Нет сил, отдышись','#e8c46a');return;}
+  const gap=m.t-m.lastP;m.lastP=m.t;
+  let q=1;m.rq='Ритм!';
+  if(gap<0.1){q=0.35;m.rq='Слишком часто';}else if(gap>0.5){q=0.7;m.rq='';}
+  m.st-=3.2;m.pos=Math.min(1,m.pos+0.045*q);m.pullA=0.16;m.rqT=0.4;
+  m.fx.push({x:150+Math.random()*10,y:284,vx:-20-Math.random()*30,vy:-15-Math.random()*20,t:0,T:0.4,r:2});
+}
+function teaAfter(h){
+  if(h>=1){teaEnd('S',h);return;}
+  if(P.tea>0){
+    askChoice('Той','Аркан у Даулета','Команда Даулета перетянула аркан. По обычаю проигравшие ставят кирпич чая на общий дастархан. У тебя есть свой чай.',[
+      {t:'Поставить свой чай на дастархан',f:function(){P.tea--;teaEnd('G');}},
+      {t:'Развести руками',f:function(){teaEnd('L');}}]);
+  }else teaEnd('L');
+}
+function teaEnd(k,h){
+  flags.tTeaDone=true;flags['tTea'+k]=true;
+  let lines;
+  if(k==='S'){
+    P.tea++;
+    lines=[{who:'',text:h>=2?'Аркан дрогнул и пошёл к вам. Даулет упёрся пятками, но всю его пятёрку протащило через черту. Ты ни разу не дал себя рвануть, аул ревёт.':'Ты едва удержал аркан в самый тяжёлый миг, и твоя пятёрка всё-таки перетянула Даулета. Аул ревёт.'},
+      {who:DAU,text:h>=2?'Сильные руки у гостя, и команда за ним пошла. Бери кирпич, и я этого не забуду.':'Тяжёлая борьба, батыр. Кирпич твой, я твой должник.'},
+      {who:AEL,text:'Сила хороша, когда ею не кичатся. Ты выиграл достойно.'}];
+  }else if(k==='G'){
+    lines=[{who:'',text:'Ты отдал свой чай на дастархан. Даулет принял его, не глядя тебе в глаза: рука дрогнула.'},
+      {who:DAU,text:'Я верну долг, батыр. Бай-ұлы долгов не забывает.'},
+      {who:AEL,text:'Спасти чужое лицо дороже, чем чай. Ты поступил как старший.'}];
+  }else if(k==='N'){
+    lines=[{who:'',text:'Ты отступил, и ваша пятёрка так и не собралась. Мальчишки разочарованно гудят.'},
+      {who:DAU,text:'Столько народу, и никто не принял аркан.'},
+      {who:AEL,text:'Тихо. Не вся мудрость в том, чтобы стоять в стороне.'}];
+  }else{
+    lines=[{who:'',text:'Аркан вырвался из рук, и вашу пятёрку протащило через черту. Даулет победно подхватывает кирпич.'},
+      {who:DAU,text:'Хорошая попытка, батыр. Но аркан любит тех, у кого дастархан толще.'}];
+  }
+  saveGame();updateHud();
+  startTalk(lines,toyBack);
+}
+
+/* ---------- меню тоя ---------- */
+function toyBack(){
+  if(flags.tTeaDone&&flags.tWrDone&&flags.tRcDone&&!flags.tEnd){toySummary();return;}
+  openToy();
+}
+function toyEntry(){
+  if(flags.tEnd){
+    const t=aulRep();
+    startTalk([{who:AEL,text:flags.aSilent?'Живи у нас сколько нужно, батыр. Джунгары сюда пока не заглядывают.':'Живи у нас сколько нужно, батыр. Будь осторожен: язык разносит вести быстрее ветра.'},
+      {who:AEL,text:t>=4?'Ты наш человек, батыр. О тое будут говорить долго, и только хорошее.':(t>=1?'Той прошёл достойно. Ты оставил добрый след.':'Той я не забыл. Но дверь моя для гостя открыта.')}]);
+    return;
+  }
+  if(!flags.tIn){
+    flags.tIn=true;saveGame();
+    startTalk([{who:AEL,text:'Той начался, батыр. У нас родился сын, и аул празднует.'},
+      {who:AEL,text:'Гость сам выбирает, где ему быть: за дастарханом, на борцовском круге или на скачках.'},
+      {who:AEL,text:'Приходи ко мне, когда захочешь: чай, күрес, бәйге. От того, как ты себя покажешь, зависит, как аул будет смотреть на тебя.'}],openToy);
+    return;
+  }
+  openToy();
+}
+function openToy(){
+  function row(a,label){return '<button class="cta ghost wide"'+(a?' data-a="'+a+'"':' disabled')+'>'+label+'</button>';}
+  let b='';
+  b+=flags.tTeaDone?row('','Чай: выполнено'):row('toy:tea','Чай и аркан тартыс: Даулет');
+  b+=flags.tWrDone?row('','Күрес (борьба): выполнено'):row('toy:wr','Күрес (борьба): три схватки');
+  b+=flags.tRcDone?row('','Бәйге (скачки): выполнено'):row('toy:rc','Бәйге (скачки): гонка на коне');
+  openPanel('<p class="eyebrow">Аул в лощине</p><h1>Той</h1><p class="lead">Аксакал Жанабай ждёт тебя на тое. Состязаний пройдено: '+toyCount()+' из 3. Каждое влияет на то, как аул к тебе отнесётся.</p><div class="menu">'+b+'<button class="cta wide" data-a="x">Уйти</button></div>');
+}
+function toyAct(k){
+  closePanel();
+  if(k==='tea')toyTea();else if(k==='wr')toyWr();else if(k==='rc')toyRc();
+}
+function toyTea(){
+  startTalk([{who:'',text:'Той в ауле. На дастархан выносят кумыс, курт и баурсаки: всё своё, степное.'},
+    {who:DAU,text:'Ассалаумағалейкум! Я привёз гостинец: два кирпича чая из Бухары. В этом ауле такого ещё не пробовали.'},
+    {who:'',text:'Люди тянутся посмотреть. Кто-то вздыхает: чай стоит как хороший ягнёнок. Сразу видно, кто в ауле богат.'},
+    {who:AEL,text:'Рахмет, Даулет. Ты почтил наш той.'},
+    {who:DAU,text:'Чай просто так не раздают. Вот аркан, играем пять на пять: у меня мои ребята, ты возьми парней из аула. Чья команда перетянет, тому кирпич. Проиграют, поставят кирпич на дастархан. Ну, батыр?'}],
+    function(){
+      const o=[{t:'Принять вызов: встать во главе своей команды',f:function(){startTea();}}];
+      if(P.tea>0)o.push({t:'Поставить свой чай на дастархан, без спора',f:function(){P.tea--;teaEnd('G');}});
+      o.push({t:'Не принимать вызов',f:function(){teaEnd('N');}});
+      askChoice('Той','Даулет бросает аркан','Что ты сделаешь?',o);
+    },{backdrop:'aul'});
+}
+function toyWr(){
+  startTalk([{who:AEL,text:'Круг для күрес готов. Против тебя выйдут трое, и каждый сильнее предыдущего.'},
+    {who:AEL,text:'Хват держат обе стороны: побеждает тот, кто не потеряет баланс. Последним выйдет мой сын Ерасыл.'}],startWrest,{backdrop:'aul'});
+}
+function toyRc(){
+  const l=[{who:AEL,text:'Бәйге пойдёт от аула до холма. Барьеры, арыки, ветер.'}];
+  if(!P.horse)l.push({who:AEL,text:'Коня тебе дадут из аульного табуна: не из лучших, но выносливого.'});
+  l.push({who:AEL,text:'Рядом поскачут мой сын Ерасыл и Даулет, сын бая. Скачи как знаешь, батыр.'});
+  startTalk(l,function(){
+    askChoice('Бәйге','Как поведёшь коня?','Аул смотрит, как гость ведёт себя на скачках.',[
+      {t:'Прийти первым',f:function(){startRace('first');}},
+      {t:'Не обгонять Ерасыла, сына хозяина',f:function(){startRace('yield');}},
+      {t:'Срезать путь через овраг',f:function(){startRace('cut');}}]);
+  },{backdrop:'aul'});
+}
+function toySummary(){
+  flags.tEnd=true;
+  const c=crowdRep(),el=elderRep(),t=c+el,lines=[];
+  lines.push({who:'',text:'Той подошёл к концу. Дастархан убран, на углях догорает последний казан. Аул расходится, обсуждая день.'});
+  lines.push({who:AEL,text:t>=4?'Ты стал здесь своим, батыр. Мой дом и мой огонь для тебя открыты.':(t>=1?'О тебе говорят по-разному, но дурного слова я не слышал. Ты хороший гость.':(t>=-2?'Аул к тебе пока присматривается. Всё ещё впереди.':'Люди запомнили всё, что было на тое. Дорогу тебе не заступят, но и огня не предложат.'))});
+  if(c>=3)lines.push({who:'',text:'Молодёжь у костров повторяет твоё имя. Мальчишки машут деревянными саблями и спорят, кто будет тобой.'});
+  else if(c<=-2)lines.push({who:'',text:'Молодёжь у костров умолкает, когда ты проходишь мимо.'});
+  if(el>=3)lines.push({who:'',text:'Старики кивают тебе при встрече: ты знаешь, как держать себя за дастарханом.'});
+  else if(el<=-2)lines.push({who:'',text:'Старики смотрят холодно: ты задел их достоинство.'});
+  if(flags.tTeaG)lines.push({who:DAU,text:'Я не забыл про чай, который ты отдал. Бай-ұлы возвращает долг вдвойне.'});
+  saveGame();
+  startTalk(lines,function(){
+    if(t>=4){P.food.kurt+=2;reward(1,0,'Аул подарил слиток и 2 курта');}
+    else if(t>=1){P.food.baursak+=2;toast('Аул подарил 2 бауырсака');updateHud();}
+    if(flags.tTeaG)reward(1,0,'Даулет вернул долг: слиток серебра');
+    saveGame();
+  },{backdrop:'aul'});
+}
+
+/* ---------- отрисовка мини-игр ---------- */
+function mtxt(s,x,y,size,col,al){
+  ctx.font='700 '+size+'px "PT Sans",sans-serif';ctx.textAlign=al||'center';ctx.textBaseline='middle';
+  ctx.lineWidth=3;ctx.lineJoin='round';ctx.strokeStyle='rgba(8,6,16,.85)';ctx.strokeText(s,x,y);
+  ctx.fillStyle=col||'#f1e6d2';ctx.fillText(s,x,y);ctx.textAlign='left';
+}
+function mbar(x,y,w,h,v,col){
+  ctx.fillStyle='rgba(12,10,24,.7)';ctx.fillRect(x-1,y-1,w+2,h+2);
+  ctx.fillStyle='rgba(241,230,210,.14)';ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=col;ctx.fillRect(x,y,w*clamp(v,0,1),h);
+}
+function drawArrow(cx,cy,dir,s,col){
+  const a={right:0,down:Math.PI/2,left:Math.PI,up:-Math.PI/2}[dir];
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(a);ctx.fillStyle=col;ctx.beginPath();
+  ctx.moveTo(-s,-s*0.32);ctx.lineTo(s*0.1,-s*0.32);ctx.lineTo(s*0.1,-s*0.78);ctx.lineTo(s,0);ctx.lineTo(s*0.1,s*0.78);ctx.lineTo(s*0.1,s*0.32);ctx.lineTo(-s,s*0.32);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+function drawHow(title,lines,foot){
+  ctx.fillStyle='rgba(8,6,16,.8)';ctx.fillRect(0,0,W,H);
+  const bx=60,bw=W-120,rows=[];
+  ctx.font='400 14px "PT Sans",sans-serif';
+  lines.forEach(function(s){wrapText(s,bw-40).forEach(function(r){rows.push(r);});rows.push('');});
+  const bh=76+rows.length*17,by=Math.max(6,(H-bh)/2);
+  ctx.fillStyle='rgba(15,14,29,.96)';ctx.fillRect(bx,by,bw,bh);
+  ctx.strokeStyle='rgba(241,230,210,.3)';ctx.lineWidth=1;ctx.strokeRect(bx+.5,by+.5,bw-1,bh-1);
+  mtxt(title,W/2,by+22,18,'#e8c46a');
+  ctx.font='400 14px "PT Sans",sans-serif';ctx.fillStyle='#f1e6d2';ctx.textAlign='left';ctx.textBaseline='middle';
+  rows.forEach(function(r,i){ctx.fillText(r,bx+20,by+48+i*17);});
+  mtxt(foot||(KBD?'Пробел или E: начать':'Нажми, чтобы начать'),W/2,by+bh-14,12,'#a99fb8');
+}
+function drawAulBack(t){
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#2f3b7e');g.addColorStop(0.42,'#b0607a');g.addColorStop(0.7,'#f0884a');g.addColorStop(1,'#ffc878');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#4a3a5a';ctx.beginPath();ctx.moveTo(0,250);ctx.quadraticCurveTo(160,196,330,242);ctx.quadraticCurveTo(480,200,W,240);ctx.lineTo(W,262);ctx.lineTo(0,262);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#6d6a3a';ctx.fillRect(0,262,W,H-262);ctx.fillStyle='#7d8a48';ctx.fillRect(0,262,W,4);
+  drawYurt(16,112,262,t,3,false);drawYurt(512,112,262,t,5,false);
+}
+function drawPrompt(p,y,t){
+  const ratio=clamp(p.t/p.T,0,1),dir=p.dir;
+  const col=p.kind==='def'?'#d8434b':(p.kind==='atk'?'#e8c46a':'#7fe0d4');
+  const title=p.title||(p.kind==='def'?'ДЕРЖИ ХВАТ!':(p.kind==='atk'?'ПОДНОЖКА!':'ПОДДАЙСЯ!'));
+  ctx.save();
+  ctx.fillStyle='rgba(12,10,24,.55)';ctx.beginPath();ctx.arc(W/2,y,66,0,7);ctx.fill();
+  if(p.kind==='def'){
+    ctx.strokeStyle=col;ctx.lineWidth=4;ctx.beginPath();ctx.arc(W/2,y,22+36*ratio,0,7);ctx.stroke();
+  }else{
+    const R=18+42*ratio;
+    ctx.strokeStyle='rgba(241,230,210,.25)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(W/2,y,38,0,7);ctx.stroke();
+    ctx.strokeStyle='#f1e6d2';ctx.lineWidth=2;ctx.beginPath();ctx.arc(W/2,y,27,0,7);ctx.stroke();
+    ctx.strokeStyle=R<=27?'#7fe08a':col;ctx.lineWidth=4;ctx.beginPath();ctx.arc(W/2,y,R,0,7);ctx.stroke();
+  }
+  if(KBD){
+    ctx.fillStyle='#f1e6d2';ctx.fillRect(W/2-17,y-17,34,34);
+    ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(W/2-17,y+13,34,4);
+    drawArrow(W/2,y-1,dir,11,'#16143a');
+  }else{
+    drawArrow(W/2,y,dir,17,'#f1e6d2');
+    const dx={left:-1,right:1,up:0,down:0}[dir],dy={left:0,right:0,up:-1,down:1}[dir];
+    for(let i=0;i<3;i++){const o=(t*70+i*16)%48;ctx.globalAlpha=1-o/48;drawArrow(W/2+dx*(24+o*0.6),y+dy*(24+o*0.6),dir,7,col);}
+    ctx.globalAlpha=1;
+  }
+  ctx.restore();
+  mtxt(title,W/2,y-80,15,col);
+  if(KBD)mtxt(DKEY[dir]+' или стрелка',W/2,y+80,11,'#a99fb8');
+  else mtxt('Свайп в сторону стрелки',W/2,y+80,11,'#a99fb8');
+}
+function wrDust(x,y,n){
+  const m=mg;if(!m)return;
+  for(let i=0;i<n;i++)m.fx.push({x:x+(Math.random()-0.5)*14,y:y-2,vx:(Math.random()-0.5)*70,vy:-20-Math.random()*40,t:0,T:0.5+Math.random()*0.3,r:2+Math.random()*3});
+}
+function wrAnim(k,T){if(mg)mg.ev={k:k,t:0,T:T,d:false};}
+function drawWrestler(c){
+  const sc=c.sc||1,pal=c.pal,t=c.t,body=c.flash?'#ffffff':pal.body,hat=c.hat;
+  ctx.save();ctx.translate(Math.round(c.x),Math.round(c.y-(c.lift||0)));
+  ctx.scale(c.face*sc,sc);ctx.lineCap='round';ctx.lineJoin='round';
+  if(c.rot)ctx.rotate(c.rot);
+  const st=c.step||0,k=c.kick||0;
+  ctx.strokeStyle=body;ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(-3,-11);ctx.lineTo(-6-st*1.5,-6);ctx.lineTo(-8-st*2.5,-1);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(3,-11);ctx.lineTo(6+k*9+st*1.5,-6-k*5);ctx.lineTo(8+k*17+st*2.5,-1-k*9);ctx.stroke();
+  if(!c.flash){ctx.strokeStyle='#4a2f1e';ctx.lineWidth=5.6;
+    ctx.beginPath();ctx.moveTo(-7.4-st*2.2,-3.2);ctx.lineTo(-8-st*2.5,-1);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(7.4+k*15+st*2.2,-3.2-k*8);ctx.lineTo(8+k*17+st*2.5,-1-k*9);ctx.stroke();}
+  ctx.save();ctx.translate(0,-11);ctx.rotate(c.lean||0);ctx.translate(0,11);
+  ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(-5,-23);ctx.lineTo(5,-23);ctx.lineTo(8,-9);ctx.lineTo(-8,-9);ctx.closePath();ctx.fill();
+  if(pal.edge&&!c.flash){ctx.strokeStyle=pal.edge;ctx.lineWidth=1;ctx.stroke();}
+  ctx.fillStyle=pal.trim;ctx.fillRect(-6.5,-15,13,2.2);
+  if(c.mail&&!c.flash){ctx.fillStyle='#9aa6b5';ctx.fillRect(-5,-24,10,2.2);}
+  ctx.fillStyle=body;ctx.beginPath();ctx.ellipse(1,-26,4.5,5,0,0,Math.PI*2);ctx.fill();
+  if(pal.edge&&!c.flash){ctx.strokeStyle=pal.edge;ctx.lineWidth=1;ctx.stroke();}
+  if(hat==='hood'){
+    ctx.fillStyle=body;ctx.beginPath();ctx.moveTo(-4.5,-28);ctx.quadraticCurveTo(1,-37,6.5,-28);ctx.closePath();ctx.fill();
+    ctx.strokeStyle=pal.trim;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-4.5,-28);ctx.lineTo(6.5,-28);ctx.stroke();
+  }else if(hat==='skull'){
+    ctx.fillStyle=c.flash?'#fff':pal.body;ctx.beginPath();ctx.ellipse(1,-29,4.8,3.4,0,Math.PI,0);ctx.closePath();ctx.fill();
+    ctx.strokeStyle=pal.trim;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-3.8,-29);ctx.lineTo(5.8,-29);ctx.stroke();
+  }else if(hat==='kalpak'){
+    ctx.fillStyle=c.flash?'#fff':'#eadfc8';ctx.beginPath();ctx.moveTo(-4.4,-28);ctx.lineTo(-3.4,-35);ctx.quadraticCurveTo(1,-37.5,5.4,-35);ctx.lineTo(6.4,-28);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#1d1424';ctx.fillRect(-4.4,-30.5,10.8,2.6);
+  }else if(hat==='dulyga'){
+    ctx.fillStyle=c.flash?'#fff':'#9aa6b5';ctx.beginPath();ctx.moveTo(-5.4,-28);ctx.quadraticCurveTo(-4.6,-36,1.2,-41);ctx.quadraticCurveTo(6.8,-36,7.4,-28);ctx.closePath();ctx.fill();
+    ctx.fillStyle=c.flash?'#fff':pal.trim;ctx.fillRect(-5.6,-30,13.2,2);
+  }else if(hat==='bork'){
+    ctx.fillStyle=c.flash?'#fff':pal.body;ctx.beginPath();ctx.moveTo(-4.8,-28);ctx.quadraticCurveTo(-4.6,-36,1.2,-37.5);ctx.quadraticCurveTo(6.8,-36,6.8,-28);ctx.closePath();ctx.fill();
+    ctx.fillStyle=c.flash?'#fff':'#d6c8a6';ctx.beginPath();ctx.ellipse(1,-28.4,6.6,2.6,0,0,7);ctx.fill();
+  }
+  /* руки */
+  const r=c.reach||16,am=c.arms||'grip';
+  let h1,h2;
+  if(am==='up'){const s=Math.sin(t*10)*2;h1=[-8,-37+s];h2=[10,-37-s];}
+  else if(am==='flail'){h1=[-12+Math.sin(t*22)*4,-30+Math.cos(t*19)*4];h2=[14+Math.cos(t*20)*4,-33+Math.sin(t*23)*4];}
+  else if(am==='back'){h1=[-14,-18];h2=[-13,-26];}
+  else{h1=[r,-14+Math.sin(t*6)*0.8];h2=[r-2,-18];}
+  [[-3.5,-22.5,h1],[5,-22.5,h2]].forEach(function(a){
+    ctx.strokeStyle=body;ctx.lineWidth=3.6;ctx.beginPath();ctx.moveTo(a[0],a[1]);
+    ctx.quadraticCurveTo((a[0]+a[2][0])/2,(a[1]+a[2][1])/2+(am==='grip'||am==='rope'?4:0),a[2][0],a[2][1]);ctx.stroke();
+    ctx.fillStyle=c.flash?'#fff':'#d9a679';ctx.beginPath();ctx.arc(a[2][0],a[2][1],2.2,0,7);ctx.fill();
+  });
+  ctx.restore();
+  ctx.restore();
+}
+function wrPose(m,t){
+  const danger=1-m.me/100,sw=Math.sin(t*6.5);
+  const me={lean:0.2+sw*0.05,dx:0,lift:0,rot:0,kick:0,arms:'grip',step:sw,flash:false};
+  const op={lean:0.2-sw*0.05,dx:0,lift:0,rot:0,kick:0,arms:'grip',step:-sw,flash:false};
+  let sh=sw*(1.5+danger*3);
+  const pr=(m.phase==='fight')?m.prompt:null;
+  if(pr){
+    const r=1-clamp(pr.t/pr.T,0,1);
+    if(pr.kind==='def'){
+      op.lean-=0.22*r;op.dx+=3*r;me.lean+=0.1*r;
+      if(pr.dir==='left')sh-=6*r;else if(pr.dir==='right')sh+=6*r;
+      else if(pr.dir==='up'){me.lift+=3*r;op.lift+=3*r;}
+      else{me.lean+=0.18*r;op.lean+=0.18*r;}
+    }else if(pr.kind==='atk'){op.lean-=0.2*r+Math.sin(t*14)*0.03;op.dx+=2*r;}
+    else me.lean+=0.1*r;
+  }
+  const ev=m.ev;
+  if(ev){
+    const p=clamp(ev.t/ev.T,0,1),s=Math.sin(Math.PI*p);
+    if(ev.k==='brace'){me.lean+=0.14*s;op.dx+=5*s;op.lean-=0.1*s;}
+    else if(ev.k==='stag'){me.dx-=14*s;me.lean-=0.55*s;me.arms='flail';op.dx-=3*s;}
+    else if(ev.k==='slip'){me.dx+=9*s;me.lean+=0.5*s;me.arms='flail';me.step=Math.sin(t*30);}
+    else if(ev.k==='trip'){
+      const kk=Math.sin(Math.PI*clamp((p-0.1)/0.55,0,1)),sl=Math.sin(Math.PI*clamp((p-0.3)/0.7,0,1));
+      me.kick=kk;me.lean+=0.15*kk;
+      op.dx+=12*sl;op.lean-=0.5*sl;op.lift+=5*sl;op.arms='flail';op.flash=p>0.3&&p<0.42;
+    }else if(ev.k==='throw'){
+      me.lean+=0.75*Math.sin(Math.PI*clamp(p*1.15,0,1));me.dx-=3*s;
+      op.rot=1.9*s;op.lift+=24*s;op.dx-=26*s;op.arms='flail';op.flash=p>0.2&&p<0.3;
+    }
+  }
+  if(m.phase==='fall'){
+    const fl=m.fallT,lift=Math.sin(fl*Math.PI)*14,L=m.pw?op:me,Wn=m.pw?me:op;
+    L.lean=0;L.rot=-1.5*fl;L.lift=lift;L.dx=(m.pw?1:-1)*46*fl;L.arms=fl<0.8?'flail':'back';L.kick=0;L.step=0;
+    Wn.lean=0.05;Wn.step=0;Wn.dx=0;Wn.lift=fl>0.45?Math.abs(Math.sin(t*10))*3:0;Wn.arms=fl>0.45?'up':'grip';
+    sh=0;
+  }
+  return {me:me,op:op,sh:sh};
+}
+function drawWrest(t){
+  const m=mg,o=m.opps[m.bout];
+  drawAulBack(t);
+  ctx.fillStyle='#c9a86a';ctx.beginPath();ctx.ellipse(320,284,176,32,0,0,7);ctx.fill();
+  ctx.strokeStyle='#e8c46a';ctx.lineWidth=2;ctx.stroke();
+  const ch0=Math.min(1,m.cheer||0);
+  for(let i=0;i<14;i++){
+    const left=i<7,k=left?i:i-7,x=left?(30+k*22):(430+k*24),y=262+((k%2)*8);
+    const ch=(m.phase==='fall'&&m.pw)?Math.abs(Math.sin(t*9+i))*6:(ch0>0?Math.abs(Math.sin(t*10+i))*5*ch0:Math.sin(t*2+i)*1.5);
+    drawFigure({x:x-9,y:y-30-ch,w:18,h:30,face:left?1:-1,sc:0.82},CIVPAL[(i*2)%CIVPAL.length],{t:t,run:false,air:false,weapon:'none',hat:'skull'});
+  }
+  const fy=284,ps=wrPose(m,t),mx=292+ps.sh+ps.me.dx,ox=350+ps.sh+ps.op.dx;
+  const msc=1.55,osc=o.sc*1.4,gap=ox-mx;
+  const sh=m.shake>0?Math.sin(t*70)*2.5:0;
+  const rch=clamp(gap/2/((msc+osc)/2)*0.9,8,26);
+  ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(mx,fy+1,18,4,0,0,7);ctx.fill();ctx.beginPath();ctx.ellipse(ox,fy+1,18,4,0,0,7);ctx.fill();
+  drawWrestler({x:ox,y:fy,face:-1,sc:osc,pal:o.pal,hat:o.hat,t:t,lean:ps.op.lean,lift:ps.op.lift,rot:ps.op.rot,kick:ps.op.kick,arms:ps.op.arms,step:ps.op.step,reach:rch,flash:ps.op.flash});
+  drawWrestler({x:mx+sh,y:fy,face:1,sc:msc,pal:HERO,hat:eqd('helm')?'dulyga':'hood',mail:eqd('armor'),t:t,lean:ps.me.lean,lift:ps.me.lift,rot:ps.me.rot,kick:ps.me.kick,arms:ps.me.arms,step:ps.me.step,reach:rch});
+  m.fx.forEach(function(p){ctx.globalAlpha=Math.max(0,0.7*(1-p.t/p.T));ctx.fillStyle='#e8d8b0';ctx.beginPath();ctx.arc(p.x,p.y,p.r*(0.6+p.t/p.T),0,7);ctx.fill();});
+  ctx.globalAlpha=1;
+  mtxt('ТЫ · БАЛАНС',16,16,11,'#bff3ec','left');mbar(16,24,240,10,m.me/100,m.me<35?'#d8434b':'#2fb5a8');
+  mtxt(o.n.toUpperCase(),W-16,16,11,'#f0b0a0','right');mbar(W-256,24,240,10,m.op/100,m.op<35?'#e8c46a':'#d8434b');
+  mtxt('КҮРЕС · СХВАТКА '+(m.bout+1)+'/3',W/2,50,12,'#e8c46a');
+  if(!m.yield&&m.phase==='fight')mtxt(Math.max(0,Math.ceil(m.timer))+' с',W/2,64,11,'#a99fb8');
+  if(m.phase==='fight'&&m.prompt)drawPrompt(m.prompt,150,t);
+  else if(m.msg&&m.msg.t>0)mtxt(m.msg.text,W/2,150,22,m.msg.col);
+  if(m.phase==='intro'){mtxt('СХВАТКА '+(m.bout+1)+'/3',W/2,130,24,'#e8c46a');mtxt(o.n,W/2,158,14,'#f1e6d2');if(m.yield)mtxt('Дай ему победить, но убедительно',W/2,182,12,'#7fe0d4');}
+  if(m.phase==='fall')mtxt(m.pw?'ПОБЕДА!':(m.yield?'Ты упал...':'ПОРАЖЕНИЕ'),W/2,150,26,m.pw?'#e8c46a':'#d8434b');
+  mtxt(KBD?'← → ↑ ↓ или A D W S':'Свайпай по экрану',W/2,H-10,11,'#a99fb8');
+  if(m.phase==='how')drawHow('КҮРЕС · БОРЬБА',[
+    'Три схватки, соперники всё сильнее. У каждого шкала баланса: кончится, и ты упадёшь.',
+    'Соперник рвёт хват: быстро '+(KBD?'нажми показанную стрелку.':'свайпни в сторону стрелки.')+' Тело соперника подсказывает, куда он тянет.',
+    'Когда он пошатнётся, появится кольцо: ПОДНОЖКА. '+(KBD?'Жми':'Свайпай')+' в миг, когда кольцо сожмётся до белой метки. Точно в метку: бросок через бедро.']);
+}
+function drawRace(t){
+  const m=mg,p=m.riders[0],c0=Math.round(Math.max(0,Math.min(p.x-150,m.len+320-W)));
+  const g=ctx.createLinearGradient(0,0,0,230);g.addColorStop(0,'#3a86d0');g.addColorStop(1,'#f2d9a0');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff3c8';ctx.beginPath();ctx.arc(520,64,20,0,7);ctx.fill();
+  ctx.fillStyle='#7a86a8';ctx.beginPath();ctx.moveTo(0,230);
+  for(let x=0;x<=W;x+=16){const wx=x+c0*0.15;ctx.lineTo(x,196-Math.sin(wx*0.012)*14-Math.sin(wx*0.031)*7);}
+  ctx.lineTo(W,230);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#8a9650';ctx.fillRect(0,214,W,H-214);
+  ctx.fillStyle='#b08a5a';ctx.fillRect(0,240,W,112);
+  ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(0,240,W,3);ctx.fillRect(0,349,W,3);
+  ctx.strokeStyle='rgba(241,230,210,.35)';ctx.lineWidth=2;ctx.setLineDash([14,12]);ctx.lineDashOffset=c0%26;
+  [279,313].forEach(function(ly){ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(W,ly);ctx.stroke();});
+  ctx.setLineDash([]);ctx.lineDashOffset=0;
+  ctx.save();ctx.translate(-c0,0);
+  [-60,260,900,1500,2100,m.len+90].forEach(function(x,i){if(x+130>c0&&x<c0+W)drawYurt(x,100,232,t,i,false);});
+  const specs=[];for(let k=0;k<8;k++){specs.push(10+k*18);specs.push(m.len-50+k*30);}
+  specs.forEach(function(sx,i){
+    if(sx<c0-20||sx>c0+W+20)return;
+    drawFigure({x:sx-9,y:232-30-Math.abs(Math.sin(t*5+i))*(m.phase==='run'?4:1),w:18,h:30,face:sx<m.len/2?1:-1,sc:0.8},CIVPAL[i%CIVPAL.length],{t:t,run:false,air:false,weapon:'none',hat:'skull'});
+  });
+  ctx.fillStyle='#4b2e22';ctx.fillRect(38,214,4,130);ctx.fillStyle='#e8c46a';ctx.fillRect(38,214,70,10);
+  for(let x=500;x<m.len;x+=500){ctx.fillStyle='#4b2e22';ctx.fillRect(x,334,3,16);ctx.fillStyle='#e6d3ad';ctx.fillRect(x-8,326,22,9);}
+  for(let yy=240;yy<352;yy+=8){ctx.fillStyle=((yy/8)%2)?'#f1e6d2':'#1d1424';ctx.fillRect(m.len,yy,8,8);ctx.fillStyle=((yy/8)%2)?'#1d1424':'#f1e6d2';ctx.fillRect(m.len+8,yy,8,8);}
+  ctx.fillStyle='#4b2e22';ctx.fillRect(m.len-3,196,5,56);ctx.fillRect(m.len+14,196,5,56);
+  ctx.fillStyle='#b3262e';ctx.fillRect(m.len-3,196,22,12);
+  m.obs.forEach(function(o){
+    if(o.x+o.w<c0-20||o.x>c0+W+20)return;
+    [262,296,330].forEach(function(ly){
+      if(o.k==='fence'){
+        ctx.fillStyle='#4b2e22';ctx.fillRect(o.x-2,ly-30,4,32);ctx.fillRect(o.x+o.w-2,ly-30,4,32);
+        ctx.fillStyle='#8a5a42';ctx.fillRect(o.x-3,ly-28,o.w+6,4);ctx.fillRect(o.x-3,ly-18,o.w+6,4);
+      }else{
+        ctx.fillStyle='#1d4466';ctx.fillRect(o.x,ly-6,o.w,12);
+        ctx.fillStyle='rgba(120,200,230,.5)';ctx.fillRect(o.x+6,ly-3+Math.sin(t*3+ly)*1,o.w-14,2);
+        ctx.fillStyle='#2f7aa0';ctx.fillRect(o.x,ly-6,o.w,2);
+      }
+    });
+  });
+  if(m.mode==='cut'){
+    const a=m.cutZ[0],b=m.cutZ[1]+m.cutJump,jx=m.judgeX,watch=rcWatch(m.rt);
+    ctx.fillStyle='rgba(232,196,106,.14)';ctx.fillRect(a,336,m.cutZ[1]-a,14);
+    ctx.strokeStyle='#4b2e22';ctx.lineWidth=12;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a,346);ctx.quadraticCurveTo((a+b)/2,372,b,346);ctx.stroke();
+    ctx.strokeStyle='#2a1a12';ctx.lineWidth=6;ctx.stroke();
+    ctx.fillStyle='#4b2e22';ctx.fillRect(a-22,206,3,28);
+    plaque('Тропа: ↓',a-20,204,'#e8c46a');
+    ctx.fillStyle='#7d6a3a';ctx.beginPath();ctx.ellipse(jx,222,40,10,0,0,7);ctx.fill();
+    if(watch){ctx.fillStyle='rgba(232,196,106,.2)';ctx.beginPath();ctx.moveTo(jx-4,196);ctx.lineTo(jx-300,346);ctx.lineTo(jx+20,346);ctx.closePath();ctx.fill();}
+    drawFigure({x:jx-9,y:218-30,w:18,h:30,face:watch?-1:1,sc:1.1},{body:'#4a2f5e',trim:'#e8c46a'},{t:t,run:false,air:false,weapon:'none',hat:'khan'});
+    ctx.font='700 18px "Philosopher",serif';ctx.textAlign='center';ctx.fillStyle=watch?'#d8434b':'#f1e6d2';ctx.fillText(watch?'!':'z',jx,150);ctx.textAlign='left';
+    mtxt('Судья',jx,166,10,'#f1e6d2');
+  }
+  const order=m.riders.slice().sort(function(a,b){return a.lane-b.lane;});
+  order.forEach(function(r){
+    const isP=r===p,ly=262+34*r.lane,ls=0.9+0.1*r.lane,hid=isP&&m.cut.t>0;
+    const by=hid?344:ly-r.h;
+    ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(r.x,ly+2,20*ls,5*ls,0,0,7);ctx.fill();
+    const air=r.h>2;
+    drawFigure({x:r.x-10,y:by-30,w:20,h:30,face:1,sc:ls*(hid?0.8:1),rot:r.stumT>0?-0.22:0},r.pal,
+      {t:r.anim,run:true,air:air,weapon:'none',hat:r.hat==='hood'?(eqd('helm')?'dulyga':'hood'):r.hat,sit:true,alpha:hid?0.45:1,
+       horse:{pal:isP?HCOAT.player:(r.lane===0?HCOAT.ally[0]:HCOAT.ally[1]),t:r.anim,run:true,air:air,gal:r.v>250}});
+    if(!hid)tag(r.n,r.x,by-70*ls);
+  });
+  ctx.restore();
+  /* HUD */
+  mtxt('СИЛЫ КОНЯ',12,14,10,'#f1e6d2','left');
+  mbar(12,22,170,10,p.st/100,p.st>50?'#2fb5a8':(p.st>25?'#e8c46a':'#d8434b'));
+  if(p.st>=30)mtxt('РЫВОК готов',12,42,10,'#e8c46a','left');
+  const x0=210,x1=430;
+  ctx.fillStyle='rgba(12,10,24,.6)';ctx.fillRect(x0-6,16,x1-x0+12,16);
+  ctx.fillStyle='rgba(241,230,210,.5)';ctx.fillRect(x0,23,x1-x0,2);
+  ctx.fillStyle='#f1e6d2';ctx.fillRect(x1,18,2,12);
+  [['#2fb5a8',0],['#8fd06a',1],['#d08ad8',2]].forEach(function(c){const r=m.riders[c[1]];ctx.fillStyle=c[0];ctx.beginPath();ctx.arc(x0+(x1-x0)*clamp(r.x/m.len,0,1),24,4,0,7);ctx.fill();});
+  const rank=1+m.riders.filter(function(r){return r!==p&&r.x>p.x;}).length;
+  mtxt('Место '+rank+'/3',W-14,24,13,'#e8c46a','right');
+  if(m.mode==='yield'&&m.phase==='run'&&p.x>m.riders[1].x+10)mtxt('Ты обогнал Ерасыла!',W/2,64,13,'#e8c46a');
+  if(m.mode==='cut'&&m.phase==='run'&&!m.cut.used&&p.x>=m.cutZ[0]&&p.x<=m.cutZ[1])mtxt(KBD?'↓: свернуть в овраг, когда судья отвернулся':'Свайп вниз или кнопка ↓: овраг',W/2,64,12,'#e8c46a');
+  if(m.msg&&m.msg.t>0)mtxt(m.msg.text,W/2,110,20,m.msg.col);
+  if(m.phase==='count')mtxt(m.cd>0.2?String(Math.ceil(m.cd-0.2)):'СТАРТ!',W/2,120,44,'#e8c46a');
+  if(m.phase==='run'||m.phase==='count')mtxt(KBD?'Пробел/↑ прыжок · L рывок · держи Shift или → галоп':'Прыжок · Рывок · Бег (держать)',W/2,H-8,10,'#3a2418');
+  if(m.phase==='how'){
+    const md={first:'Кто первым пересечёт линию, получит приз.',yield:'Ерасыл сын хозяина. Приди после него, не обгоняй его, но и не отставай слишком.',cut:'У знака жми ↓ и свернёшь в овраг. Судья на холме смотрит на трассу: выходи, пока он отвернулся (над ним z). Поймает, будет позор.'}[m.mode];
+    drawHow('БӘЙГЕ · СКАЧКИ',[
+      'Дистанция от аула до холма. Перепрыгивай барьеры и арыки. '+md,
+      KBD?'Пробел или ↑: прыжок. Держи Shift или →: галоп, он тратит силы. L: рывок (30 сил).':'Кнопка Прыжок или тап: прыжок. Бег (держать): галоп. Рывок: бросок вперёд. Свайпы: вверх прыжок, вправо рывок, вниз овраг.',
+      'Шкала сил коня слева вверху. Когда силы кончаются, конь замедляется.']);
+  }
+  if(m.phase==='result'){
+    const L=['Ты пришёл '+m.place+'-м из 3.'];
+    if(m.cut.used&&m.cut.caught)L.push('Судья заметил, что ты срезал путь.');
+    else if(m.cut.used)L.push('Ты срезал путь, и никто этого не заметил.');
+    else if(m.mode==='yield')L.push(m.sonAhead?'Ты не обогнал Ерасыла.':'Ты обогнал Ерасыла, хотя собирался уступить.');
+    drawHow('СКАЧКИ ОКОНЧЕНЫ',L,KBD?'Пробел или E: продолжить':'Нажми, чтобы продолжить');
+  }
+}
+function drawTea(t){
+  const m=mg;
+  drawAulBack(t);
+  const fy=284,kx=320-m.dp*110,pull=m.pullA>0?Math.sin(Math.PI*clamp(m.pullA/0.3,0,1)):0;
+  ctx.fillStyle='#c9a86a';ctx.fillRect(0,fy-6,W,H);ctx.fillStyle='#a98a50';ctx.fillRect(0,fy-6,W,3);
+  [210,430].forEach(function(lx,i){ctx.fillStyle=i?'#d8434b':'#2fb5a8';ctx.fillRect(lx-1.5,fy-8,3,36);ctx.fillStyle='#f1e6d2';ctx.fillRect(lx-1.5,fy-8,3,3);});
+  ctx.fillStyle='#4b2e22';ctx.fillRect(318,196,4,90);
+  ctx.fillStyle='#8a6a44';ctx.fillRect(306,182,28,18);ctx.fillStyle='#e8c46a';ctx.fillRect(306,189,28,3);
+  ctx.fillStyle='#3a2418';ctx.font='700 8px "PT Sans",sans-serif';ctx.textAlign='center';ctx.fillText('ЧАЙ',320,198);ctx.textAlign='left';
+  const danger=m.prompt?clamp(1-m.prompt.t/m.prompt.T,0,1):0;
+  const hx0=215+(kx-320)*0.45-pull*3,ox0=425+(kx-320)*0.45+danger*3,SP=34,SC=1.08;
+  const OPAL=[{body:'#6a2a5a',edge:'rgba(240,208,112,.6)',trim:'#f0d070',plume:'#f0d070'},{body:'#7a3a3a',trim:'#d8a23a',plume:'#d8a23a'},{body:'#3a3a6a',trim:'#d8a23a',plume:'#d8a23a'},{body:'#5a3a5a',trim:'#e8c46a',plume:'#e8c46a'},{body:'#4a3a2a',trim:'#d8a23a',plume:'#d8a23a'}];
+  const OH=['bork','kalpak','skull','kalpak','skull'],MH=[null,'skull','kalpak','skull','kalpak'];
+  const rows=[];
+  for(let k=4;k>=0;k--){
+    const ph=t*7+k*1.3,tw=Math.sin(ph);
+    rows.push({x:ox0+k*SP,face:-1,sc:SC*(k===0?1.08:1),pal:OPAL[k],hat:OH[k],lean:-0.42+m.dp*0.2-danger*0.22-0.03*tw,step:tw*0.5,name:k===0?'Даулет':''});
+    rows.push({x:hx0-k*SP,face:1,sc:SC*(k===0?1.08:1),pal:k===0?HERO:CIVPAL[(k*2+1)%CIVPAL.length],hat:k===0?(eqd('helm')?'dulyga':'hood'):MH[k],lean:-0.42-m.dp*0.2-(pull*0.2)-0.03*tw+(k===0?0:-pull*0.05),step:tw*0.5*(m.pullA>0?1:0.4),name:k===0?'ТЫ':'',hero:k===0});
+  }
+  rows.forEach(function(r){
+    ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(r.x,fy+1,14,3.5,0,0,7);ctx.fill();
+    drawWrestler({x:r.x,y:fy,face:r.face,sc:r.sc,pal:r.pal,hat:r.hat,mail:r.hero&&eqd('armor'),t:t,lean:r.lean,arms:'rope',reach:17,step:r.step});
+    if(r.name)tag(r.name,r.x,fy-52);
+  });
+  const ax=hx0-4*SP+22,bx=ox0+4*SP-22,ay=fy-36,sag=10+Math.sin(t*5)*2;
+  ctx.strokeStyle='#d8c08a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ax,ay);ctx.quadraticCurveTo((ax+bx)/2,ay+sag,bx,ay);ctx.stroke();
+  ctx.strokeStyle='#8a6a44';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#b3262e';ctx.fillRect(kx-4,ay+sag/2-4,8,10);
+  m.fx.forEach(function(p){ctx.globalAlpha=Math.max(0,0.7*(1-p.t/p.T));ctx.fillStyle='#e8d8b0';ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();});
+  ctx.globalAlpha=1;
+  mtxt('АРКАН ТАРТЫС · 5 НА 5',W/2,16,12,'#e8c46a');
+  const bx0=170,bw=300;
+  ctx.fillStyle='rgba(12,10,24,.7)';ctx.fillRect(bx0-2,26,bw+4,12);
+  ctx.fillStyle='rgba(47,181,168,.45)';ctx.fillRect(bx0,28,bw/2,8);ctx.fillStyle='rgba(216,67,75,.45)';ctx.fillRect(bx0+bw/2,28,bw/2,8);
+  ctx.fillStyle='#f1e6d2';ctx.fillRect(bx0+bw/2*(1-m.dp)-2,24,4,16);
+  mtxt('ВАШИ',bx0-10,32,10,'#bff3ec','right');mtxt('ДАУЛЕТ',bx0+bw+10,32,10,'#f0b0a0','left');
+  mtxt('СИЛЫ',16,52,10,'#f1e6d2','left');mbar(16,60,150,10,m.st/100,m.st>40?'#2fb5a8':(m.st>15?'#e8c46a':'#d8434b'));
+  mtxt(Math.max(0,Math.ceil(m.timer))+' с',W-16,52,11,'#a99fb8','right');
+  if(m.phase==='play'&&m.cd<=0&&m.prompt)drawPrompt(m.prompt,150,t);
+  else if(m.msg&&m.msg.t>0)mtxt(m.msg.text,W/2,150,22,m.msg.col);
+  if(m.rqT>0&&m.rq&&!m.prompt)mtxt(m.rq,W/2,110,13,m.rq==='Ритм!'?'#7fe0d4':'#e8c46a');
+  if(m.phase==='play'&&m.cd>0)mtxt(m.cd>0.3?String(Math.ceil(m.cd-0.3)):'ТЯНИ!',W/2,130,40,'#e8c46a');
+  if(m.phase==='fb')mtxt(m.win?'ПОБЕДА!':'ПРОИГРЫШ',W/2,130,28,m.win?'#e8c46a':'#d8434b');
+  mtxt(KBD?'Пробел или E: тянуть ровным ритмом · стрелка по подсказке':'Тапай ровно · свайп по стрелке при рывке',W/2,H-8,10,'#3a2418');
+  if(m.phase==='how')drawHow('АРКАН ТАРТЫС',[
+    'Аркан тартыс играют команда на команду, пять на пять. Ты впереди своей команды, напротив Даулет со своими. Какая сторона перетянет, получает кирпич бухарского чая.',
+    (KBD?'Жми Пробел или E':'Тапай по экрану')+', чтобы тянуть. Тяни ровно: слишком частые рывки слабее. Каждое движение тратит силы, дай рукам отдышаться.',
+    'Когда команда Даулета рванёт, '+(KBD?'нажми показанную стрелку':'свайпни в её сторону')+', иначе тебя протащит вперёд.']);
+}
+function renderMini(t){
+  ctx.setTransform(scale,0,0,scale,0,0);
+  const m=mg;
+  ctx.save();
+  if(m.shake>0)ctx.translate((Math.random()-0.5)*4,(Math.random()-0.5)*4);
+  if(m.type==='race')drawRace(t);else if(m.type==='wrest')drawWrest(t);else drawTea(t);
+  ctx.restore();
+  ctx.setTransform(scale,0,0,scale,0,0);
+  if(m.escT>0)mtxt('Нажми ещё раз, чтобы выйти',W/2,H-30,11,'#e8c46a');
+}
+
 /* ---------- story: dialogue and cutscenes ---------- */
 const TALKS={
   rebels:[
@@ -2747,7 +3648,7 @@ function updateChapter(){
     flags.cBoss=true;sfx('win');toast('Командир пал. Перевал свободен');saveGame();
   }
 }
-function support(){return (flags.cRef?1:0)+(flags.cKozha?1:0)+(flags.sKind?1:0)+(flags.sJwise?1:0)+(flags.sAisha?1:0);}
+function support(){return (flags.cRef?1:0)+(flags.cKozha?1:0)+(flags.sKind?1:0)+(flags.sJwise?1:0)+(flags.sAisha?1:0)+(flags.tEnd&&aulRep()>=3?1:0);}
 function refugTalk(){
   const BB='Беженка Бибігүл',b=P.food.baursak||0;
   if(flags.cRef){startTalk([{who:BB,text:'Бог в помощь тебе, батыр. Дети сыты благодаря тебе.'}]);return;}
@@ -2787,7 +3688,8 @@ function kozhaTalk(){
 }
 function aelderTalk(){
   const AE='Аксакал Жанабай';
-  if(flags.aFed){startTalk([{who:AE,text:flags.aSilent?'Живи у нас сколько нужно, батыр. Джунгары сюда пока не заглядывают.':'Живи у нас сколько нужно, батыр. Будь осторожен: язык разносит вести быстрее ветра.'}]);return;}
+  if(flags.aFed){toyEntry();return;}
+  if(false){startTalk([{who:AE,text:flags.aSilent?'Живи у нас сколько нужно, батыр. Джунгары сюда пока не заглядывают.':'Живи у нас сколько нужно, батыр. Будь осторожен: язык разносит вести быстрее ветра.'}]);return;}
   function finish(){
     flags.aFed=true;sfx('win');updateHud();saveGame();
     startTalk([{who:AE,text:'Джунгары берут с нас дань скотом и людьми. Мы кочуем из лощины в лощину и ждём, пока степь изменится.'},
@@ -2833,7 +3735,7 @@ function elderTalk(){
     {who:'',text:'Пастбища рода Конырат. Дымы над юртами, дети у котлов, а мужчин осталось вдвое меньше.'},
     {who:EL,text:'Мы дошли сюда после Туркестана. Скот угнан, стариков хоронили в дороге.'},
     {who:EL,text:flags.sAisha?'Кемпір Айша прислала весточку, что ты идёшь. Она не ошиблась.':'Кто тебя привёл к нам, батыр?'},
-    {who:EL,text:mood},
+    {who:EL,text:mood+toyEcho()},
     {who:EL,text:'Что скажешь роду? Куда нам идти?'}],
     null,{dark:true,backdrop:'aul',prompt:'Что скажешь роду?',choices:[
       {t:'Идти в ставку к Семеке-хану',f:function(){end('cJoin',[
@@ -2989,7 +3891,7 @@ function loadGame(d){
 
 /* ---------- quest: the letter ---------- */
 function questMark(c){
-  if(c.quest==='aelder')return !flags.aFed;
+  if(c.quest==='aelder')return !flags.aFed||!flags.tEnd;
   if(c.quest==='elder')return !flags.cDone;
   if(c.quest==='refug')return !flags.cRef;
   if(c.quest==='kozha')return !flags.cKozha;
@@ -3401,6 +4303,7 @@ function panelAct(a){
   if(a==='zhclear'){zhUser=[];try{localStorage.removeItem(ZH_KEY);}catch(e){}toast('Строки жырау сброшены');openSettings();return;}
   if(a.slice(0,3)==='ch:'){const f=choiceFns[+a.slice(3)];closePanel();if(f)f();return;}
   if(a.slice(0,4)==='sem:'){semAct(+a.slice(4));return;}
+  if(a.slice(0,4)==='toy:'){toyAct(a.slice(4));return;}
   if(a==='x'){closePanel();return;}
   if(a==='menu'){openMenu();return;}
   if(a==='save'){openSavePanel();return;}
@@ -3466,7 +4369,7 @@ $('hmenu').addEventListener('click',function(e){if(e.target.closest('button'))se
 document.addEventListener('pointerdown',function(e){if(!e.target.closest||!e.target.closest('.hudr'))closeHm();});
 $('pz').addEventListener('click',function(){togglePause();this.blur();});
 $('snd').addEventListener('click',function(){muted=!muted;this.textContent=muted?'Без звука':'Звук';initAudio();this.blur();});
-function togglePause(){if(state==='playing'&&!trans)openMenu();}
+function togglePause(){if(state==='mini'&&mg){if(mg.escT>0)mgAbort();else{mg.escT=2;toast('Нажми ещё раз, чтобы выйти из состязания');}return;}if(state==='playing'&&!trans)openMenu();}
 
 const KEYS={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'jump',KeyW:'jump',Space:'jump',
   KeyJ:'atk',KeyX:'atk',KeyK:'atk',ArrowDown:'down',KeyS:'down',KeyE:'use',KeyF:'use',KeyL:'dash',KeyC:'dash',KeyV:'parry',KeyU:'parry',KeyQ:'blend',ShiftLeft:'sprint',ShiftRight:'sprint',KeyH:'whistle',KeyT:'torch',KeyZ:'sneak'};
@@ -3481,10 +4384,12 @@ function press(k,down){
 function releaseAll(){
   input.left=input.right=input.jump=input.atk=input.down=input.blend=input.use=input.dash=input.parry=input.whistle=input.sprint=input.sneak=input.torch=false;
   input.jumpPressed=input.atkPressed=input.usePressed=input.dashPressed=input.parryPressed=false;
+  if(typeof mg!=='undefined'&&mg&&mg.hold)mg.hold.sprint=false;
   document.querySelectorAll('.pb.on').forEach(function(b){b.classList.remove('on');});
 }
 window.addEventListener('keydown',function(e){
   if(e.target&&e.target.tagName==='TEXTAREA')return;
+  if(state==='mini'&&mg){mgKeyDown(e);return;}
   if(e.code==='KeyI'||e.code==='Tab'){e.preventDefault();if(!e.repeat){if(state==='playing'&&!trans)openBag();else if(state==='panel')closePanel();}return;}
   if(e.code==='KeyP'||e.code==='Escape'){if(!e.repeat){if(state==='panel')panelAct(panelBack||'x');else togglePause();}e.preventDefault();return;}
   if(state==='panel')return;
@@ -3510,6 +4415,7 @@ window.addEventListener('keydown',function(e){
   const k=KEYS[e.code];if(k){e.preventDefault();press(k,true);}
 });
 window.addEventListener('keyup',function(e){
+  if(state==='mini'&&mg){mgKeyUp(e);e.preventDefault();return;}
   if(e.target&&e.target.tagName==='TEXTAREA')return;
   const k=KEYS[e.code];if(k){e.preventDefault();press(k,false);}
 });
@@ -3519,11 +4425,13 @@ document.addEventListener('contextmenu',function(e){if(e.target&&e.target.tagNam
 document.querySelectorAll('.pb').forEach(function(b){
   const k=b.dataset.k;
   b.addEventListener('pointerdown',function(e){
-    e.preventDefault();if(state==='talk'){if(!(talk&&talk.phase==='choice'))advanceTalk();return;}if(state!=='playing')return;
+    e.preventDefault();if(state==='talk'){if(!(talk&&talk.phase==='choice'))advanceTalk();return;}
+    if(state==='mini'&&mg){try{b.setPointerCapture(e.pointerId);}catch(_){}b.classList.add('on');mgPad(k,true);return;}
+    if(state!=='playing')return;
     try{b.setPointerCapture(e.pointerId);}catch(_){}
     b.classList.add('on');press(k,true);
   });
-  const up=function(){b.classList.remove('on');press(k,false);};
+  const up=function(){b.classList.remove('on');press(k,false);if(mg)mgPad(k,false);};
   b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('lostpointercapture',up);
 });
 $('ng').addEventListener('click',function(){if(state==='start')newGame();this.blur();});
@@ -4484,6 +5392,7 @@ function drawUnit(e){
 function render(now){
   ctx.setTransform(scale,0,0,scale,0,0);
   const t=now/1000;
+  if(mg){renderMini(t);if(state==='talk'&&talk)drawTalk(t);return;}
   drawBackground(t);
   ctx.save();
   const sx=shake>0?(Math.random()-0.5)*5:0,sy=shake>0?(Math.random()-0.5)*5:0;
@@ -4691,6 +5600,7 @@ function frame(now){
   let d=(now-last)/1000;last=now;if(d>0.1)d=0.1;if(d<0)d=0;
   if(state==='talk'&&talk){talk.t+=d;if(talk.phase==='dark'&&talk.t>=1.3){talk.phase='lines';talk.t=0;}}
   if(state==='playing'){acc+=d;while(acc>=DT&&state==='playing'){step(DT);acc-=DT;}}else acc=0;
+  if(state==='mini'&&mg)miniStep(d);
   render(now);
 }
 loadSettings();
