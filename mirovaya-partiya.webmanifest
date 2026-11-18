@@ -1,0 +1,23 @@
+{
+ "name": "Мировая партия",
+ "short_name": "Мир. партия",
+ "id": "mirovaya-partiya",
+ "start_url": "mirovaya-partiya-game.html",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#0a1522",
+ "theme_color": "#0a1522",
+ "lang": "ru",
+ "icons": [
+  {
+   "src": "mirovaya-partiya-icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "mirovaya-partiya-icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

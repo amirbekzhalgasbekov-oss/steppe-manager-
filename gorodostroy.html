@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Градострой — градостроительная игра в браузере. Покупайте участки, растите город, управляйте транспортом, экологией и социальными классами.">
+<title>Градострой — градостроительная игра</title>
+<meta name="theme-color" content="#243324">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #243324;
+    --bg-2: #1b281b;
+    --panel: #2d402d;
+    --ink: #0f180f;
+    --grass: #66bb6a;
+    --grass-d: #2e7d32;
+    --sand: #f0e2b6;
+    --sand-d: #c9b47c;
+    --sky: #8fd3ff;
+    --text: #e4ead8;
+    --muted: #a5b59c;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 400 16px/1.6 "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    overflow-x: hidden;
+    background-image:
+      linear-gradient(0deg, rgba(15,24,15,.35) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,24,15,.35) 1px, transparent 1px);
+    background-size: 32px 32px;
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-bottom: 40px; }
+
+  /* кнопки с объёмной тенью */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 46px; padding: 12px 20px;
+    font: 700 13px/1 "Unbounded", system-ui, sans-serif; text-decoration: none;
+    color: var(--ink); background: var(--sand); border: 3px solid var(--ink);
+    box-shadow: 0 5px 0 var(--ink); cursor: pointer;
+    transition: transform .08s, box-shadow .08s, background .15s;
+  }
+  .btn:hover { background: #fff3cc; }
+  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+  .btn.grass { background: var(--grass); }
+  .btn.grass:hover { background: #7fcf82; }
+  .btn.ghost { background: transparent; color: var(--sand); border-color: var(--sand-d); box-shadow: none; }
+  .btn.ghost:hover { background: rgba(240,226,182,.08); }
+  .btn.ghost:active { transform: translateY(1px); }
+  .btn:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+
+  /* шапка */
+  .top {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    height: 64px; border-bottom: 3px solid var(--ink);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--sand); }
+  .brand .logo { width: 28px; height: 28px; flex: none; }
+  .brand b { font: 900 15px/1 "Unbounded", system-ui, sans-serif; letter-spacing: .02em; }
+  .nav { display: flex; align-items: center; gap: 4px; }
+  .nav a.link { font: 500 14px/1 "Golos Text", sans-serif; text-decoration: none; color: var(--muted); padding: 10px; }
+  .nav a.link:hover { color: var(--sand); }
+  .nav .btn { min-height: 40px; padding: 10px 14px; box-shadow: 0 4px 0 var(--ink); margin-left: 6px; }
+  @media (max-width: 640px) { .nav a.link { display: none; } }
+
+  /* первый экран */
+  .hero { padding: 56px 0 0; }
+  .badge {
+    display: inline-block; font: 700 12px/1 "Unbounded", sans-serif; color: var(--ink);
+    background: var(--grass); border: 3px solid var(--ink); padding: 8px 10px;
+  }
+  .hero h1 {
+    font: 900 clamp(38px, 8vw, 78px)/1 "Unbounded", system-ui, sans-serif;
+    color: var(--sand); margin-top: 22px; letter-spacing: -.01em; text-wrap: balance;
+    text-shadow: 4px 4px 0 var(--ink);
+  }
+  .hero h1 span { color: var(--grass); }
+  .hero .lead { color: var(--text); max-width: 36em; margin-top: 22px; font-size: 18px; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+
+  /* пиксельный горизонт */
+  .skyline { display: block; width: 100%; height: auto; margin-top: 44px; image-rendering: pixelated; }
+
+  /* цифры */
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    background: var(--panel); border: 3px solid var(--ink); box-shadow: 0 6px 0 var(--ink);
+  }
+  .stats > div { padding: 18px 12px; text-align: center; border-right: 3px solid var(--ink); }
+  .stats > div:last-child { border-right: 0; }
+  .stats b { display: block; font: 900 26px/1 "Unbounded", sans-serif; color: var(--sand); }
+  .stats span { display: block; margin-top: 8px; font-size: 13px; color: var(--muted); }
+  @media (max-width: 560px) { .stats b { font-size: 20px; } .stats span { font-size: 12px; } }
+
+  /* секции */
+  section { padding: 64px 0 0; }
+  h2.title {
+    font: 900 clamp(24px, 4vw, 34px)/1.15 "Unbounded", system-ui, sans-serif; color: var(--sand);
+    display: inline-block; padding-bottom: 8px; border-bottom: 6px solid var(--grass);
+  }
+  .lead-sm { color: var(--muted); margin-top: 16px; max-width: 40em; }
+
+  /* карточки механик */
+  .blocks { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 30px; }
+  @media (min-width: 640px) { .blocks { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 960px) { .blocks { grid-template-columns: 1fr 1fr 1fr; } }
+  .block {
+    background: var(--panel); border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
+    padding: 20px 20px 22px;
+  }
+  .block .ic {
+    width: 44px; height: 44px; display: grid; place-items: center; font-size: 22px;
+    background: var(--grass-d); border: 3px solid var(--ink);
+  }
+  .block h3 { font: 700 17px/1.3 "Unbounded", sans-serif; color: var(--sand); margin-top: 16px; }
+  .block p { color: var(--text); font-size: 15px; margin-top: 8px; }
+
+  /* карты */
+  .maps { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 30px; }
+  @media (min-width: 640px) { .maps { grid-template-columns: 1fr 1fr; } }
+  .map {
+    display: flex; gap: 16px; align-items: flex-start; padding: 18px;
+    background: var(--bg-2); border: 3px solid var(--ink);
+  }
+  .map .tile {
+    flex: none; width: 64px; height: 64px; display: grid; place-items: center; font-size: 30px;
+    background: var(--grass); border: 3px solid var(--ink); box-shadow: inset -4px -4px 0 rgba(0,0,0,.25);
+  }
+  .map.water .tile { background: var(--sky); }
+  .map.dry .tile { background: var(--sand); }
+  .map.snow .tile { background: #e9f4ff; }
+  .map.hill .tile { background: #8d9b6a; }
+  .map h3 { font: 700 17px/1.3 "Unbounded", sans-serif; color: var(--sand); }
+  .map p { color: var(--muted); font-size: 15px; margin-top: 4px; }
+
+  /* управление */
+  .controls { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 30px; }
+  @media (min-width: 640px) { .controls { grid-template-columns: 1fr 1fr; } }
+  .panel-box { background: var(--panel); border: 3px solid var(--ink); padding: 22px; box-shadow: 6px 6px 0 var(--ink); }
+  .panel-box h3 { font: 700 16px/1 "Unbounded", sans-serif; color: var(--grass); }
+  .panel-box ul { list-style: none; margin-top: 14px; display: grid; gap: 10px; }
+  .panel-box li { position: relative; padding-left: 26px; font-size: 15px; }
+  .panel-box li::before {
+    content: ""; position: absolute; left: 0; top: 6px; width: 12px; height: 12px;
+    background: var(--sand); border: 2px solid var(--ink);
+  }
+
+  /* финальный блок */
+  .final {
+    margin-top: 72px; padding: 36px 26px; text-align: center;
+    background: var(--grass-d); border: 3px solid var(--ink); box-shadow: 8px 8px 0 var(--ink);
+  }
+  .final h2 { font: 900 clamp(24px, 5vw, 36px)/1.15 "Unbounded", sans-serif; color: var(--sand); text-shadow: 3px 3px 0 var(--ink); }
+  .final p { color: var(--text); margin: 14px auto 0; max-width: 34em; }
+  .final .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 26px; }
+  .final .btn.ghost { color: var(--text); border-color: var(--ink); }
+
+  footer {
+    margin-top: 56px; padding-top: 20px; border-top: 3px solid var(--ink);
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px;
+    color: var(--muted); font-size: 13px;
+  }
+
+  /* появление при прокрутке */
+  .js .rv { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+  .js .rv.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .js .rv { opacity: 1; transform: none; transition: none; }
+    .btn { transition: none; }
+  }
+</style>
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <a class="brand" href="index.html" aria-label="Назад в каталог">
+      <svg class="logo" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">
+        <rect x="0" y="4" width="2" height="4" fill="#66bb6a"/>
+        <rect x="2" y="1" width="2" height="7" fill="#f0e2b6"/>
+        <rect x="4" y="3" width="2" height="5" fill="#8fd3ff"/>
+        <rect x="6" y="5" width="2" height="3" fill="#66bb6a"/>
+        <rect x="0" y="7" width="8" height="1" fill="#0f180f"/>
+      </svg>
+      <b>ГРАДОСТРОЙ</b>
+    </a>
+    <nav class="nav">
+      <a class="link" href="#mechanics">Механики</a>
+      <a class="link" href="#maps">Карты</a>
+      <a class="link" href="#controls">Управление</a>
+      <a class="btn grass" href="gorodostroy_v51.html">Играть</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <span class="badge">Версия 51 · онлайн</span>
+    <h1>Постройте<br><span>свой город</span></h1>
+    <p class="lead">Покупайте участки, растите население, ставьте заводы, парки и храмы. Следите за пробками, экологией и настроением жителей: каждое решение отражается на всём городе.</p>
+    <div class="actions">
+      <a class="btn grass" href="gorodostroy_v51.html">Играть сейчас →</a>
+      <a class="btn ghost" href="#mechanics">Как это работает</a>
+    </div>
+
+    <svg class="skyline" viewBox="0 0 160 36" shape-rendering="crispEdges" aria-hidden="true">
+      <!-- дальний ряд -->
+      <rect x="0"   y="18" width="8"  height="18" fill="#1b281b"/>
+      <rect x="8"   y="12" width="6"  height="24" fill="#1b281b"/>
+      <rect x="22"  y="20" width="10" height="16" fill="#1b281b"/>
+      <rect x="40"  y="10" width="6"  height="26" fill="#1b281b"/>
+      <rect x="54"  y="16" width="8"  height="20" fill="#1b281b"/>
+      <rect x="70"  y="8"  width="6"  height="28" fill="#1b281b"/>
+      <rect x="84"  y="14" width="10" height="22" fill="#1b281b"/>
+      <rect x="102" y="20" width="8"  height="16" fill="#1b281b"/>
+      <rect x="118" y="11" width="6"  height="25" fill="#1b281b"/>
+      <rect x="132" y="17" width="10" height="19" fill="#1b281b"/>
+      <rect x="150" y="13" width="10" height="23" fill="#1b281b"/>
+      <!-- ближний ряд -->
+      <rect x="4"   y="24" width="8"  height="12" fill="#2e7d32"/>
+      <rect x="18"  y="16" width="6"  height="20" fill="#f0e2b6"/>
+      <rect x="30"  y="26" width="8"  height="10" fill="#66bb6a"/>
+      <rect x="46"  y="18" width="8"  height="18" fill="#8fd3ff"/>
+      <rect x="62"  y="22" width="6"  height="14" fill="#f0e2b6"/>
+      <rect x="76"  y="14" width="10" height="22" fill="#66bb6a"/>
+      <rect x="92"  y="24" width="6"  height="12" fill="#2e7d32"/>
+      <rect x="106" y="18" width="8"  height="18" fill="#f0e2b6"/>
+      <rect x="122" y="22" width="6"  height="14" fill="#8fd3ff"/>
+      <rect x="136" y="16" width="8"  height="20" fill="#66bb6a"/>
+      <rect x="150" y="24" width="8"  height="12" fill="#f0e2b6"/>
+      <!-- окна -->
+      <rect x="20" y="20" width="2" height="2" fill="#0f180f"/><rect x="20" y="25" width="2" height="2" fill="#0f180f"/>
+      <rect x="48" y="22" width="2" height="2" fill="#0f180f"/><rect x="78" y="18" width="2" height="2" fill="#0f180f"/>
+      <rect x="78" y="24" width="2" height="2" fill="#0f180f"/><rect x="108" y="22" width="2" height="2" fill="#0f180f"/>
+      <rect x="138" y="20" width="2" height="2" fill="#0f180f"/>
+      <!-- земля -->
+      <rect x="0" y="32" width="160" height="4" fill="#0f180f"/>
+    </svg>
+
+    <div class="stats">
+      <div><b>5</b><span>карт</span></div>
+      <div><b>8</b><span>стилей застройки</span></div>
+      <div><b>ПК + телефон</b><span>одна игра</span></div>
+    </div>
+  </div>
+
+  <section id="mechanics" class="rv">
+    <h2 class="title">Механики</h2>
+    <p class="lead-sm">Город — это система. Экономика, транспорт, экология и общество связаны между собой, и ошибка в одном быстро отзывается в другом.</p>
+    <div class="blocks">
+      <article class="block"><div class="ic">🏗</div><h3>Земля и торговля</h3><p>Растущий город покупает свободные участки. Коммерческие здания можно продавать участками или строить готовые помещения и сдавать их в аренду.</p></article>
+      <article class="block"><div class="ic">🚦</div><h3>Транспорт</h3><p>Машин и людей становится больше вместе с населением. Пробки регулируются полосами, светофорами и ограничением скорости.</p></article>
+      <article class="block"><div class="ic">🌳</div><h3>Экология</h3><p>Заводы и население наносят вред природе. Парки помогают, но без контроля загрязнение быстро растёт.</p></article>
+      <article class="block"><div class="ic">🏘</div><h3>Социальные классы</h3><p>Класс жителей зависит от района, работы и образования. Семьи среди чужого класса могут быть недовольны и переехать. Бедные районы способны превратиться в гетто.</p></article>
+      <article class="block"><div class="ic">✊</div><h3>Протесты</h3><p>Снос жилых и частных домов вызывает протесты. Рабочий класс может устроить митинг, если о нём забыли, а слишком большая помощь уязвимым злит элиты.</p></article>
+      <article class="block"><div class="ic">🚑</div><h3>Службы города</h3><p>Полиция, больницы и три типа кладбищ. Скорая, полиция и кладбищенские службы выезжают на происшествия. Без врачей растут смерти, без кладбища мёртвые остаются непогребёнными.</p></article>
+      <article class="block"><div class="ic">🕌</div><h3>Религия и образование</h3><p>Можно строить мечети, соборы, церкви и медресе. Образование и религиозные районы влияют на жизнь города и на его напряжённость.</p></article>
+      <article class="block"><div class="ic">🗳</div><h3>Выборы мэра</h3><p>В игре есть выборы мэра. Решения, которые вы принимаете, отражаются на доверии жителей к власти.</p></article>
+      <article class="block"><div class="ic">🗺</div><h3>Слои карты</h3><p>Переключайте наложения: религия, образование, класс, загрузка дорог, рождаемость и смертность. Видно, где город здоров, а где нужен ремонт.</p></article>
+    </div>
+  </section>
+
+  <section id="maps" class="rv">
+    <h2 class="title">Карты</h2>
+    <p class="lead-sm">Каждая карта ставит свою задачу: от ровной земли до суровой зимы.</p>
+    <div class="maps">
+      <div class="map"><div class="tile">🏙</div><div><h3>Классика</h3><p>Обычный город: ровная земля, всё сбалансировано.</p></div></div>
+      <div class="map water"><div class="tile">🏞</div><div><h3>Река</h3><p>Город у воды, где важно планировать мосты и берега.</p></div></div>
+      <div class="map dry"><div class="tile">🌾</div><div><h3>Сыр-Бойы</h3><p>Степь с Сырдарьёй справа и проблемами с водой. Каждый литр на счету.</p></div></div>
+      <div class="map hill"><div class="tile">⛰</div><div><h3>Горы</h3><p>Котловина среди гор: земли мало, и каждый участок ценен.</p></div></div>
+      <div class="map snow"><div class="tile">❄️</div><div><h3>Сибирь</h3><p>Зима, отопление и сильное загрязнение. Тепло нужно всем, а воздух нужно беречь.</p></div></div>
+    </div>
+  </section>
+
+  <section id="controls" class="rv">
+    <h2 class="title">Управление</h2>
+    <p class="lead-sm">Одна игра на телефоне и на компьютере.</p>
+    <div class="controls">
+      <div class="panel-box">
+        <h3>Телефон</h3>
+        <ul>
+          <li>Касание для выбора и строительства</li>
+          <li>Масштаб и перемещение жестами</li>
+          <li>Меню, сохранение и загрузка прямо в игре</li>
+        </ul>
+      </div>
+      <div class="panel-box">
+        <h3>Компьютер</h3>
+        <ul>
+          <li>Мышь для строительства и выбора участков</li>
+          <li>Клавиатура для перемещения по карте</li>
+          <li>Поворот вида и верхний режим обзора</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="rv">
+    <div class="final">
+      <h2>Ваш город ждёт</h2>
+      <p>Начните с ровной Классики или сразу выберите сложную карту. Игра открывается в браузере, ничего устанавливать не нужно.</p>
+      <div class="actions">
+        <a class="btn" href="gorodostroy_v51.html">Играть →</a>
+        <a class="btn ghost" href="index.html">В каталог</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Amirbek Zhalgasbekov. Все права защищены.</span>
+    <span>Градострой · версия 51</span>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var items = document.querySelectorAll('.rv');
+  if (!('IntersectionObserver' in window) || reduce) {
+    items.forEach(function (el) { el.classList.add('in'); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: .12 });
+    items.forEach(function (el) { io.observe(el); });
+  }
+})();
+</script>
+</body>
+</html>
